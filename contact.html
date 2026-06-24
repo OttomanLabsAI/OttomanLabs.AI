@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — OttomanLabs.AI</title>
+<meta name="description" content="Get in touch with OttomanLabs.AI — send a message or email directly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .intro{ margin-bottom:var(--gap); }
+
+  .contact-grid{ display:grid; grid-template-columns:1.5fr 1fr; gap:var(--gap); align-items:start; }
+  @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; } }
+
+  .card{ border:1px solid var(--hair); padding:1.6rem 1.5rem; }
+  .card h2{ font-family:var(--font-display); font-size:clamp(1.3rem,3vw,1.8rem); margin:0 0 .3rem; line-height:1.1; }
+  .card .sub{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-60); margin:0 0 1.2rem; }
+
+  /* form */
+  .field{ display:flex; flex-direction:column; gap:.35rem; margin-bottom:1rem; }
+  .field label{ font-family:var(--font-brand); font-weight:500; font-size:.62rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink); }
+  .field input, .field textarea{
+    font-family:var(--font-serif); font-size:1rem; color:var(--ink); background:var(--paper);
+    border:1px solid var(--hair); padding:.6rem .7rem; width:100%; box-sizing:border-box;
+    border-radius:0; outline:none; transition:border-color .12s;
+  }
+  .field input:focus, .field textarea:focus{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .field textarea{ resize:vertical; min-height:130px; line-height:1.55; }
+  .field input::placeholder, .field textarea::placeholder{ color:var(--ink-35); font-style:italic; }
+
+  /* honeypot — hidden from people, catches bots */
+  .hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+  .form-row{ display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:.3rem; }
+  .btn-send{
+    font-family:var(--font-brand); font-weight:600; font-size:.74rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--paper); background:var(--ink); border:1px solid var(--ink);
+    padding:.7rem 1.5rem; cursor:pointer; transition:background .12s,color .12s;
+  }
+  .btn-send:hover{ background:var(--paper); color:var(--ink); }
+  .btn-send:disabled{ opacity:.5; cursor:default; }
+
+  .form-status{ font-family:var(--font-serif); font-style:italic; font-size:.95rem; color:var(--ink-60); min-height:1.2em; }
+  .form-status.ok{ color:var(--ink); font-style:normal; }
+  .form-status.err{ color:#7a2230; }
+
+  /* direct-email side card */
+  .side p{ font-family:var(--font-serif); font-size:.98rem; line-height:1.6; color:var(--ink-60); margin:0 0 1.1rem; }
+  .btn-mail{
+    display:inline-flex; align-items:center; gap:.5rem;
+    font-family:var(--font-brand); font-weight:600; font-size:.74rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink); background:var(--paper); border:1px solid var(--ink);
+    padding:.7rem 1.2rem; text-decoration:none; transition:background .12s,color .12s;
+  }
+  .btn-mail:hover{ background:var(--ink); color:var(--paper); }
+  .mail-addr{ display:block; margin-top:1.1rem; font-family:var(--font-brand); font-size:.82rem; color:var(--ink); }
+  .mail-addr a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--hair); padding-bottom:.1rem; }
+  .mail-addr a:hover{ color:var(--ink-60); }
+  .side .elsewhere{ margin-top:1.4rem; padding-top:1.2rem; border-top:1px solid var(--hair); }
+  .side .elsewhere .caps{ display:block; margin-bottom:.5rem; }
+  .side .elsewhere a{ display:block; font-family:var(--font-brand); font-size:.8rem; color:var(--ink);
+    text-decoration:none; padding:.18rem 0; }
+  .side .elsewhere a:hover{ color:var(--ink-60); }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+</head>
+<body>
+<a class="skip" href="contact.html#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html" aria-current="page">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="box intro">
+    <span class="caps">Contact</span>
+    <p class="lede" style="font-family:var(--font-serif);font-style:italic;font-size:1.1rem;color:var(--ink-60);margin:.4rem 0 0">
+      Questions, collaborations, or a note about the tools — send a message below, or email directly.
+    </p>
+  </div>
+
+  <div class="contact-grid">
+
+    <!-- ░░ FORM ░░ -->
+    <section class="card">
+      <h2>Send a message</h2>
+      <p class="sub">Fields marked are required</p>
+
+      <form id="contactForm" novalidate>
+        <div class="field">
+          <label for="cName">Name</label>
+          <input type="text" id="cName" name="name" placeholder="Your name" required>
+        </div>
+        <div class="field">
+          <label for="cEmail">Email</label>
+          <input type="email" id="cEmail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="cSubject">Subject</label>
+          <input type="text" id="cSubject" name="subject" placeholder="What's this about?">
+        </div>
+        <div class="field">
+          <label for="cMessage">Message</label>
+          <textarea id="cMessage" name="message" placeholder="Write your message…" required></textarea>
+        </div>
+
+        <!-- honeypot: bots fill this, people never see it -->
+        <div class="hp" aria-hidden="true">
+          <label for="cWebsite">Leave this empty</label>
+          <input type="text" id="cWebsite" name="_honey" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="form-row">
+          <button type="submit" class="btn-send" id="sendBtn">Send message</button>
+          <span class="form-status" id="formStatus" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- ░░ DIRECT EMAIL ░░ -->
+    <aside class="card side">
+      <h2>Rather email?</h2>
+      <p class="sub">Straight to the inbox</p>
+      <p>Prefer your own mail app? Open a pre-addressed email and write at your leisure.</p>
+
+      <a class="btn-mail" href="mailto:fid_kk@proton.me?subject=OttomanLabs.AI" id="mailBtn">&#9993;&nbsp; Open email</a>
+
+      <span class="mail-addr"><a href="mailto:fid_kk@proton.me?subject=OttomanLabs.AI">fid_kk@proton.me</a></span>
+
+      <div class="elsewhere">
+        <span class="caps">Elsewhere</span>
+        <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub &#8599;</a>
+        <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube &#8599;</a>
+        <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram &#8599;</a>
+        <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram &#8599;</a>
+      </div>
+    </aside>
+
+  </div>
+
+  <p class="estab" style="margin-top:1.6rem">
+    OttomanLabs establishments:&nbsp;
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">OttomanAI</a> ·
+    <a href="https://denariart.com/" target="_blank" rel="noopener">DenariArt</a> ·
+    <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor's CV</a>
+  </p>
+  <p class="credits">Set in Flux, Newsreader &amp; Prata · © 2026 OttomanLabs.AI</p>
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+})();
+
+(function(){
+  var form = document.getElementById('contactForm');
+  var statusEl = document.getElementById('formStatus');
+  var sendBtn = document.getElementById('sendBtn');
+  if(!form) return;
+
+  function setStatus(msg, kind){
+    statusEl.textContent = msg;
+    statusEl.className = 'form-status' + (kind ? ' ' + kind : '');
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    // access fields explicitly (form.name would collide with the form's own .name property)
+    var nameEl = document.getElementById('cName');
+    var emailEl = document.getElementById('cEmail');
+    var messageEl = document.getElementById('cMessage');
+    var honeyEl = document.getElementById('cWebsite');
+
+    // basic client-side validation
+    var name = nameEl.value.trim();
+    var email = emailEl.value.trim();
+    var message = messageEl.value.trim();
+    if(!name || !email || !message){
+      setStatus('Please fill in your name, email and message.', 'err');
+      return;
+    }
+    // honeypot tripped → silently pretend success
+    if(honeyEl && honeyEl.value){
+      setStatus('Thanks — your message has been sent.', 'ok');
+      form.reset();
+      return;
+    }
+
+    var data = new FormData(form);
+    data.append('_subject', 'OttomanLabs.AI — message from ' + name);
+    data.append('_captcha', 'false');
+    data.append('_template', 'box');
+
+    sendBtn.disabled = true;
+    setStatus('Sending…');
+
+    fetch('https://formsubmit.co/ajax/fid_kk@proton.me', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: data
+    })
+    .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(j){ return { ok: res.ok, body: j }; }); })
+    .then(function(r){
+      if(r.ok){
+        setStatus('Thanks — your message has been sent.', 'ok');
+        form.reset();
+      } else {
+        setStatus('Something went wrong. Please use the “Open email” button instead.', 'err');
+      }
+    })
+    .catch(function(){
+      setStatus('Network error. Please use the “Open email” button instead.', 'err');
+    })
+    .then(function(){ sendBtn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

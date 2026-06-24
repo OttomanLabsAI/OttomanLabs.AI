@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OttomanLabs.AI</title>
+<meta name="description" content="OttomanLabs.AI (formerly RevitTurboCharger): The Gherkin parametric tower board, open-source tools on GitHub, and a reading room.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  /* large text dividers between sections */
+  .section-head{
+    font-family:var(--font-display); font-size:clamp(1.6rem,4vw,2.8rem);
+    letter-spacing:.01em; line-height:1; margin:2.4rem 0 1rem; color:var(--ink);
+    display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;
+  }
+  .section-head:first-of-type{ margin-top:.4rem; }
+  .section-head .sh-sub{ font-family:var(--font-brand); font-style:normal;
+    font-size:clamp(.66rem,1.3vw,.8rem); color:var(--ink-60); letter-spacing:.18em;
+    text-transform:uppercase; }
+
+  .mosaic{
+    display:grid; gap:var(--gap);
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .mosaic-projects{
+    grid-template-areas:"gherkin shard burj regents";
+  }
+  .mosaic-rest{
+    grid-template-areas:
+      "news    read   follow github"
+      "stocks  cv     cv     github"
+      "youtube b3     b4     b2";
+  }
+  .a-gherkin{grid-area:gherkin} .a-shard{grid-area:shard} .a-burj{grid-area:burj}
+  .a-regents{grid-area:regents}
+  .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
+  .a-follow{grid-area:follow} .a-cv{grid-area:cv}
+  .a-stocks{grid-area:stocks} .a-youtube{grid-area:youtube}
+  .a-b2{grid-area:b2} .a-b3{grid-area:b3} .a-b4{grid-area:b4}
+  .box.blank{ min-height:150px; }
+
+  .big-word{ font-size:clamp(1.55rem,2.7vw,2rem); }
+  .bldg{ gap:.45rem; padding-top:1.5rem; padding-bottom:1.5rem; }
+  .bldg .sub{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
+    font-size:.82rem; line-height:1.3; max-width:15rem; }
+
+  .a-github{ justify-content:space-between; padding-top:1.8rem; padding-bottom:1.8rem; gap:.8rem; }
+
+  .oval{
+    width:min(230px,100%); aspect-ratio:230/150; border:1px solid var(--ink);
+    border-radius:50%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:.3rem; position:relative; padding:1rem;
+  }
+  .oval::before{
+    content:""; position:absolute; inset:7px; border:1px dashed var(--ink);
+    border-radius:50%;
+  }
+
+  .follow-icons{ display:flex; align-items:flex-end; gap:1.1rem; }
+  .social-line{ display:flex; flex-wrap:wrap; justify-content:center; gap:.3rem .9rem; }
+  .social-line a{ font-family:var(--font-brand); font-weight:500; font-size:.66rem;
+    letter-spacing:.24em; text-transform:uppercase; }
+
+  @media (max-width:900px){
+    .mosaic-projects{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-areas:
+        "gherkin shard"
+        "burj    regents";
+    }
+    .mosaic-rest{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-areas:
+        "github  github"
+        "read    read"
+        "news    follow"
+        "stocks  youtube"
+        "cv      cv";
+    }
+    .box.blank{ display:none; }
+  }
+  @media (max-width:560px){
+    .mosaic{ display:flex; flex-direction:column; }
+  }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+</head>
+<body>
+<a class="skip" href="index.html#main">Skip to content</a>
+
+<!-- ════════ MASTHEAD ════════ -->
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <h2 class="section-head">Projects<span class="sh-sub">parametric studies of landmark structures</span></h2>
+  <div class="mosaic mosaic-projects">
+
+    <!-- ════════ THE GHERKIN ════════ -->
+    <a class="box bldg a-gherkin" href="dashboard.html">
+      <span>
+        <span class="ital" style="display:block">The</span>
+        <span class="display big-word">GHERKIN</span>
+      </span>
+      <span class="sub">Diagrid Exoskeleton</span>
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="caps caps-tight muted">enter the model</span>
+    </a>
+
+    <!-- ════════ THE SHARD ════════ -->
+    <div class="box bldg a-shard">
+      <span>
+        <span class="ital" style="display:block">The</span>
+        <span class="display big-word">SHARD</span>
+      </span>
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="sub">Faceted Glass Facade</span>
+      <span class="caps caps-tight muted">coming soon</span>
+    </div>
+
+    <!-- ════════ BURJ KHALIFA ════════ -->
+    <div class="box bldg a-burj">
+      <span>
+        <span class="ital" style="display:block">Burj</span>
+        <span class="display big-word">KHALIFA</span>
+      </span>
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="sub">Buttressed Core</span>
+      <span class="caps caps-tight muted">coming soon</span>
+    </div>
+
+    <!-- ════════ REGENTS CRESCENT ════════ -->
+    <div class="box bldg a-regents">
+      <span>
+        <span class="ital" style="display:block">Regents</span>
+        <span class="display big-word">CRESCENT</span>
+      </span>
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="sub">Classic European Facade</span>
+      <span class="caps caps-tight muted">coming soon</span>
+    </div>
+
+  </div><!-- /mosaic-projects -->
+
+  <h2 class="section-head">The Studio<span class="sh-sub">writing, picks, code &amp; ways to follow along</span></h2>
+  <div class="mosaic mosaic-rest">
+
+    <!-- ════════ GITHUB (tall) ════════ -->
+    <a class="box a-github" href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">
+      <img src="assets/ottomanai-logo-02.jpg" alt="OttomanAI" width="190" style="mix-blend-mode:multiply">
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="caps caps-tight" style="line-height:2.1">open source<br>always open<br>GitHub &amp; PyPI</span>
+      <span class="caps caps-tight muted">browse the code</span>
+    </a>
+
+    <!-- ════════ NEWS ════════ -->
+    <div class="box a-news">
+      <svg viewBox="0 0 70 40" width="58" height="33" stroke="#111" fill="none" stroke-width="2" aria-hidden="true">
+        <path d="M4,30 L64,5 L36,36 L29,23 Z"/>
+        <path d="M29,23 L64,5" stroke-width="1.4"/>
+      </svg>
+      <span class="ital">Sign up for</span>
+      <span class="display" style="font-size:1.7rem">NEWS</span>
+      <!-- Front-end only: connect to your mailing provider before launch. -->
+      <form class="newsform" id="newsForm" novalidate>
+        <label class="skip" for="newsEmail">Email address</label>
+        <input id="newsEmail" type="email" placeholder="your@address" required autocomplete="email">
+        <button type="submit" aria-label="Sign up">→</button>
+      </form>
+      <span class="ok-msg" id="newsOk">NOTED — THANK YOU</span>
+    </div>
+
+    <!-- ════════ READING ROOM (bottom middle) ════════ -->
+    <a class="box a-read" href="reading.html">
+      <div class="oval">
+        <span class="caps">The Reading<br>Room</span>
+        <span class="ital" style="font-size:1rem">47 volumes</span>
+        <span class="caps caps-tight muted" style="font-size:.6rem">2006 — present</span>
+      </div>
+    </a>
+
+    <!-- ════════ FOLLOW ME ════════ -->
+    <div class="box a-follow">
+      <span class="follow-icons" aria-hidden="true">
+        <svg viewBox="0 0 70 40" width="50" height="29" stroke="#111" fill="none" stroke-width="2">
+          <path d="M4,30 L64,5 L36,36 L29,23 Z"/><path d="M29,23 L64,5" stroke-width="1.4"/>
+        </svg>
+        <svg viewBox="0 0 60 46" width="52" height="40" stroke="#111" fill="none" stroke-width="2">
+          <rect x="6" y="13" width="48" height="29" rx="3"/>
+          <circle cx="30" cy="27.5" r="9"/><circle cx="30" cy="27.5" r="4" stroke-width="1.4"/>
+          <rect x="12" y="7" width="12" height="6"/><rect x="44" y="9" width="7" height="4"/>
+        </svg>
+      </span>
+      <span class="ital">follow me on</span>
+      <div class="social-line">
+        <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://instagram.com/fid_900" target="_blank" rel="noopener">Instagram &middot; personal</a>
+        <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.pinterest.co.uk/denariart/" target="_blank" rel="noopener">Pinterest</a>
+      </div>
+    </div>
+
+    <!-- ════════ FADIL'S STOCK PICKS ════════ -->
+    <a class="box a-stocks" href="stocks.html">
+      <svg viewBox="0 0 120 44" width="110" height="40" fill="none" stroke="#111" aria-hidden="true">
+        <polyline points="2,40 22,38 40,39 60,34 80,35 102,30 118,31" stroke="#B9B9B5" stroke-width="1.5" stroke-linejoin="round"/>
+        <polyline points="2,36 18,30 30,33 44,20 58,24 72,12 86,16 100,7 118,10" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span class="ital">Fadil&rsquo;s</span>
+      <span class="display" style="font-size:1.45rem">STOCK PICKS</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">63 companies &middot; 13 categories &middot; annotated</span>
+    </a>
+
+    <!-- ════════ DOWNLOAD MY CV ════════ -->
+    <a class="box a-cv" href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">
+      <svg viewBox="0 0 60 70" width="44" height="51" stroke="#111" fill="none" stroke-width="2" aria-hidden="true">
+        <path d="M10,4 H38 L52,18 V66 H10 Z"/>
+        <path d="M38,4 V18 H52"/>
+        <line x1="18" y1="28" x2="44" y2="28" stroke-width="1.6"/>
+        <line x1="18" y1="36" x2="44" y2="36" stroke-width="1.6"/>
+        <line x1="18" y1="44" x2="34" y2="44" stroke-width="1.6"/>
+        <path d="M31,50 V61 M25,55 L31,61 L37,55"/>
+      </svg>
+      <span class="ital">Download</span>
+      <span class="display" style="font-size:1.5rem">MY CV</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">Fadil Karim · Computational BIM Engineer · PDF</span>
+    </a>
+
+    <!-- ════════ YOUTUBE ════════ -->
+    <a class="box a-youtube" href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">
+      <svg viewBox="0 0 64 46" width="58" height="42" aria-hidden="true">
+        <rect x="1" y="1" width="62" height="44" rx="10" fill="none" stroke="#111" stroke-width="2"/>
+        <path d="M26 14 L46 23 L26 32 Z" fill="#111"/>
+      </svg>
+      <span class="ital">watch on</span>
+      <span class="display" style="font-size:1.4rem">YOUTUBE</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">@OttomanlabsAI &middot; Revit, Grasshopper &amp; AI</span>
+    </a>
+    <div class="box blank a-b3" aria-hidden="true"></div>
+    <div class="box blank a-b4" aria-hidden="true"></div>
+    <div class="box blank a-b2" aria-hidden="true"></div>
+
+  </div>
+
+  <p class="credits">Illustrations drawn in-house · set in Flux, Newsreader &amp; Prata · © 2026 OttomanLabs.AI</p>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  /* news coupon — front-end only */
+  var form = document.getElementById('newsForm');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = document.getElementById('newsEmail');
+    if (!email.value || !email.checkValidity()){ email.focus(); return; }
+    form.style.display = 'none';
+    document.getElementById('newsOk').style.display = 'block';
+  });
+})();
+</script>
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
