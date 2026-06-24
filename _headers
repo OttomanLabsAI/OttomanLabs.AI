@@ -1,0 +1,33 @@
+# Cloudflare Pages — headers config
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+
+# Downloadable files: force a "Save As" dialog rather than opening in-tab.
+/assets/Fadil-Karim-CV.pdf
+  Content-Disposition: attachment; filename="Fadil-Karim-CV.pdf"
+
+# pyGherkin pyRevit extension — force download and revalidate so updates ship.
+/assets/pyGherkin_extension.zip
+  Content-Disposition: attachment; filename="pyGherkin_extension.zip"
+  Cache-Control: public, max-age=0, must-revalidate
+
+# When you add downloadable model files, uncomment / extend these:
+# /assets/*.gh
+#   Content-Disposition: attachment
+# /assets/*.rfa
+#   Content-Disposition: attachment
+# /assets/*.zip
+#   Content-Disposition: attachment
+
+# Long-cache the static assets (fonts, images, the PDF) — they rarely change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML pages: always revalidate so edits show up immediately on redeploy.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Sensible security headers for a static site.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
