@@ -1994,15 +1994,16 @@
   function vnorm(a){ var L = Math.hypot(a.x,a.y,a.z) || 1; return {x:a.x/L, y:a.y/L, z:a.z/L}; }
   function vperp(v,a){ var d = vdot(v,a); return {x:v.x-d*a.x, y:v.y-d*a.y, z:v.z-d*a.z}; }
 
-  // cross-section rotation: vertical members keep 0 (the family default);
-  // everything else rolls so the beam bottom faces the centre of the revolve
-  // (up = outward radial at the member midpoint)
+  // cross-section rotation: horizontal members (the ring beams) keep 0 — the
+  // family default, bottom facing straight down; everything else rolls so the
+  // beam bottom faces the centre of the revolve (up = outward radial at the
+  // member midpoint)
   function beamRotation(s, e){
     var axis = vnorm(vsub(e, s));
     var up0 = vperp({x:0,y:0,z:1}, axis);                        // Revit default up (global Z, perp to axis)
     if(Math.hypot(up0.x,up0.y,up0.z) < 1e-6) up0 = vperp({x:1,y:0,z:0}, axis); // near-vertical fallback
     up0 = vnorm(up0);
-    if(Math.hypot(e.x - s.x, e.y - s.y) < 1e-6){                 // vertical: no roll
+    if(Math.abs(e.z - s.z) < 1e-6){                              // horizontal: no roll
       return { theta: 0, up: up0 };
     }
     var d = { x:(s.x+e.x)/2, y:(s.y+e.y)/2, z:0 };               // outward radial at midpoint
@@ -2892,7 +2893,7 @@
       });
     }
 
-    /* the exoskeleton wraps it: diagrid braces between the node points */
+    /* the exoskeleton wraps it: diagrid braces + horizontal ring beams */
     ctx.strokeStyle = inkA(.9);
     ctx.lineWidth = 1.1;
     for(k = 0; k + 1 < nodePts.length; k++){
@@ -2904,6 +2905,15 @@
         var PL = S(ndUp[(j - 1 + NN) % NN]);
         ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PR.x, PR.y); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PL.x, PL.y); ctx.stroke();
+      }
+    }
+    /* ring beams: adjacent nodes joined around each level */
+    for(k = 0; k < nodePts.length; k++){
+      var ndr = nodePts[k];
+      if(!ndr) continue;
+      for(var jr = 0; jr < NN; jr++){
+        var Pa = S(ndr[jr]), Pb = S(ndr[(jr + 1) % NN]);
+        ctx.beginPath(); ctx.moveTo(Pa.x, Pa.y); ctx.lineTo(Pb.x, Pb.y); ctx.stroke();
       }
     }
     /* connection points: a dot at every diagrid node */
