@@ -376,13 +376,30 @@
     function anchorDownload(files){
       files.forEach(function(f, i){
         setTimeout(function(){
-          var blob = new Blob([f.text], { type:(f.mime || 'text/csv;charset=utf-8') });
+          var blob = f.blob || new Blob([f.text], { type:(f.mime || 'text/csv;charset=utf-8') });
           var url = URL.createObjectURL(blob);
           var a = document.createElement('a'); a.href = url; a.download = f.name;
           document.body.appendChild(a); a.click();
           setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
         }, i * 200);
       });
+    }
+
+    // Without the File System Access API (Firefox/Safari) no web page can open
+    // a save-location dialog — downloads go wherever the browser is set to put
+    // them. Say so once, with the setting that gives a per-file prompt.
+    var noticeEl = null;
+    function fallbackNotice(){
+      if(noticeEl) return;
+      noticeEl = document.createElement('div');
+      noticeEl.style.cssText = 'position:fixed;right:1rem;bottom:1rem;z-index:9999;max-width:22rem;' +
+        'padding:.8rem 1rem;background:var(--ink,#111);color:var(--paper,#fff);cursor:pointer;' +
+        'font-size:.85rem;line-height:1.45;';
+      noticeEl.textContent = 'Saved with the browser’s downloader — this browser cannot show ' +
+        'a save-location dialog. Turn on “Ask where to save each file” in its download ' +
+        'settings to pick a folder per file, or use Chrome/Edge for a save dialog here. (Click to dismiss.)';
+      noticeEl.onclick = function(){ noticeEl.remove(); noticeEl = null; };
+      document.body.appendChild(noticeEl);
     }
 
     // Save dialogs consume the click's user activation, so a picker chained
@@ -414,14 +431,14 @@
         types: [{ description: ext.slice(1).toUpperCase() + ' file', accept: acc }]
       }).then(function(fh){
         return fh.createWritable().then(function(ws){
-          return ws.write(f.text).then(function(){ return ws.close(); });
+          return ws.write(f.blob || f.text).then(function(){ return ws.close(); });
         });
       });
     }
 
     return function(files){
       if(!files || !files.length) return;
-      if(!window.showSaveFilePicker){ anchorDownload(files); return; }
+      if(!window.showSaveFilePicker){ anchorDownload(files); fallbackNotice(); return; }
       (function next(i){
         if(i >= files.length){ hideContinue(); return; }
         saveOne(files[i])
@@ -433,6 +450,21 @@
       })(0);
     };
   })();
+
+  // Route the pyGherkin zip download through a save dialog where supported,
+  // so it lands in a chosen folder like the CSV/SVG exports do.
+  document.addEventListener('click', function(ev){
+    if(!window.showSaveFilePicker) return;                 // keep the plain link download
+    var a = ev.target && ev.target.closest ? ev.target.closest('a.pyg-dl') : null;
+    if(!a) return;
+    ev.preventDefault();
+    fetch(a.getAttribute('href'))
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(function(blob){
+        window.saveCSVBatch([{ name:'pyGherkin.extension.zip', blob:blob, mime:'application/zip' }]);
+      })
+      .catch(function(){ window.location.href = a.href; }); // fetch failed → normal download
+  });
 </script>
 
 <header class="masthead wrap">
@@ -3831,11 +3863,8 @@
   }
 
   function downloadJSON(name, obj){
-    var blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = name;
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+    // through the shared saver: save dialog where supported, download otherwise
+    window.saveCSVBatch([{ name:name, text:JSON.stringify(obj, null, 2), mime:'application/json' }]);
   }
 
   function apply(cfg){
