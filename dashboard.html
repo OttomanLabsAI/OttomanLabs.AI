@@ -385,21 +385,28 @@
       });
     }
 
-    // Without the File System Access API (Firefox/Safari) no web page can open
-    // a save-location dialog — downloads go wherever the browser is set to put
-    // them. Say so once, with the setting that gives a per-file prompt.
+    // Without the File System Access API (Firefox/Safari, Brave by default)
+    // downloads go through the browser's own downloader. Whether that prompts
+    // for a location is a browser setting a page cannot detect — so the hint
+    // is conditional, fades out on its own, and never returns once dismissed.
     var noticeEl = null;
     function fallbackNotice(){
+      try { if(localStorage.getItem('ol-save-notice') === 'off') return; } catch(e){}
       if(noticeEl) return;
       noticeEl = document.createElement('div');
       noticeEl.style.cssText = 'position:fixed;right:1rem;bottom:1rem;z-index:9999;max-width:22rem;' +
         'padding:.8rem 1rem;background:var(--ink,#111);color:var(--paper,#fff);cursor:pointer;' +
-        'font-size:.85rem;line-height:1.45;';
-      noticeEl.textContent = 'Saved with the browser’s downloader — this browser cannot show ' +
-        'a save-location dialog. Turn on “Ask where to save each file” in its download ' +
-        'settings to pick a folder per file, or use Chrome/Edge for a save dialog here. (Click to dismiss.)';
-      noticeEl.onclick = function(){ noticeEl.remove(); noticeEl = null; };
+        'font-size:.85rem;line-height:1.45;transition:opacity .6s;';
+      noticeEl.textContent = 'Files were handed to the browser’s downloader. If it didn’t ask ' +
+        'where to save, turn on “Ask where to save each file” in the browser’s download ' +
+        'settings. (Click to dismiss for good.)';
+      noticeEl.onclick = function(){
+        try { localStorage.setItem('ol-save-notice', 'off'); } catch(e){}
+        noticeEl.remove(); noticeEl = null;
+      };
       document.body.appendChild(noticeEl);
+      setTimeout(function(){ if(noticeEl){ noticeEl.style.opacity = '0'; } }, 9000);
+      setTimeout(function(){ if(noticeEl){ noticeEl.remove(); noticeEl = null; } }, 9700);
     }
 
     // Save dialogs consume the click's user activation, so a picker chained
