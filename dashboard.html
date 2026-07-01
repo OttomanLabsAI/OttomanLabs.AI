@@ -365,20 +365,18 @@
       : 'rgba(17,17,17,' + a + ')';
   };
 
-  // Save a batch of text files. With the File System Access API we ask for a
-  // destination folder ONCE and write every file of the batch into it — so a
-  // multi-file CSV export lands together in the folder the user picks, and that
-  // folder is remembered for the rest of the session (repeat exports go straight
-  // there with no dialog) instead of each file falling back to Downloads. When
-  // the API is unavailable we download each file the classic anchor way.
-  // files: [{ name, text }]
+  // Save a batch of text files, asking WHERE for each one. Every file gets its
+  // own save dialog via showSaveFilePicker; the shared picker id makes the
+  // browser remember the last-used folder, so each dialog defaults to wherever
+  // the previous file was saved. Cancelling a dialog stops the rest of the
+  // batch. When the API is unavailable (Firefox/Safari) we fall back to plain
+  // anchor downloads — the browser's own "ask where to save" setting applies.
+  // files: [{ name, text, mime? }]  (mime defaults to CSV; SVG exports pass image/svg+xml)
   window.saveCSVBatch = (function(){
-    var dirHandle = null;   // remembered destination folder for this session
-
     function anchorDownload(files){
       files.forEach(function(f, i){
         setTimeout(function(){
-          var blob = new Blob([f.text], { type:'text/csv;charset=utf-8' });
+          var blob = new Blob([f.text], { type:(f.mime || 'text/csv;charset=utf-8') });
           var url = URL.createObjectURL(blob);
           var a = document.createElement('a'); a.href = url; a.download = f.name;
           document.body.appendChild(a); a.click();
@@ -387,42 +385,52 @@
       });
     }
 
-    // Confirm we still hold read/write permission on a remembered folder handle.
-    function granted(handle){
-      if(!handle || !handle.queryPermission) return Promise.resolve(true);
-      var opts = { mode:'readwrite' };
-      return handle.queryPermission(opts).then(function(p){
-        if(p === 'granted') return true;
-        return handle.requestPermission(opts).then(function(r){ return r === 'granted'; });
-      });
+    // Save dialogs consume the click's user activation, so a picker chained
+    // straight after a save can be refused by the browser. This small corner
+    // button supplies a fresh click to continue with the next file.
+    var nextBtn = null;
+    function askContinue(f, onGo){
+      if(!nextBtn){
+        nextBtn = document.createElement('button');
+        nextBtn.id = 'saveBatchNext';
+        nextBtn.style.cssText = 'position:fixed;right:1rem;bottom:1rem;z-index:9999;' +
+          'padding:.65rem 1.1rem;background:var(--ink,#111);color:var(--paper,#fff);' +
+          'border:0;cursor:pointer;font:inherit;letter-spacing:.08em;';
+        document.body.appendChild(nextBtn);
+      }
+      nextBtn.textContent = '↓ Save next: ' + f.name;
+      nextBtn.hidden = false;
+      nextBtn.onclick = function(){ nextBtn.hidden = true; onGo(); };
     }
+    function hideContinue(){ if(nextBtn) nextBtn.hidden = true; }
 
-    function writeAll(handle, files){
-      dirHandle = handle;
-      return files.reduce(function(chain, f){
-        return chain.then(function(){
-          return handle.getFileHandle(f.name, { create:true }).then(function(fh){
-            return fh.createWritable().then(function(ws){
-              return ws.write(f.text).then(function(){ return ws.close(); });
-            });
-          });
+    function saveOne(f){
+      var mime = (f.mime || 'text/csv').split(';')[0];
+      var ext = '.' + f.name.split('.').pop();
+      var acc = {}; acc[mime] = [ext];
+      return window.showSaveFilePicker({
+        id:'gherkin-export',              // browser remembers the folder per id → defaults to the previous pick
+        suggestedName: f.name,
+        types: [{ description: ext.slice(1).toUpperCase() + ' file', accept: acc }]
+      }).then(function(fh){
+        return fh.createWritable().then(function(ws){
+          return ws.write(f.text).then(function(){ return ws.close(); });
         });
-      }, Promise.resolve());
+      });
     }
 
     return function(files){
       if(!files || !files.length) return;
-      if(!window.showDirectoryPicker){ anchorDownload(files); return; }
-      // Reuse the remembered folder if we still have permission; otherwise ask.
-      var pick = dirHandle
-        ? granted(dirHandle).then(function(ok){ return ok ? dirHandle : window.showDirectoryPicker({ id:'gherkin-csv', mode:'readwrite' }); })
-        : window.showDirectoryPicker({ id:'gherkin-csv', mode:'readwrite' });
-      pick.then(function(handle){ return writeAll(handle, files); })
-        .catch(function(err){
-          if(err && err.name === 'AbortError') return;   // user cancelled the folder picker
-          dirHandle = null;
-          anchorDownload(files);                          // any real failure → don't lose the data
-        });
+      if(!window.showSaveFilePicker){ anchorDownload(files); return; }
+      (function next(i){
+        if(i >= files.length){ hideContinue(); return; }
+        saveOne(files[i])
+          .then(function(){ next(i + 1); })
+          .catch(function(err){
+            if(err && err.name === 'AbortError'){ hideContinue(); return; }   // user cancelled → stop the batch
+            askContinue(files[i], function(){ next(i); });   // activation expired → one click resumes
+          });
+      })(0);
     };
   })();
 </script>
@@ -934,8 +942,9 @@
     <div class="panel" id="totalPanel">
       <div class="model-bar">
         <span class="caps" style="letter-spacing:.28em">Total model</span>
+        <label class="toggle"><input type="checkbox" id="totalShaded" checked> Shaded</label>
         <button id="totalReset">Reset view</button>
-        <span class="model-hint">Shaded plates wrapped in the diagrid &middot; drag to orbit &middot; scroll to zoom</span>
+        <span class="model-hint">Diagrid lines, connection nodes &amp; floors &middot; drag to orbit &middot; scroll to zoom</span>
       </div>
       <div class="plot-wrap"><canvas id="totalModel"></canvas></div>
     </div>
@@ -2791,17 +2800,20 @@
       plates.push({ bot: bot, top: top, form: fm.form, z: z });
     }
 
-    var rings = [], M2 = 72;
+    // exoskeleton nodes: N diagrid points per level — the brace endpoints,
+    // drawn as connection dots (the smooth level rings are not shown here)
+    var NN = Math.max(3, Math.round(window.polarN || 12));
+    var nodePts = [];
     for(k = 0; k < er.length; k++){
       var rr = er[k];
-      if(rr <= 1e-6){ rings.push(null); continue; }
-      var zk = exoZ(k), rg = [];
-      for(s = 0; s <= M2; s++){
-        var th = 2 * Math.PI * s / M2;
-        var pp = project(rr * Math.cos(th), rr * Math.sin(th), zk, A, B);
-        rg.push(pp); all.push(pp);
+      if(rr <= 1e-6){ nodePts.push(null); continue; }
+      var zk = exoZ(k), nd = [];
+      for(var jn = 0; jn < NN; jn++){
+        var thn = 2 * Math.PI * jn / NN - Math.PI / 2;
+        var pn = project(rr * Math.cos(thn), rr * Math.sin(thn), zk, A, B);
+        nd.push(pn); all.push(pn);
       }
-      rings.push(rg);
+      nodePts.push(nd);
     }
 
     if(!all.length){
@@ -2822,66 +2834,83 @@
     var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
     function S(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
 
-    /* shaded plates, far → near — sort by plate-centre depth (a vertical
-       stack of centred plates occludes purely by centroid depth; summing
-       boundary samples is ~constant and orders wrongly) */
-    var order = plates.map(function(pl, idx){
-      var c = project(0, 0, pl.z + t * 0.5, A, B);
-      return { idx: idx, d: c.depth };
-    }).sort(function(a, b){ return b.d - a.d; });
+    var shadedCk = el('totalShaded');
+    var shaded = !shadedCk || shadedCk.checked;
 
-    order.forEach(function(orr){
-      var pl = plates[orr.idx];
-      var Msam = pl.bot.length - 1;
-      var ni = 0;
-      for(var q = 0; q < Msam; q++){ if(pl.bot[q].depth < pl.bot[ni].depth) ni = q; }
-      var span = Msam >> 1, halfspan = span >> 1;
-      var botArc = [], topArc = [];
-      for(var q2 = -halfspan; q2 <= halfspan; q2++){
-        var ii = ((ni + q2) % Msam + Msam) % Msam;
-        botArc.push(pl.bot[ii]); topArc.push(pl.top[ii]);
-      }
-      ctx.beginPath();
-      var p0 = S(botArc[0]); ctx.moveTo(p0.x, p0.y);
-      for(var q3 = 1; q3 < botArc.length; q3++){ var ps = S(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
-      for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = S(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
-      ctx.closePath();
-      ctx.fillStyle = FC('--c-band'); ctx.fill();
-      ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
-      ctx.beginPath();
-      var t1 = S(pl.top[0]); ctx.moveTo(t1.x, t1.y);
-      for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = S(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
-      ctx.closePath();
-      ctx.fillStyle = (pl.form === 'custom') ? FC('--c-custom') : FC('--c-paper');
-      ctx.fill();
-      ctx.stroke();
-    });
+    if(shaded){
+      /* shaded plates, far → near — sort by plate-centre depth (a vertical
+         stack of centred plates occludes purely by centroid depth; summing
+         boundary samples is ~constant and orders wrongly) */
+      var order = plates.map(function(pl, idx){
+        var c = project(0, 0, pl.z + t * 0.5, A, B);
+        return { idx: idx, d: c.depth };
+      }).sort(function(a, b){ return b.d - a.d; });
 
-    /* the exoskeleton wraps it: rings + diagrid braces */
-    ctx.strokeStyle = inkA(.9);
-    for(k = 0; k < rings.length; k++){
-      if(!rings[k]) continue;
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      var r0 = S(rings[k][0]); ctx.moveTo(r0.x, r0.y);
-      for(s = 1; s < rings[k].length; s++){ var rs2 = S(rings[k][s]); ctx.lineTo(rs2.x, rs2.y); }
-      ctx.stroke();
+      order.forEach(function(orr){
+        var pl = plates[orr.idx];
+        var Msam = pl.bot.length - 1;
+        var ni = 0;
+        for(var q = 0; q < Msam; q++){ if(pl.bot[q].depth < pl.bot[ni].depth) ni = q; }
+        var span = Msam >> 1, halfspan = span >> 1;
+        var botArc = [], topArc = [];
+        for(var q2 = -halfspan; q2 <= halfspan; q2++){
+          var ii = ((ni + q2) % Msam + Msam) % Msam;
+          botArc.push(pl.bot[ii]); topArc.push(pl.top[ii]);
+        }
+        ctx.beginPath();
+        var p0 = S(botArc[0]); ctx.moveTo(p0.x, p0.y);
+        for(var q3 = 1; q3 < botArc.length; q3++){ var ps = S(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
+        for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = S(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
+        ctx.closePath();
+        ctx.fillStyle = FC('--c-band'); ctx.fill();
+        ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.beginPath();
+        var t1 = S(pl.top[0]); ctx.moveTo(t1.x, t1.y);
+        for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = S(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
+        ctx.closePath();
+        ctx.fillStyle = (pl.form === 'custom') ? FC('--c-custom') : FC('--c-paper');
+        ctx.fill();
+        ctx.stroke();
+      });
+    } else {
+      /* wireframe: plate outlines only, no fills — no occlusion, order is moot */
+      ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
+      plates.forEach(function(pl){
+        ctx.beginPath();
+        var p0 = S(pl.bot[0]); ctx.moveTo(p0.x, p0.y);
+        for(var q = 1; q < pl.bot.length; q++){ var pq = S(pl.bot[q]); ctx.lineTo(pq.x, pq.y); }
+        ctx.closePath(); ctx.stroke();
+        ctx.beginPath();
+        var tp0 = S(pl.top[0]); ctx.moveTo(tp0.x, tp0.y);
+        for(var q2 = 1; q2 < pl.top.length; q2++){ var tq = S(pl.top[q2]); ctx.lineTo(tq.x, tq.y); }
+        ctx.closePath(); ctx.stroke();
+      });
     }
-    var NN = Math.max(3, Math.round(window.polarN || 12));
+
+    /* the exoskeleton wraps it: diagrid braces between the node points */
+    ctx.strokeStyle = inkA(.9);
     ctx.lineWidth = 1.1;
-    for(k = 0; k + 1 < er.length; k++){
-      var r1 = er[k], r2 = er[k + 1];
-      if(r1 <= 1e-6 || r2 <= 1e-6) continue;
-      var z1 = exoZ(k), z2 = exoZ(k + 1);
+    for(k = 0; k + 1 < nodePts.length; k++){
+      var ndLo = nodePts[k], ndUp = nodePts[k + 1];
+      if(!ndLo || !ndUp) continue;
       for(var j = 0; j < NN; j++){
-        var a1 = 2 * Math.PI * j / NN - Math.PI / 2;
-        var aR = 2 * Math.PI * ((j + 1) % NN) / NN - Math.PI / 2;
-        var aL = 2 * Math.PI * ((j - 1 + NN) % NN) / NN - Math.PI / 2;
-        var P1 = S(project(r1 * Math.cos(a1), r1 * Math.sin(a1), z1, A, B));
-        var PR = S(project(r2 * Math.cos(aR), r2 * Math.sin(aR), z2, A, B));
-        var PL = S(project(r2 * Math.cos(aL), r2 * Math.sin(aL), z2, A, B));
+        var P1 = S(ndLo[j]);
+        var PR = S(ndUp[(j + 1) % NN]);
+        var PL = S(ndUp[(j - 1 + NN) % NN]);
         ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PR.x, PR.y); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PL.x, PL.y); ctx.stroke();
+      }
+    }
+    /* connection points: a dot at every diagrid node */
+    ctx.fillStyle = FC('--c-paper');
+    ctx.strokeStyle = FC('--c-ink');
+    ctx.lineWidth = 1;
+    for(k = 0; k < nodePts.length; k++){
+      var ndp = nodePts[k];
+      if(!ndp) continue;
+      for(var j2 = 0; j2 < NN; j2++){
+        var pd = S(ndp[j2]);
+        ctx.beginPath(); ctx.arc(pd.x, pd.y, 2.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
     }
   }
@@ -2951,6 +2980,8 @@
   if(totalReset) totalReset.addEventListener('click', function(){
     if(vTotal){ vTotal.az = 0.6; vTotal.pitch = 0.95; vTotal.zoom = 1; renderTotal(vTotal); }
   });
+  var totalShaded = el('totalShaded');
+  if(totalShaded) totalShaded.addEventListener('change', function(){ if(vTotal) renderTotal(vTotal); });
 
   // ── Wedges floor preview: outer + inner plate circles ──
   var wedgeCanvas = el('fWedges');
@@ -3900,6 +3931,7 @@
       </div>
       <div class="sb-right">
         <button id="exoRefresh">&#8635; Refresh diagrams</button>
+        <button id="exoSVG">Export SVGs</button>
         <button id="exoPrint">Export PDF</button>
       </div>
     </div>
@@ -3953,6 +3985,7 @@
       </div>
       <div class="sb-right">
         <button id="florRefresh">&#8635; Refresh diagrams</button>
+        <button id="florSVG">Export SVGs</button>
         <button id="florPrint">Export PDF</button>
       </div>
     </div>
@@ -4029,6 +4062,7 @@
     this._maskId = null;
     this._maskBaseLen = 0;   // _parts index the current destination body starts at
     this._maskBody = null;   // captured destination fragments being masked
+    this._tx = 0; this._ty = 0;   // translate offset (paint() insets the boards with ctx.translate)
     // drawing state
     this.strokeStyle = '#000';
     this.fillStyle = '#000';
@@ -4078,25 +4112,29 @@
   P.save = function(){
     this._save.push({ ss:this.strokeStyle, fs:this.fillStyle, lw:this.lineWidth,
       lj:this.lineJoin, ft:this.font, ta:this.textAlign, tb:this.textBaseline,
-      dash:this._dash, clip:this._clipId });
+      dash:this._dash, clip:this._clipId, tx:this._tx, ty:this._ty });
   };
   P.restore = function(){
     var s = this._save.pop(); if(!s) return;
     this.strokeStyle = s.ss; this.fillStyle = s.fs; this.lineWidth = s.lw;
     this.lineJoin = s.lj; this.font = s.ft; this.textAlign = s.ta; this.textBaseline = s.tb;
     this._dash = s.dash; this._clipId = s.clip;
+    this._tx = s.tx; this._ty = s.ty;
   };
+
+  P.translate = function(dx, dy){ this._tx += dx; this._ty += dy; };
 
   P.setTransform = function(){ /* dpr scaling not needed for SVG output */ };
   P.clearRect = function(){ /* SVG starts blank */ };
   P.setLineDash = function(arr){ this._dash = (arr && arr.length) ? arr.slice() : null; };
 
   P.beginPath = function(){ this._cur = []; };
-  P.moveTo = function(x, y){ this._cur.push('M' + num(x) + ' ' + num(y)); };
-  P.lineTo = function(x, y){ this._cur.push('L' + num(x) + ' ' + num(y)); };
+  P.moveTo = function(x, y){ this._cur.push('M' + num(x + this._tx) + ' ' + num(y + this._ty)); };
+  P.lineTo = function(x, y){ this._cur.push('L' + num(x + this._tx) + ' ' + num(y + this._ty)); };
   P.closePath = function(){ this._cur.push('Z'); };
 
   P.arc = function(cx, cy, r, a0, a1, ccw){
+    cx += this._tx; cy += this._ty;
     if(r < 0) r = 0;
     var full = Math.abs(a1 - a0) >= (Math.PI * 2 - 1e-6);
     if(full){
@@ -4165,7 +4203,7 @@
     var m = /(\d+(?:\.\d+)?)px/.exec(this.font);
     var px = m ? parseFloat(m[1]) : 10;
     var fam = this.font.replace(/^.*px\s*/, '') || 'sans-serif';
-    this._emit('<text x="' + num(x) + '" y="' + num(y + dy * px) + '" fill="' + esc(this.fillStyle) +
+    this._emit('<text x="' + num(x + this._tx) + '" y="' + num(y + dy * px + this._ty) + '" fill="' + esc(this.fillStyle) +
       '" font-size="' + num(px) + '" font-family="' + esc(fam) + '" text-anchor="' + anchor + '">' +
       esc(text) + '</text>');
   };
@@ -4202,7 +4240,7 @@
     exo: {
       pageId:'pageSheetExo', sheetId:'exoSheet',
       paramsId:'exoParams', readoutId:'exoReadout',
-      refreshId:'exoRefresh', printId:'exoPrint',
+      refreshId:'exoRefresh', printId:'exoPrint', svgId:'exoSVG',
       stagePage:'pageExo', stagePanel:'panelDash',
       params:[
         { master:'bldgHeight',   name:'Building height', unit:'m',  desc:'Overall tower height; sets the vertical scale of every level.' },
@@ -4221,7 +4259,7 @@
     flor: {
       pageId:'pageSheetFloors', sheetId:'florSheet',
       paramsId:'florParams', readoutId:'florReadout',
-      refreshId:'florRefresh', printId:'florPrint',
+      refreshId:'florRefresh', printId:'florPrint', svgId:'florSVG',
       stagePage:'pageFloors', stagePanel:'fPanelDash',
       params:[
         { master:'fZSec',      name:'Secondary splits', unit:'',   desc:'Extra levels inserted between every pair of primary levels.' },
@@ -4401,6 +4439,23 @@
     if(printBtn) printBtn.addEventListener('click', function(){
       build();
       setTimeout(function(){ window.print(); }, 450);
+    });
+    // download each diagram as a standalone .svg — editable vectors, saved
+    // together via the folder-picking batch saver (same as the CSV exports)
+    var svgBtn = el(spec.svgId);
+    if(svgBtn) svgBtn.addEventListener('click', function(){
+      build();   // refresh the inline vector captures first
+      setTimeout(function(){
+        var files = [];
+        spec.caps.forEach(function(pair){
+          var box = el(pair[1] + '_o');
+          var node = box && box.firstElementChild;
+          if(node && node.tagName && node.tagName.toLowerCase() === 'svg'){
+            files.push({ name: pair[1] + '.svg', text: box.innerHTML, mime: 'image/svg+xml' });
+          }
+        });
+        if(files.length) window.saveCSVBatch(files);
+      }, 500);
     });
 
     // keep the sheet honest when the model changes elsewhere
