@@ -5,11 +5,6 @@
 /assets/Fadil-Karim-CV.pdf
   Content-Disposition: attachment; filename="Fadil-Karim-CV.pdf"
 
-# pyGherkin pyRevit extension — force download and revalidate so updates ship.
-/assets/pyGherkin_extension.zip
-  Content-Disposition: attachment; filename="pyGherkin_extension.zip"
-  Cache-Control: public, max-age=0, must-revalidate
-
 # When you add downloadable model files, uncomment / extend these:
 # /assets/*.gh
 #   Content-Disposition: attachment
@@ -21,6 +16,12 @@
 # Long-cache the static assets (fonts, images, the PDF) — they rarely change.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# pyGherkin pyRevit extension — force download and revalidate so updates ship.
+# Kept AFTER the /assets/* rule so this Cache-Control wins over "immutable".
+/assets/pyGherkin.extension.zip
+  Content-Disposition: attachment; filename="pyGherkin.extension.zip"
+  Cache-Control: public, max-age=0, must-revalidate
 
 # HTML pages: always revalidate so edits show up immediately on redeploy.
 /*.html
