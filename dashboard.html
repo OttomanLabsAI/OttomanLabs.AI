@@ -639,21 +639,6 @@
       </div>
 
       <div class="card">
-        <h2>Core cut</h2>
-        <div class="row">
-          <label for="fCoreDia">&Oslash;</label>
-          <input type="range" id="fCoreDia" min="0" max="30" step="0.5" value="0">
-          <input type="number" id="fCoreDiaNum" min="0" max="60" step="0.5" value="0">
-        </div>
-        <div class="row">
-          <label for="fCoreTop">Up to level</label>
-          <input type="range" id="fCoreTop" min="0" max="100" step="1" value="0">
-          <input type="number" id="fCoreTopNum" min="0" max="500" step="1" value="0">
-        </div>
-        <div class="statline" id="fCoreInfo">A centred circular hole is cut through the core, from the base up to the chosen level.</div>
-      </div>
-
-      <div class="card">
         <h2>Floor plates</h2>
         <div class="row">
           <label for="fOffset">&Oslash; offset</label>
@@ -776,18 +761,8 @@
         <div class="plot-wrap"><canvas id="fIso3d"></canvas></div>
       </div>
       <div class="view">
-        <div class="view-cap"><b>Floor inspector</b><span id="fInspectCap">&mdash;</span></div>
-        <div class="plot-wrap" style="flex-direction:column; gap:.5rem; justify-content:flex-start">
-          <div style="flex:1 1 auto; width:100%; min-height:0; display:flex; align-items:center; justify-content:center">
-            <canvas id="fInspect"></canvas>
-          </div>
-          <div class="row" style="width:100%; gap:.6rem; align-items:center; flex:0 0 auto">
-            <label for="fInspectLevel" style="white-space:nowrap">Level</label>
-            <input type="range" id="fInspectLevel" min="0" max="0" step="1" value="0" style="flex:1">
-            <input type="number" id="fInspectLevelNum" min="0" max="0" step="1" value="0">
-          </div>
-          <div class="statline" id="fInspectInfo" style="width:100%; flex:0 0 auto">Pick a level to see its plate outline and diameter.</div>
-        </div>
+        <div class="view-cap"><b>Wedges floor</b><span id="fWedgeCap">&mdash;</span></div>
+        <div class="plot-wrap"><canvas id="fWedges"></canvas></div>
       </div>
       <div class="view">
         <div class="view-cap"><b>3D &middot; Orbit</b>
@@ -814,10 +789,7 @@
           <div class="revit-note" id="fCustomNote" style="text-align:center; max-width:24rem">Pick a shape &mdash; the geometry definitions land in a later update.</div>
         </div>
       </div>
-      <div class="view">
-        <div class="view-cap"><b>Wedges floor</b><span id="fWedgeCap">&mdash;</span></div>
-        <div class="plot-wrap"><canvas id="fWedges"></canvas></div>
-      </div>
+      <div class="view blank" aria-hidden="true"></div>
     </section>
   </div><!-- /fPanelDash -->
 
@@ -1000,7 +972,7 @@
 
     // connecting polygon
     if(state.connect && N >= 2){
-      ctx.strokeStyle = inkA(.4);
+      ctx.strokeStyle = inkA(.55);
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
@@ -1009,7 +981,7 @@
     }
 
     // point dots
-    ctx.fillStyle = getCSS('--accent-2');
+    ctx.fillStyle = getCSS('--c-ink');
     for(var j = 0; j < N; j++){
       ctx.beginPath(); ctx.arc(pts[j].x, pts[j].y, 4.5, 0, Math.PI * 2); ctx.fill();
     }
@@ -1060,14 +1032,14 @@
     document.getElementById('outCirc').textContent = fmt(2 * Math.PI * ra);
   }
 
-  // cache CSS custom properties
-  var cssCache = {};
+  // read CSS custom properties fresh each call — caching here caused stale colours when
+  // the theme changed (polar dots stayed the light-theme grey and vanished in dark mode)
   function getCSS(name){
-    if(cssCache[name]) return cssCache[name];
     var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    cssCache[name] = v || '#888';
-    return cssCache[name];
+    return v || '#888';
   }
+  // redraw when the theme flips so the polar view repaints with the new palette
+  window.addEventListener('themechange', function(){ draw(); });
 
   // --- events ---
   pointsSlider.addEventListener('input', function(){ setPoints(parseFloat(pointsSlider.value)); });
@@ -1383,11 +1355,6 @@
     floorsLevels = fS.levels; floorsHits = fS.hits;
     window.splineRadii = exoRad;
     window.zSplits = zSplits;
-    // Publish the exoskeleton's framed elevations (these include top/bottom
-    // offsets via frameZ) so the Floors tab can align shared levels exactly.
-    var exoEl = [];
-    for(var ez = 0; ez <= zSplits; ez++){ exoEl.push(+frameZ(ez / zSplits).toFixed(3)); }
-    window.exoElevations = exoEl;
     window.floorsLevels = floorsLevels;
     window.secSplits = secSplits;
     window.bldgHeight = bldgHeight;
@@ -1997,25 +1964,23 @@
   function f3(x){ return (Math.round(x * 1000) / 1000).toString(); }
 
   function levelsCSV(md){
-    var rows = ['index,name,elevation_m,radius_m,uid'];
-    md.levels.forEach(function(L){ rows.push([L.index, L.name, r5(L.elevation), r5(L.radius), 'L-' + L.index].join(',')); });
+    var rows = ['index,name,elevation_m,radius_m'];
+    md.levels.forEach(function(L){ rows.push([L.index, L.name, r5(L.elevation), r5(L.radius)].join(',')); });
     return rows.join('\n');
   }
   function framingCSV(md){
-    var rows = ['id,uid,group,level_index,level_name,start_x_m,start_y_m,start_z_m,end_x_m,end_y_m,end_z_m,length_m,rotation_deg,rotation_rad,up_x,up_y,up_z'];
+    var rows = ['id,group,level_index,level_name,start_x_m,start_y_m,start_z_m,end_x_m,end_y_m,end_z_m,length_m,rotation_deg,rotation_rad,up_x,up_y,up_z'];
     md.members.forEach(function(m, idx){
-      var uid = 'F-' + m.startLevel + '-' + m.startK + '-' + m.endK;
-      rows.push([idx+1, uid, m.group, m.levelIndex, m.levelName, r5(m.sx), r5(m.sy), r5(m.sz),
+      rows.push([idx+1, m.group, m.levelIndex, m.levelName, r5(m.sx), r5(m.sy), r5(m.sz),
                  r5(m.ex), r5(m.ey), r5(m.ez), r5(m.length), r5(m.rotDeg), r5(m.rotRad),
                  r5(m.ux), r5(m.uy), r5(m.uz)].join(','));
     });
     return rows.join('\n');
   }
   function connectionsCSV(md){
-    var rows = ['id,uid,type,level_index,point_index,x_m,y_m,z_m,member_count,member_ids'];
+    var rows = ['id,type,level_index,point_index,x_m,y_m,z_m,member_count,member_ids'];
     md.connections.forEach(function(c){
-      var uid = 'C-' + c.levelIndex + '-' + c.k;
-      rows.push([c.id, uid, c.type, c.levelIndex, c.k, r5(c.x), r5(c.y), r5(c.z),
+      rows.push([c.id, c.type, c.levelIndex, c.k, r5(c.x), r5(c.y), r5(c.z),
                  c.degree, '"' + c.members.join(' ') + '"'].join(','));
     });
     return rows.join('\n');
@@ -2328,57 +2293,6 @@
     return Math.abs(s2) / 2;
   }
 
-  // Exact boundary as analytic segments (arcs + lines), so Revit can place
-  // true circles/curves instead of the faceted point ring. Mirrors the
-  // geometry in plateOutline / discOutline.
-  //   Arc : {t:'A', cx, cy, r, a0, a1}   (CCW from a0 to a1, centre cx,cy)
-  //   Line: {t:'L', x0, y0, x1, y1}
-  // A disc is a full circle emitted as two semicircle arcs (Revit CurveLoop
-  // rejects a single 360° arc). A wedged plate is wedgeN rim arcs, each
-  // followed by two straight notch edges diving to the cut tip at radius dW.
-  function discSegments(r, rot){
-    return [
-      { t:'A', cx:0, cy:0, r:r, a0:rot,            a1:rot + Math.PI },
-      { t:'A', cx:0, cy:0, r:r, a0:rot + Math.PI,  a1:rot + 2 * Math.PI }
-    ];
-  }
-  function plateSegments(r, rot){
-    if(wedgeN < 1 || wedgeD >= r - 1e-9) return discSegments(r, rot);
-    var dW = wedgeD;
-    if(dW <= 1e-9) return null;
-    var sg = 2 * Math.PI / wedgeN, hs = sg / 2;
-    var tu = -dW * Math.cos(hs) + Math.sqrt(Math.max(0, dW * dW * Math.cos(hs) * Math.cos(hs) + r * r - dW * dW));
-    var hx = dW + tu * Math.cos(hs), hy = tu * Math.sin(hs);
-    var del = Math.atan2(hy, hx);
-    var arcSpan = sg - 2 * del;
-    if(arcSpan <= 1e-6) return null;
-    var segs = [];
-    for(var k = 0; k < wedgeN; k++){
-      var b = k * sg - Math.PI / 2 + rot;
-      var aStart = b + del, aEnd = b + del + arcSpan;
-      segs.push({ t:'A', cx:0, cy:0, r:r, a0:aStart, a1:aEnd });
-      var rimEnd = { x:r * Math.cos(aEnd), y:r * Math.sin(aEnd) };
-      var bn = b + sg, tip = { x:dW * Math.cos(bn), y:dW * Math.sin(bn) };
-      var nStart = bn + del, rimNext = { x:r * Math.cos(nStart), y:r * Math.sin(nStart) };
-      segs.push({ t:'L', x0:rimEnd.x, y0:rimEnd.y, x1:tip.x,     y1:tip.y });
-      segs.push({ t:'L', x0:tip.x,    y0:tip.y,    x1:rimNext.x, y1:rimNext.y });
-    }
-    return segs;
-  }
-  function segmentsFor(fm, r, rot){
-    if(fm.form === 'wedged') return plateSegments(r, rot);
-    return discSegments(r, rot);   // disc + custom share the circle for now
-  }
-  // Serialise segments to a compact, parser-friendly string (meters, radians):
-  //   "A cx cy r a0 a1 | L x0 y0 x1 y1 | ..."
-  function encodeBoundary(segs){
-    if(!segs) return '';
-    return segs.map(function(s){
-      if(s.t === 'A') return ['A', r5(s.cx), r5(s.cy), r5(s.r), r6(s.a0), r6(s.a1)].join(' ');
-      return ['L', r5(s.x0), r5(s.y0), r5(s.x1), r5(s.y1)].join(' ');
-    }).join(' | ');
-  }
-
   // Rotate about Z by A, then about X by B; orthographic projection.
   function project(x, y, z, A, B){
     var ca = Math.cos(A), sa = Math.sin(A);
@@ -2448,7 +2362,7 @@
         var pt = project(ring[s].x, ring[s].y, z + t, A, B);
         bot.push(pb); top.push(pt); all.push(pb, pt);
       }
-      plates.push({ bot:bot, top:top, form:fm.form, z:z });
+      plates.push({ bot:bot, top:top, form:fm.form });
     }
     var axB = project(0, 0, 0, A, B), axT = project(0, 0, H, A, B);
     all.push(axB, axT);
@@ -2476,27 +2390,14 @@
     }
 
     if(o.shaded){
-      var iso = o.isolate || 'all';
-      // Painter's algorithm: order plates by CENTROID depth (depth of the
-      // plate centre). For a vertical stack of centred plates this is the
-      // clean occlusion key — far (larger depth) first.
+      // painter's algorithm: far plates first, opaque fills give occlusion
       var order = plates.map(function(pl, idx){
-        var c = project(0, 0, pl.z + t * 0.5, A, B);   // plate centre, mid-thickness
-        return { idx: idx, d: c.depth };
+        var d = 0;
+        for(var q = 0; q < pl.bot.length; q++) d += pl.bot[q].depth;
+        return { idx: idx, d: d };
       }).sort(function(a, b){ return b.d - a.d; });
-      // Isolation fix: the dimmed plates' fills are opaque, so in plain depth
-      // order a ghosted plate in front would paint over the isolated form (the
-      // "wedged over disc" artefact). Draw all dimmed plates FIRST, then the
-      // isolated form, so the chosen form is always fully visible on top.
-      if(iso !== 'all'){
-        order.sort(function(a, b){
-          var ai = (plates[a.idx].form === iso) ? 1 : 0;
-          var bi = (plates[b.idx].form === iso) ? 1 : 0;
-          if(ai !== bi) return ai - bi;          // dimmed (0) before isolated (1)
-          return b.d - a.d;                       // within a group: far-to-near
-        });
-      }
 
+      var iso = o.isolate || 'all';
       order.forEach(function(or){
         var pl = plates[or.idx];
         var dim = (iso !== 'all' && pl.form !== iso);   // halftone everything but the chosen form
@@ -2679,7 +2580,7 @@
         var pt = project(ring[s].x, ring[s].y, z + t, A, B);
         bot.push(pb); top.push(pt); all.push(pb, pt);
       }
-      plates.push({ bot: bot, top: top, form: fm.form, z: z });
+      plates.push({ bot: bot, top: top, form: fm.form });
     }
 
     var rings = [], M2 = 72;
@@ -2713,12 +2614,11 @@
     var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
     function S(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
 
-    /* shaded plates, far → near — sort by plate-centre depth (a vertical
-       stack of centred plates occludes purely by centroid depth; summing
-       boundary samples is ~constant and orders wrongly) */
+    /* shaded plates, far → near */
     var order = plates.map(function(pl, idx){
-      var c = project(0, 0, pl.z + t * 0.5, A, B);
-      return { idx: idx, d: c.depth };
+      var dsum = 0;
+      for(var q = 0; q < pl.bot.length; q++) dsum += pl.bot[q].depth;
+      return { idx: idx, d: dsum / pl.bot.length };
     }).sort(function(a, b){ return b.d - a.d; });
 
     order.forEach(function(orr){
@@ -2857,176 +2757,6 @@
     wedge.ctx = rc; wedge.w = rw; wedge.h = rh;
     return sctx.toSVG();
   };
-  // ── floor inspector: pick a level, see its plate outline + diameter ──
-  // Its own canvas, separate from the Wedges-floor (min/max Ø) view.
-  var inspectCanvas = el('fInspect');
-  var inspectCap = el('fInspectCap');
-  var inspectEl = el('fInspectLevel'), inspectNum = el('fInspectLevelNum');
-  var inspectInfo = el('fInspectInfo');
-  var inspect = inspectCanvas ? { canvas:inspectCanvas, ctx:inspectCanvas.getContext('2d'), w:0, h:0 } : null;
-  var inspectLevel = 0;
-  if(inspect) window.__svgCapture['fInspect'] = function(size){
-    if(!window.SVGCtx) return null;
-    var rc = inspect.ctx, rw = inspect.w, rh = inspect.h;
-    var sctx = new window.SVGCtx(size, size);
-    inspect.ctx = sctx; inspect.w = size; inspect.h = size;
-    try { renderInspector(); } catch(e){ inspect.ctx = rc; inspect.w = rw; inspect.h = rh; return null; }
-    inspect.ctx = rc; inspect.w = rw; inspect.h = rh;
-    return sctx.toSVG();
-  };
-  function sizeInspect(){
-    if(!inspect) return;
-    var wrap = inspectCanvas.parentElement;
-    if(!wrap) return;
-    var dpr = window.devicePixelRatio || 1;
-    var W = Math.max(40, wrap.clientWidth), H2 = Math.max(40, wrap.clientHeight);
-    inspectCanvas.style.width = W + 'px'; inspectCanvas.style.height = H2 + 'px';
-    inspectCanvas.width = Math.round(W * dpr); inspectCanvas.height = Math.round(H2 * dpr);
-    inspect.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    inspect.w = W; inspect.h = H2;
-  }
-  function inspectMaxLevel(){
-    return Math.max(0, ((window.floorsLevels || []).length || 1) - 1);
-  }
-  function setInspectLevel(v, skipRender){
-    var maxL = inspectMaxLevel();
-    inspectLevel = Math.max(0, Math.min(maxL, Math.round(isFinite(v) ? v : inspectLevel)));
-    if(inspectEl){ inspectEl.max = maxL; inspectEl.value = inspectLevel; }
-    if(inspectNum){ inspectNum.max = maxL; inspectNum.value = inspectLevel; }
-    if(!skipRender) renderInspector();
-  }
-  function syncInspectorRange(){
-    var maxL = inspectMaxLevel();
-    if(inspectEl) inspectEl.max = maxL;
-    if(inspectNum) inspectNum.max = maxL;
-    if(inspectLevel > maxL) setInspectLevel(maxL, true);
-  }
-  if(inspectEl) inspectEl.addEventListener('input', function(){ setInspectLevel(parseFloat(this.value)); });
-  if(inspectNum){
-    inspectNum.addEventListener('input', function(){ setInspectLevel(parseFloat(this.value)); });
-    inspectNum.addEventListener('change', function(){ setInspectLevel(parseFloat(this.value)); });
-  }
-  // The largest plate radius across the model — the inspector scales to THIS,
-  // not to each plate, so floors stay relative in size as you scrub levels.
-  function maxPlateRadius(md){
-    var mx = 0;
-    for(var i = 0; i < md.plates.length; i++){ if(md.plates[i].radius > mx) mx = md.plates[i].radius; }
-    return mx > 1e-6 ? mx : 1;
-  }
-  // Where the exoskeleton diagonals cut through a horizontal plane at z=zf.
-  // Reconstructs the diagrid from the published exo data (using the SAME
-  // offset-aware elevations the floors use) and intersects each member with
-  // the plane. Returns de-duplicated {x,y} points in meters.
-  function framingCrossingsAt(zf){
-    var radii = window.splineRadii || [];
-    var exoEl = window.exoElevations || [];
-    var N = Math.max(1, Math.round(window.polarN || 1));
-    var levels = radii.length;
-    if(levels < 2 || exoEl.length < levels) return [];
-    var Ldraw = levels;
-    while(Ldraw > 2 && (radii[Ldraw - 1] || 0) < 1e-6 && (radii[Ldraw - 2] || 0) < 1e-6) Ldraw--;
-    var Lstart = 0;
-    while(Lstart < Ldraw - 1 && (radii[Lstart] || 0) < 1e-6) Lstart++;
-    function nodeAt(i, k){
-      var r = radii[i] || 0, off = (i % 2 === 1) ? Math.PI / N : 0;
-      var a = 2 * Math.PI * k / N + off;
-      return { x:r * Math.cos(a), y:r * Math.sin(a), z:exoEl[i] };
-    }
-    var seen = {}, out = [];
-    function add(x, y){
-      var key = x.toFixed(3) + ',' + y.toFixed(3);
-      if(seen[key]) return;
-      seen[key] = 1; out.push({ x:x, y:y });
-    }
-    for(var li = Lstart; li < Ldraw - 1; li++){
-      var z0 = exoEl[li], z1 = exoEl[li + 1];
-      if(Math.abs(z1 - z0) < 1e-9) continue;
-      var t = (zf - z0) / (z1 - z0);
-      if(t < -1e-6 || t > 1 + 1e-6) continue;       // plane not within this tier
-      var aOff = (li % 2 === 0) ? -1 : 0, bOff = (li % 2 === 0) ? 0 : 1;
-      for(var k = 0; k < N; k++){
-        var j1 = ((k + aOff) % N + N) % N, j2 = ((k + bOff) % N + N) % N;
-        var lo = nodeAt(li, k);
-        [nodeAt(li + 1, j1), nodeAt(li + 1, j2)].forEach(function(up){
-          add(lo.x + t * (up.x - lo.x), lo.y + t * (up.y - lo.y));
-        });
-      }
-    }
-    return out;
-  }
-
-  function renderInspector(){
-    if(!inspect) return;
-    var ctx = inspect.ctx, w = inspect.w, h = inspect.h;
-    if(w <= 0 || h <= 0) return;
-    ctx.clearRect(0, 0, w, h);
-    var md = lastFloors || floorsModel();
-    var plate = null, lvl = null;
-    if(md.levels && md.levels[inspectLevel]) lvl = md.levels[inspectLevel];
-    for(var i = 0; i < md.plates.length; i++){
-      if(md.plates[i].level === inspectLevel){ plate = md.plates[i]; break; }
-    }
-    if(inspectCap) inspectCap.textContent = lvl ? lvl.name : ('Level ' + inspectLevel);
-    if(!plate){
-      emptyNote(ctx, w, h, lvl ? (lvl.name + ' — no plate (radius 0)') : 'No plate here');
-      if(inspectInfo) inspectInfo.textContent = lvl ? (lvl.name + ': no plate (radius 0).') : 'No plate.';
-      return;
-    }
-    var cx = w / 2, cy = h / 2;
-    // FIXED scale: based on the biggest plate in the model, so each level's
-    // plate keeps its true relative size instead of filling the box.
-    var rMax = maxPlateRadius(md);
-    var sc = (Math.min(w, h) / 2 - 22) / (rMax * 1.08);
-    // faint reference circle at the max plate size
-    ctx.strokeStyle = FC('--c-grid'); ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.arc(cx, cy, rMax * sc, 0, Math.PI * 2); ctx.stroke();
-    ctx.setLineDash([]);
-    // filled plate with hole punched out
-    ctx.fillStyle = FC('--c-paper');
-    ctx.beginPath(); drawRing(ctx, plate.outline, cx, cy, sc); ctx.fill();
-    if(plate.hole){
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.beginPath(); drawRing(ctx, plate.hole, cx, cy, sc); ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
-    }
-    // edges
-    ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 2; ctx.lineJoin = 'round';
-    ctx.beginPath(); drawRing(ctx, plate.outline, cx, cy, sc); ctx.stroke();
-    if(plate.hole){
-      ctx.strokeStyle = FC('--accent'); ctx.lineWidth = 1.6;
-      ctx.beginPath(); drawRing(ctx, plate.hole, cx, cy, sc); ctx.stroke();
-    }
-    // diameter line across the plate
-    ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
-    ctx.beginPath(); ctx.moveTo(cx - plate.radius * sc, cy); ctx.lineTo(cx + plate.radius * sc, cy); ctx.stroke();
-    ctx.setLineDash([]);
-    // framing cut points: where the exoskeleton diagonals pass through THIS
-    // floor's level. Marked as amber nodes on the plan.
-    var cuts = framingCrossingsAt(plate.elevation);
-    var nCuts = 0;
-    ctx.fillStyle = '#f59e0b';                 // amber = framing (stands out on the mono plan)
-    for(var ci = 0; ci < cuts.length; ci++){
-      var px = cx + cuts[ci].x * sc, py = cy - cuts[ci].y * sc;
-      ctx.beginPath(); ctx.arc(px, py, 3.4, 0, Math.PI * 2); ctx.fill();
-      ctx.lineWidth = 1; ctx.strokeStyle = FC('--c-paper'); ctx.stroke();
-      nCuts++;
-    }
-    if(inspectInfo){
-      var txt = '\u00d8 ' + f3(plate.dia) + ' m';
-      txt += ' · ' + (plate.form === 'wedged' ? 'wedged' : plate.form === 'custom' ? 'custom' : 'disc');
-      if(plate.coreDia > 0) txt += ' · core \u00d8 ' + f3(plate.coreDia) + ' m';
-      txt += ' · ' + f3(plate.area) + ' m\u00b2';
-      if(nCuts) txt += ' · ' + nCuts + ' framing cuts';
-      inspectInfo.textContent = txt;
-    }
-  }
-  function drawRing(ctx, ring, cx, cy, sc){
-    if(!ring || !ring.length) return;
-    ctx.moveTo(cx + ring[0].x * sc, cy - ring[0].y * sc);
-    for(var i = 1; i < ring.length; i++) ctx.lineTo(cx + ring[i].x * sc, cy - ring[i].y * sc);
-    ctx.closePath();
-  }
-
   function renderWedges(){
     if(!wedge) return;
     var ctx = wedge.ctx, w = wedge.w, h = wedge.h;
@@ -3202,10 +2932,6 @@
     };
     window.addEventListener('resize', wedge.resize);
   }
-  if(inspect){
-    inspect.resize = function(){ sizeInspect(); renderInspector(); };
-    window.addEventListener('resize', inspect.resize);
-  }
 
   // ── Custom floors: shape picker (geometry to follow) ──
   var shapeSel = el('fCustomShape'), shapeNote = el('fCustomNote');
@@ -3249,48 +2975,6 @@
   }
   if(twistEl) twistEl.addEventListener('input', function(){ setTwist(parseFloat(this.value)); });
   if(twistNum) twistNum.addEventListener('input', function(){ setTwist(parseFloat(this.value)); });
-
-  // ── core cut: a centred circular hole through the lower floors ──
-  var coreDiaEl = el('fCoreDia'), coreDiaNum = el('fCoreDiaNum');
-  var coreTopEl = el('fCoreTop'), coreTopNum = el('fCoreTopNum');
-  var coreInfo = el('fCoreInfo');
-  var coreDia = 0, coreTop = 0;   // diameter (m), and highest level index cut
-  function coreRadius(){ return coreDia / 2; }
-  function writeCoreInfo(){
-    if(!coreInfo) return;
-    if(coreDia <= 1e-6){ coreInfo.textContent = 'No core cut (set a diameter).'; return; }
-    coreInfo.textContent = '\u00d8 ' + f3(coreDia) + ' m hole, levels 0\u2013' + coreTop +
-                           ' (' + (coreTop + 1) + ' floors).';
-  }
-  function setCoreDia(v){
-    var mx = coreDiaEl ? (parseFloat(coreDiaEl.max) || 30) : 30;
-    coreDia = Math.max(0, Math.min(mx, isFinite(v) ? v : coreDia));
-    if(coreDiaEl) coreDiaEl.value = coreDia;
-    if(coreDiaNum) coreDiaNum.value = coreDia;
-    window.coreDia = coreDia;
-    writeCoreInfo();
-    afterParamChange();
-  }
-  function setCoreTop(v){
-    coreTop = Math.max(0, Math.round(isFinite(v) ? v : coreTop));
-    var maxL = Math.max(0, ((window.floorsLevels || []).length || 1) - 1);
-    if(coreTop > maxL) coreTop = maxL;
-    if(coreTopEl){ coreTopEl.max = maxL; coreTopEl.value = coreTop; }
-    if(coreTopNum) coreTopNum.value = coreTop;
-    window.coreTop = coreTop;
-    writeCoreInfo();
-    afterParamChange();
-  }
-  if(coreDiaEl) coreDiaEl.addEventListener('input', function(){ setCoreDia(parseFloat(this.value)); });
-  if(coreDiaNum) coreDiaNum.addEventListener('input', function(){ setCoreDia(parseFloat(this.value)); });
-  if(coreTopEl) coreTopEl.addEventListener('input', function(){ setCoreTop(parseFloat(this.value)); });
-  if(coreTopNum) coreTopNum.addEventListener('input', function(){ setCoreTop(parseFloat(this.value)); });
-  function syncCoreRange(){
-    var n = (window.floorsLevels || []).length;
-    var maxL = Math.max(0, n - 1);
-    if(coreTopEl && parseFloat(coreTopEl.max) !== maxL) coreTopEl.max = maxL;
-    if(coreTop > maxL){ coreTop = maxL; if(coreTopEl) coreTopEl.value = maxL; if(coreTopNum) coreTopNum.value = maxL; }
-  }
 
   // ── floor type zones ──
   var botNEl = el('fBotN'), botNNum = el('fBotNNum'), botTypeEl = el('fBotType');
@@ -3397,9 +3081,6 @@
 
   // ── offset + thickness controls ──
   function afterParamChange(){
-    lastFloors = floorsModel();   // keep inspector + core ranges fed fresh data
-    syncInspectorRange();
-    if(typeof syncCoreRange === 'function') syncCoreRange();
     renderAll();
     if(fRevitActive) refreshRevit();
     if(fSchedActive) refreshSched();
@@ -3425,7 +3106,6 @@
   // ── plates data ──
   function f3(x){ return (Math.round(x * 1000) / 1000).toString(); }
   function r5(x){ return Math.round(x * 1e5) / 1e5; }
-  function r6(x){ return Math.round(x * 1e6) / 1e6; }
 
   function floorsModel(){
     var m = model();
@@ -3441,31 +3121,17 @@
         var ringP = outlineFor(fmP, re, rotP);
         if(ringP){
           var area = (fmP.form === 'wedged' && wedgeN >= 1) ? loopArea(ringP) : Math.PI * re * re;
-          // core cut: a centred circular hole on levels 0..coreTop, if it fits
-          var cr = coreRadius();
-          var hole = null, holeSegs = null, holeArea = 0;
-          if(cr > 1e-6 && i <= coreTop && cr < re - 1e-6){
-            hole = discOutline(cr);
-            holeSegs = discSegments(cr, 0);
-            holeArea = Math.PI * cr * cr;
-          }
           plates.push({ level:i, name:L.label, elevation:L.z, radius:re, dia:re * 2,
                         thickness:tM, rot: rotP * 180 / Math.PI,
                         form: fmP.form, shape: fmP.shape || '',
-                        outline: ringP, segments: segmentsFor(fmP, re, rotP),
-                        hole: hole, holeSegments: holeSegs, coreDia: hole ? cr * 2 : 0,
-                        area:(area - holeArea), volume:(area - holeArea) * tM });
+                        outline: ringP, area:area, volume:area * tM });
         }
       }
     }
     var er = window.splineRadii || [], zN = window.zSplits || 1, Es = [];
-    var exoEl = window.exoElevations || [];
     for(var k = 0; k < er.length; k++){
-      // Use the exoskeleton's framed elevation (offset-aware) when available,
-      // so shared levels align with the floors; fall back to a raw fraction.
-      var ez = (k < exoEl.length) ? exoEl[k] : +((zN ? k / zN : 0) * m.H).toFixed(3);
       Es.push({ index:k, name:'EXOSKELETON LEVEL ' + k,
-                elevation: ez, radius: er[k] || 0 });
+                elevation: +((zN ? k / zN : 0) * m.H).toFixed(3), radius: er[k] || 0 });
     }
     return { levels:Ls, exo:Es, plates:plates, H:m.H, thickness:tM, offset:offset };
   }
@@ -3544,22 +3210,15 @@
     return rows.join('\n');
   }
   function fPlatesCSV(md){
-    var rows = ['id,uid,level_name,center_x_m,center_y_m,base_z_m,radius_m,diameter_m,core_dia_m,thickness_mm,rotation_deg,form,shape,wedges,point_dist_m,area_m2,volume_m3,vertex_count,vertices_xy_m,boundary'];
+    var rows = ['id,level_name,center_x_m,center_y_m,base_z_m,radius_m,diameter_m,thickness_mm,rotation_deg,form,shape,wedges,point_dist_m,area_m2,volume_m3,vertex_count,vertices_xy_m'];
     md.plates.forEach(function(pl, idx){
       var ring = pl.outline || [];
       var verts = ring.map(function(pt){ return r5(pt.x) + ' ' + r5(pt.y); }).join(';');
-      var boundary = encodeBoundary(pl.segments);
-      // append the core hole as an inner loop, after a HOLE marker
-      if(pl.holeSegments){
-        boundary += ' ; HOLE ; ' + encodeBoundary(pl.holeSegments);
-      }
-      var uid = 'FL-' + pl.level;
-      rows.push([idx + 1, uid, pl.name, 0, 0, r5(pl.elevation), r5(pl.radius), r5(pl.dia),
-                 r5(pl.coreDia || 0),
+      rows.push([idx + 1, pl.name, 0, 0, r5(pl.elevation), r5(pl.radius), r5(pl.dia),
                  Math.round(pl.thickness * 1000), r5(pl.rot), pl.form, pl.shape,
                  (pl.form === 'wedged' ? wedgeN : 0), (pl.form === 'wedged' ? r5(wedgeD) : 0),
                  r5(pl.area), r5(pl.volume), ring.length,
-                 '"' + verts + '"', '"' + boundary + '"'].join(','));
+                 '"' + verts + '"'].join(','));
     });
     return rows.join('\n');
   }
@@ -3648,7 +3307,6 @@
     if(fIso) render(fIso);
     if(fOrbit) render(fOrbit);
     renderWedges();
-    renderInspector();
     if(vTotal) renderTotal(vTotal);
     if(fModelActive && fBig) render(fBig);
   }
@@ -3662,7 +3320,6 @@
   if(fIso) fIso.resize();
   if(fOrbit) fOrbit.resize();
   if(wedge) wedge.resize();
-  if(inspect) inspect.resize();
   if(vTotal) vTotal.resize();
   syncFloorParams();
   window.twistPerFloorDeg = twistDeg;
@@ -3710,7 +3367,7 @@
     'splineDegree','splineClosed','splinePoly','splineGrid','splineSnap',
     'bldgHeight','zSplits','fZSec',
     'pointsSlider','connectToggle','evenToggle',
-    'fOffset','fWedgeN','fWedgeD','fTwist','fCoreDia','fCoreTop',
+    'fOffset','fWedgeN','fWedgeD','fTwist',
     'fBotN','fBotType','fTopN','fTopType','fMidType','fEvery','fEveryType',
     'zTopOff','zBotOff'
   ];
@@ -3718,7 +3375,7 @@
   function fire(elm, type){ elm.dispatchEvent(new Event(type, { bubbles:true })); }
 
   function gather(){
-    var cfg = { version: 17, controls: {} };
+    var cfg = { version: 16, controls: {} };
     FIELDS.forEach(function(id){
       var e = el(id); if(!e) return;
       cfg.controls[id] = (e.type === 'checkbox') ? !!e.checked : e.value;
