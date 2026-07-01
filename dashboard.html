@@ -1994,14 +1994,19 @@
   function vnorm(a){ var L = Math.hypot(a.x,a.y,a.z) || 1; return {x:a.x/L, y:a.y/L, z:a.z/L}; }
   function vperp(v,a){ var d = vdot(v,a); return {x:v.x-d*a.x, y:v.y-d*a.y, z:v.z-d*a.z}; }
 
-  // cross-section rotation so the beam bottom faces the building centre (up = outward radial)
+  // cross-section rotation: vertical members keep 0 (the family default);
+  // everything else rolls so the beam bottom faces the centre of the revolve
+  // (up = outward radial at the member midpoint)
   function beamRotation(s, e){
     var axis = vnorm(vsub(e, s));
-    var d = { x:(s.x+e.x)/2, y:(s.y+e.y)/2, z:0 };               // outward radial at midpoint
-    if(Math.hypot(d.x, d.y) < 1e-9) d = { x:1, y:0, z:0 };       // member on the axis -> fallback
     var up0 = vperp({x:0,y:0,z:1}, axis);                        // Revit default up (global Z, perp to axis)
     if(Math.hypot(up0.x,up0.y,up0.z) < 1e-6) up0 = vperp({x:1,y:0,z:0}, axis); // near-vertical fallback
     up0 = vnorm(up0);
+    if(Math.hypot(e.x - s.x, e.y - s.y) < 1e-6){                 // vertical: no roll
+      return { theta: 0, up: up0 };
+    }
+    var d = { x:(s.x+e.x)/2, y:(s.y+e.y)/2, z:0 };               // outward radial at midpoint
+    if(Math.hypot(d.x, d.y) < 1e-9) d = { x:1, y:0, z:0 };       // member on the axis -> fallback
     var up1 = vnorm(vperp(d, axis));                             // desired up (outward)
     var theta = Math.atan2(vdot(vcross(up0, up1), axis), vdot(up0, up1));
     return { theta: theta, up: up1 };
