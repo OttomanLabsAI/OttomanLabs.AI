@@ -2913,6 +2913,48 @@
     for(var i = 0; i < md.plates.length; i++){ if(md.plates[i].radius > mx) mx = md.plates[i].radius; }
     return mx > 1e-6 ? mx : 1;
   }
+  // Where the exoskeleton diagonals cut through a horizontal plane at z=zf.
+  // Reconstructs the diagrid from the published exo data (using the SAME
+  // offset-aware elevations the floors use) and intersects each member with
+  // the plane. Returns de-duplicated {x,y} points in meters.
+  function framingCrossingsAt(zf){
+    var radii = window.splineRadii || [];
+    var exoEl = window.exoElevations || [];
+    var N = Math.max(1, Math.round(window.polarN || 1));
+    var levels = radii.length;
+    if(levels < 2 || exoEl.length < levels) return [];
+    var Ldraw = levels;
+    while(Ldraw > 2 && (radii[Ldraw - 1] || 0) < 1e-6 && (radii[Ldraw - 2] || 0) < 1e-6) Ldraw--;
+    var Lstart = 0;
+    while(Lstart < Ldraw - 1 && (radii[Lstart] || 0) < 1e-6) Lstart++;
+    function nodeAt(i, k){
+      var r = radii[i] || 0, off = (i % 2 === 1) ? Math.PI / N : 0;
+      var a = 2 * Math.PI * k / N + off;
+      return { x:r * Math.cos(a), y:r * Math.sin(a), z:exoEl[i] };
+    }
+    var seen = {}, out = [];
+    function add(x, y){
+      var key = x.toFixed(3) + ',' + y.toFixed(3);
+      if(seen[key]) return;
+      seen[key] = 1; out.push({ x:x, y:y });
+    }
+    for(var li = Lstart; li < Ldraw - 1; li++){
+      var z0 = exoEl[li], z1 = exoEl[li + 1];
+      if(Math.abs(z1 - z0) < 1e-9) continue;
+      var t = (zf - z0) / (z1 - z0);
+      if(t < -1e-6 || t > 1 + 1e-6) continue;       // plane not within this tier
+      var aOff = (li % 2 === 0) ? -1 : 0, bOff = (li % 2 === 0) ? 0 : 1;
+      for(var k = 0; k < N; k++){
+        var j1 = ((k + aOff) % N + N) % N, j2 = ((k + bOff) % N + N) % N;
+        var lo = nodeAt(li, k);
+        [nodeAt(li + 1, j1), nodeAt(li + 1, j2)].forEach(function(up){
+          add(lo.x + t * (up.x - lo.x), lo.y + t * (up.y - lo.y));
+        });
+      }
+    }
+    return out;
+  }
+
   function renderInspector(){
     if(!inspect) return;
     var ctx = inspect.ctx, w = inspect.w, h = inspect.h;
@@ -2958,11 +3000,23 @@
     ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(cx - plate.radius * sc, cy); ctx.lineTo(cx + plate.radius * sc, cy); ctx.stroke();
     ctx.setLineDash([]);
+    // framing cut points: where the exoskeleton diagonals pass through THIS
+    // floor's level. Marked as amber nodes on the plan.
+    var cuts = framingCrossingsAt(plate.elevation);
+    var nCuts = 0;
+    ctx.fillStyle = '#f59e0b';                 // amber = framing (stands out on the mono plan)
+    for(var ci = 0; ci < cuts.length; ci++){
+      var px = cx + cuts[ci].x * sc, py = cy - cuts[ci].y * sc;
+      ctx.beginPath(); ctx.arc(px, py, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = FC('--c-paper'); ctx.stroke();
+      nCuts++;
+    }
     if(inspectInfo){
       var txt = '\u00d8 ' + f3(plate.dia) + ' m';
       txt += ' · ' + (plate.form === 'wedged' ? 'wedged' : plate.form === 'custom' ? 'custom' : 'disc');
       if(plate.coreDia > 0) txt += ' · core \u00d8 ' + f3(plate.coreDia) + ' m';
       txt += ' · ' + f3(plate.area) + ' m\u00b2';
+      if(nCuts) txt += ' · ' + nCuts + ' framing cuts';
       inspectInfo.textContent = txt;
     }
   }
