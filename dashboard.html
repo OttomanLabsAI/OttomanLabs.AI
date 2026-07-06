@@ -326,7 +326,7 @@
 
     #panelDash .views > .view:has(canvas#splineBoard){ order:1; }
     #panelDash .rail > .card:has(input#splineDegree){ order:2; }
-    #panelDash .rail > .card:has(input#zSplits){ order:3; }
+    #panelDash .rail > .card:has(input#zLevelH){ order:3; }
     #panelDash .views > .view:has(canvas#elev3d){ order:4; }
     #panelDash .rail > .card:has(input#pointsSlider){ order:5; }
     #panelDash .views > .view:has(canvas#polar){ order:6; }
@@ -581,13 +581,14 @@
         <div class="statline">Control pts: <b id="splinePts">0</b></div>
       </div>
 
-      <!-- Z splits -->
+      <!-- Levels -->
       <div class="card">
-        <h2>Z splits</h2>
+        <h2>Levels</h2>
         <div class="row">
-          <label for="zSplits">Splits</label>
-          <input type="range" id="zSplits" min="1" max="50" step="1" value="10">
-          <input type="number" id="zSplitsNum" min="1" step="1" value="10">
+          <label for="zLevelH">Level height</label>
+          <input type="range" id="zLevelH" min="2" max="50" step="0.5" value="10">
+          <input type="number" id="zLevelHNum" min="1" max="200" step="0.5" value="10">
+          <span class="unit">m</span>
         </div>
         <div class="row">
           <label for="zTopOff">Top offset</label>
@@ -601,7 +602,7 @@
           <input type="number" id="zBotOffNum" min="0" max="500" step="0.5" value="0">
           <span class="unit">m</span>
         </div>
-        <div class="statline">Frame: <b id="frameLo">0.0</b> &ndash; <b id="frameHi">100.0</b> m &middot; floor <b id="floorH">10.0</b> m</div>
+        <div class="statline">Frame: <b id="frameLo">0.0</b> &ndash; <b id="frameHi">100.0</b> m &middot; <b id="exoLevels">11</b> levels &middot; top bay <b id="exoTopBay">10.0</b> m</div>
       </div>
 
       <!-- Polar -->
@@ -768,13 +769,29 @@
       </div>
 
       <div class="card">
-        <h2>Z secondary splits</h2>
+        <h2>Floor levels</h2>
+        <div class="statline">Exoskeleton: <b id="fExoInfo">11 levels &middot; every 10.0 m</b></div>
         <div class="row">
+          <label class="toggle"><input type="checkbox" id="fMatchExo" checked> Match exoskeleton levels</label>
+        </div>
+        <div class="row" id="fSecRow">
           <label for="fZSec">Between</label>
           <input type="range" id="fZSec" min="0" max="5" step="1" value="0">
           <input type="number" id="fZSecNum" min="0" max="5" step="1" value="0">
         </div>
-        <div class="statline">Adds that many equally-spaced levels between every pair of Exoskeleton levels.</div>
+        <div class="row" id="fF2FRow" hidden>
+          <label for="fF2F">Flr&ndash;flr</label>
+          <input type="range" id="fF2F" min="2" max="30" step="0.1" value="4">
+          <input type="number" id="fF2FNum" min="0.5" max="100" step="0.1" value="4">
+          <span class="unit">m</span>
+        </div>
+        <div class="row">
+          <label for="fLvlOff">Offset</label>
+          <input type="range" id="fLvlOff" min="-20" max="20" step="0.1" value="0">
+          <input type="number" id="fLvlOffNum" min="-100" max="100" step="0.1" value="0">
+          <span class="unit">m</span>
+        </div>
+        <div class="statline" id="fModeNote">Floors sit on the exoskeleton levels.</div>
         <div class="statline">Levels: <b id="fLevels">11</b> &middot; spacing <b id="fFloorH">10.0</b> m</div>
       </div>
 
@@ -1256,16 +1273,24 @@
   var ptsOuts    = [el('splinePts'), el('fPts')].filter(Boolean);
   var heightAll  = [el('bldgHeight'), el('fHeight'), el('bldgHeightNum'), el('fHeightNum')].filter(Boolean);
 
-  /* z controls — Floors derives its levels from the Exoskeleton splits */
-  var eZ = el('zSplits'), eZN = el('zSplitsNum'), eFloorH = el('floorH');
+  /* z controls — the exoskeleton is spaced by level height; Floors either
+     match its levels (offset + subsplits) or run their own stack */
+  var eLH = el('zLevelH'), eLHN = el('zLevelHNum');
+  var eLevelsOut = el('exoLevels'), eTopBay = el('exoTopBay');
   var fSecEl = el('fZSec'), fSecNum = el('fZSecNum'), fFloorH = el('fFloorH'), fLevelsOut = el('fLevels');
+  var fMatchEl = el('fMatchExo'), fExoInfo = el('fExoInfo'), fModeNote = el('fModeNote');
+  var fSecRow = el('fSecRow'), fF2FRow = el('fF2FRow');
+  var fF2FEl = el('fF2F'), fF2FNum = el('fF2FNum');
+  var fLvlOffEl = el('fLvlOff'), fLvlOffNum = el('fLvlOffNum');
 
   var bldgHeight = 100;
-  var zSplits = 10;            // exoskeleton split count
+  var levelH = 10;            // exoskeleton level height (m)
   var topOffset = 0;          // frame top sits this far below the tip (m)
   var botOffset = 0;          // frame bottom sits this far above the base (m)
-  var secSplits = 0;           // secondary levels between every pair (0–5)
-  function floorsLevelCount(){ return (zSplits + 1) + zSplits * secSplits; }
+  var secSplits = 0;          // match mode: extra levels inside each bay (0–5)
+  var fMatch = true;          // floors sit on the exoskeleton levels
+  var fF2F = 4;               // free mode: floor-to-floor height (m)
+  var fLvlOff = 0;            // vertical offset applied to every floor level (m)
 
   /* the one shared profile */
   var P = { pts:[], sel:-1, degree:3, closed:false, showPoly:true, showGrid:true, snap:true, undoStack:[] };
@@ -1383,55 +1408,75 @@
     return { r: +((xH / LOGICAL) * bldgHeight).toFixed(3),
              hit: { x:xH, y:yL } };
   }
-  // The framed region runs from the bottom offset up to (height − top offset).
-  // frameFrac maps a 0..1 position within the frame to an absolute height-fraction.
-  function frameBounds(){
-    var lo = Math.max(0, botOffset);
-    var hi = Math.max(lo, bldgHeight - topOffset);
-    return { lo: lo, hi: hi };
-  }
-  function frameZ(t){                       // t in 0..1 across the frame → absolute height
-    var fb = frameBounds();
-    return fb.lo + t * (fb.hi - fb.lo);
-  }
-  function sampleFrame(t){                   // sample the curve at framed position t
-    var z = frameZ(t);
+  // Sample the curve at an absolute height z (meters).
+  function sampleAtZ(z){
     var fr = bldgHeight > 0 ? z / bldgHeight : 0;
     var sp = sampleAt(fr);
     return { r: sp.r, hit: sp.hit, z: +z.toFixed(3) };
   }
-  // Exoskeleton: radii at the primary z-splits.
+  // Exoskeleton level elevations: one level every levelH meters from the frame
+  // bottom, always capped with a level at the frame top (the last bay may be
+  // shorter than levelH when the frame span isn't an exact multiple).
+  function exoLevelZs(){
+    var fs = frameSpan();
+    if(fs.len <= 1e-6) return [ +fs.lo.toFixed(3) ];
+    var zs = [ +fs.lo.toFixed(3) ];
+    var step = Math.max(1, levelH);
+    // keep the accumulator clear of the frame top by 1% of a bay (min half the
+    // rounding quantum) so the top cap never duplicates a level or leaves a
+    // millimetre-thin sliver bay behind float drift
+    var guard = Math.max(5e-4, step * 0.01);
+    for(var z = fs.lo + step; z < fs.hi - guard; z += step) zs.push(+z.toFixed(3));
+    var hiR = +fs.hi.toFixed(3);
+    if(zs[zs.length - 1] !== hiR) zs.push(hiR);
+    return zs;
+  }
+  // Exoskeleton: radii at the level elevations.
   function exoSamples(){
     var rad = [], hts = [];
-    if(curve.length && zSplits >= 1){
-      for(var zi = 0; zi <= zSplits; zi++){
-        var sp = sampleFrame(zi / zSplits);
+    if(curve.length){
+      var zs = exoLevelZs();
+      for(var zi = 0; zi < zs.length; zi++){
+        var sp = sampleAtZ(zs[zi]);
         rad.push(sp.r);
         if(sp.hit) hts.push({ x:sp.hit.x, y:sp.hit.y, primary:true });
       }
     }
     return { rad:rad, hits:hts };
   }
-  // Floors: primary levels plus secSplits equally-spaced levels between each pair.
+  // Floors: either sit on the exoskeleton levels (offset by fLvlOff, with
+  // secSplits extra levels inside each bay), or run as an independent stack
+  // every fF2F meters from the frame base plus the offset.
   function floorsSamples(){
     var lv = [], hts = [];
-    if(curve.length && zSplits >= 1){
-      var idx = 0;
-      for(var k = 0; k <= zSplits; k++){
-        var sP = sampleFrame(k / zSplits);
-        lv.push({ z: sP.z, r: sP.r, primary: true,
-                  label: 'SSL LEVEL ' + idx }); idx++;
-        if(sP.hit) hts.push({ x:sP.hit.x, y:sP.hit.y, primary:true });
-        if(k < zSplits){
+    if(!curve.length) return { levels: lv, hits: hts };
+    var fs = frameSpan();
+    var zs = [], primaries = [];
+    if(fMatch){
+      var ex = exoLevelZs();
+      for(var k = 0; k < ex.length; k++){
+        zs.push(ex[k] + fLvlOff); primaries.push(true);
+        if(k < ex.length - 1 && secSplits > 0){
+          var stepK = (ex[k + 1] - ex[k]) / (secSplits + 1);
           for(var j = 1; j <= secSplits; j++){
-            var t = (k + j / (secSplits + 1)) / zSplits;
-            var sS = sampleFrame(t);
-            lv.push({ z: sS.z, r: sS.r, primary: false,
-                      label: 'SSL LEVEL ' + idx }); idx++;
-            if(sS.hit) hts.push({ x:sS.hit.x, y:sS.hit.y, primary:false });
+            zs.push(ex[k] + fLvlOff + stepK * j); primaries.push(false);
           }
         }
       }
+    } else {
+      var s = Math.max(0.5, fF2F);
+      for(var zf = fs.lo + fLvlOff; zf <= fs.hi + 1e-6; zf += s){
+        if(zf >= -1e-6){ zs.push(zf); primaries.push(true); }
+      }
+    }
+    var idx = 0;
+    for(var i = 0; i < zs.length; i++){
+      // the offset can push levels outside the tower — drop those, both modes
+      if(zs[i] < -1e-6 || zs[i] > bldgHeight + 1e-6) continue;
+      var sp = sampleAtZ(zs[i]);
+      lv.push({ z: sp.z, r: sp.r, primary: primaries[i],
+                label: 'SSL LEVEL ' + idx }); idx++;
+      if(sp.hit) hts.push({ x:sp.hit.x, y:sp.hit.y, primary: primaries[i] });
     }
     return { levels: lv, hits: hts };
   }
@@ -1523,11 +1568,10 @@
     var fS = floorsSamples();
     floorsLevels = fS.levels; floorsHits = fS.hits;
     window.splineRadii = exoRad;
-    window.zSplits = zSplits;
-    // Publish the exoskeleton's framed elevations (these include top/bottom
-    // offsets via frameZ) so the Floors tab can align shared levels exactly.
-    var exoEl = [];
-    for(var ez = 0; ez <= zSplits; ez++){ exoEl.push(+frameZ(ez / zSplits).toFixed(3)); }
+    // Publish the exoskeleton's level elevations (offset-aware, spacing-driven)
+    // so the Floors tab and every 3D view align shared levels exactly.
+    var exoEl = exoLevelZs();
+    window.zSplits = Math.max(1, exoEl.length - 1);
     window.exoElevations = exoEl;
     window.floorsLevels = floorsLevels;
     window.secSplits = secSplits;
@@ -1706,12 +1750,32 @@
   }
   function updateFloorOuts(){
     var fs = frameSpan();
-    var perFloor = zSplits > 0 ? fs.len / zSplits : 0;
-    if(eFloorH) eFloorH.textContent = perFloor.toFixed(1);
-    if(fFloorH) fFloorH.textContent = (perFloor / (secSplits + 1)).toFixed(1);
-    if(fLevelsOut) fLevelsOut.textContent = floorsLevelCount();
+    var zs = exoLevelZs();
+    var n = zs.length;
+    if(eLevelsOut) eLevelsOut.textContent = n;
+    if(eTopBay) eTopBay.textContent = (n >= 2 ? (zs[n-1] - zs[n-2]) : 0).toFixed(1);
     if(eFrameLo) eFrameLo.textContent = fs.lo.toFixed(1);
     if(eFrameHi) eFrameHi.textContent = fs.hi.toFixed(1);
+    if(fExoInfo) fExoInfo.textContent = n + ' levels · every ' + levelH.toFixed(1) + ' m';
+    // count from the real generator when a profile exists (it clamps offset
+    // stragglers); fall back to the formula on an empty board
+    var sampled = floorsSamples().levels;
+    var fCount, fSpacing;
+    if(fMatch){
+      var bay = (n >= 2) ? (zs[1] - zs[0]) : 0;      // actual first bay, not nominal
+      fCount = sampled.length || (n + Math.max(0, n - 1) * secSplits);
+      fSpacing = bay / (secSplits + 1);
+    } else {
+      var s = Math.max(0.5, fF2F);
+      if(sampled.length){ fCount = sampled.length; }
+      else {
+        fCount = 0;
+        for(var z = fs.lo + fLvlOff; z <= fs.hi + 1e-6; z += s){ if(z >= -1e-6) fCount++; }
+      }
+      fSpacing = s;
+    }
+    if(fLevelsOut) fLevelsOut.textContent = fCount;
+    if(fFloorH) fFloorH.textContent = fSpacing.toFixed(1);
   }
   function clampOffsets(){
     // keep the frame valid: combined offsets can't exceed the height
@@ -1743,9 +1807,9 @@
   if(eTopOffNum) eTopOffNum.addEventListener('input', function(){ setTopOff(parseFloat(this.value)); });
   if(eBotOff) eBotOff.addEventListener('input', function(){ setBotOff(parseFloat(this.value)); });
   if(eBotOffNum) eBotOffNum.addEventListener('input', function(){ setBotOff(parseFloat(this.value)); });
-  function setExoZ(z){
-    zSplits = Math.max(1, Math.round(isFinite(z) ? z : zSplits));
-    if(eZ) eZ.value = zSplits; if(eZN) eZN.value = zSplits;
+  function setLevelH(v){
+    levelH = Math.max(1, Math.min(200, isFinite(v) ? v : levelH));
+    if(eLH) eLH.value = levelH; if(eLHN) eLHN.value = levelH;
     updateFloorOuts();
     drawAll();
   }
@@ -1756,10 +1820,43 @@
     updateFloorOuts();
     drawAll();
   }
-  if(eZ) eZ.addEventListener('input', function(){ setExoZ(parseFloat(this.value)); });
-  if(eZN) eZN.addEventListener('input', function(){ setExoZ(parseFloat(this.value)); });
+  function applyModeVis(){
+    if(fSecRow) fSecRow.hidden = !fMatch;
+    if(fF2FRow) fF2FRow.hidden = fMatch;
+    if(fModeNote) fModeNote.textContent = fMatch
+      ? 'Floors sit on the exoskeleton levels — “Between” adds equally-spaced levels inside each bay, “Offset” shifts every level vertically.'
+      : 'Independent stack: a level every floor-to-floor height up the frame, starting at the frame base plus the offset.';
+  }
+  function setMatch(on){
+    fMatch = !!on;
+    if(fMatchEl) fMatchEl.checked = fMatch;
+    applyModeVis();
+    updateFloorOuts();
+    drawAll();
+  }
+  function setF2F(v){
+    fF2F = Math.max(0.5, Math.min(100, isFinite(v) ? v : fF2F));
+    if(fF2FEl) fF2FEl.value = fF2F;
+    if(fF2FNum) fF2FNum.value = fF2F;
+    updateFloorOuts();
+    drawAll();
+  }
+  function setLvlOff(v){
+    fLvlOff = Math.max(-100, Math.min(100, isFinite(v) ? v : fLvlOff));
+    if(fLvlOffEl) fLvlOffEl.value = fLvlOff;
+    if(fLvlOffNum) fLvlOffNum.value = fLvlOff;
+    updateFloorOuts();
+    drawAll();
+  }
+  if(eLH) eLH.addEventListener('input', function(){ setLevelH(parseFloat(this.value)); });
+  if(eLHN) eLHN.addEventListener('input', function(){ setLevelH(parseFloat(this.value)); });
   if(fSecEl) fSecEl.addEventListener('input', function(){ setSec(parseFloat(this.value)); });
   if(fSecNum) fSecNum.addEventListener('input', function(){ setSec(parseFloat(this.value)); });
+  if(fMatchEl) fMatchEl.addEventListener('change', function(){ setMatch(this.checked); });
+  if(fF2FEl) fF2FEl.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
+  if(fF2FNum) fF2FNum.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
+  if(fLvlOffEl) fLvlOffEl.addEventListener('input', function(){ setLvlOff(parseFloat(this.value)); });
+  if(fLvlOffNum) fLvlOffNum.addEventListener('input', function(){ setLvlOff(parseFloat(this.value)); });
 
   // ── undo / clear: one shared history ──
   function undo(){
@@ -1776,7 +1873,8 @@
   });
 
   degreeVals.forEach(function(o){ o.textContent = P.degree; });
-  setExoZ(zSplits); setSec(secSplits);
+  setLevelH(levelH); setSec(secSplits);
+  setMatch(fMatch); setF2F(fF2F); setLvlOff(fLvlOff);
   setTopOff(topOffset); setBotOff(botOffset);
   setHeight(bldgHeight);
   for(var bi = 0; bi < boards.length; bi++) boards[bi].resize();
@@ -1850,7 +1948,10 @@
     // framed elevations (offset-aware) keep the diagrid where the floors sit;
     // fall back to an even split before they've been published
     var elev = window.exoElevations || [];
-    function levelZ(idx){ return (levels === 1) ? 0 : (idx < elev.length ? elev[idx] : (idx / (levels - 1)) * H); }
+    function levelZ(idx){
+      if(idx < elev.length) return elev[idx];              // explicit elevations first — a lone level keeps its height
+      return (levels <= 1) ? 0 : (idx / (levels - 1)) * H;
+    }
     var rings = [], nodes = [], all = [], i, s, k;
     for(i = Lstart; i < Ldraw; i++){
       var z = levelZ(i);
@@ -2093,7 +2194,8 @@
     var exoEl = window.exoElevations || [];
     var Ls = [];
     for(var i = 0; i < levels; i++){
-      var z = (levels <= 1) ? 0 : (i < exoEl.length ? exoEl[i] : (i / (levels - 1)) * H);
+      var z = (i < exoEl.length) ? exoEl[i]
+            : ((levels <= 1) ? 0 : (i / (levels - 1)) * H);
       Ls.push({ index:i, name:'Level ' + (i + 1), elevation:z, radius:(radii[i] || 0) });
     }
     var Ldraw = levels;
@@ -3875,17 +3977,17 @@
   // every persisted control, by id. checkboxes store .checked, the rest store .value.
   var FIELDS = [
     'splineDegree','splineClosed','splinePoly','splineGrid','splineSnap',
-    'bldgHeight','zSplits','fZSec',
+    'bldgHeight','zLevelHNum','fZSec','fMatchExo','fF2FNum','fLvlOffNum',
     'pointsSlider','connectToggle','evenToggle',
     'fOffset','fWedgeN','fWedgeD','fTwist','fCoreDia','fCoreTop',
     'fBotN','fBotType','fTopN','fTopType','fMidType','fEvery','fEveryType',
-    'zTopOff','zBotOff'
+    'zTopOffNum','zBotOffNum'
   ];
 
   function fire(elm, type){ elm.dispatchEvent(new Event(type, { bubbles:true })); }
 
   function gather(){
-    var cfg = { version: 17, controls: {} };
+    var cfg = { version: 18, controls: {} };
     FIELDS.forEach(function(id){
       var e = el(id); if(!e) return;
       cfg.controls[id] = (e.type === 'checkbox') ? !!e.checked : e.value;
@@ -3907,6 +4009,21 @@
 
   function apply(cfg){
     if(!cfg || !cfg.controls) return;
+    var c = cfg.controls;
+    // v17 → v18 migrations. The spacing/offset fields moved to their
+    // number-input ids (the sliders clamp to narrower ranges), and the old
+    // zSplits count becomes a level height over the frame span.
+    if(c.zTopOff != null && c.zTopOffNum == null) c.zTopOffNum = c.zTopOff;
+    if(c.zBotOff != null && c.zBotOffNum == null) c.zBotOffNum = c.zBotOff;
+    if(c.zLevelH != null && c.zLevelHNum == null) c.zLevelHNum = c.zLevelH;
+    if(c.fF2F != null && c.fF2FNum == null) c.fF2FNum = c.fF2F;
+    if(c.fLvlOff != null && c.fLvlOffNum == null) c.fLvlOffNum = c.fLvlOff;
+    if(c.zSplits != null && c.zLevelHNum == null){
+      var mh = parseFloat(c.bldgHeight); if(!isFinite(mh)) mh = 100;
+      var mspan = Math.max(0, mh - (parseFloat(c.zTopOffNum) || 0) - (parseFloat(c.zBotOffNum) || 0));
+      var mz = Math.max(1, Math.round(parseFloat(c.zSplits) || 10));
+      if(mspan > 0) c.zLevelHNum = +(mspan / mz).toFixed(2);
+    }
     // 1) restore the spline geometry first, so resampling has the right curve
     if(cfg.splinePoints && window.setSplinePoints) window.setSplinePoints(cfg.splinePoints);
     // 2) push every control value back, firing input/change so listeners recompute
@@ -4327,15 +4444,16 @@
       params:[
         { master:'bldgHeight',   name:'Building height', unit:'m',  desc:'Overall tower height; sets the vertical scale of every level.' },
         { master:'splineDegree', name:'Spline degree',   unit:'',   desc:'Smoothness of the profile curve through the control points.' },
-        { master:'zSplits',      name:'Z splits',        unit:'',   desc:'Number of primary structural levels up the exoskeleton.' },
+        { master:'zLevelH',      name:'Level height',    unit:'m',  desc:'Vertical spacing of the exoskeleton levels — a level is placed every this many meters up the frame.' },
         { master:'pointsSlider', name:'Polar points',    unit:'',   desc:'Nodes around each ring — the diagrid brace count.' }
       ],
       caps:[ ['splineBoard','exoSpline'], ['polar','exoPolar'], ['iso3d','exoPlan'], ['elev3d','exoElev'] ],
       readout:function(){
         var h = parseFloat((el('bldgHeight')||{}).value)||0;
-        var z = parseFloat((el('zSplits')||{}).value)||1;
+        var lh = parseFloat((el('zLevelH')||{}).value)||0;
+        var lv = (window.exoElevations || []).length;
         var n = parseFloat((el('pointsSlider')||{}).value)||0;
-        return 'Height ' + fmt(h) + ' m \u00b7 ' + z + ' levels \u00b7 floor ' + fmt(h/z) + ' m \u00b7 ' + n + ' diagrid points';
+        return 'Height ' + fmt(h) + ' m \u00b7 ' + (lv || '\u2014') + ' levels \u00b7 floor ' + fmt(lh) + ' m \u00b7 ' + n + ' diagrid points';
       }
     },
     flor: {
@@ -4344,7 +4462,9 @@
       refreshId:'florRefresh', printId:'florPrint', svgId:'florSVG',
       stagePage:'pageFloors', stagePanel:'fPanelDash',
       params:[
-        { master:'fZSec',      name:'Secondary splits', unit:'',   desc:'Extra levels inserted between every pair of primary levels.' },
+        { master:'fZSec',      name:'Secondary splits', unit:'',   desc:'Extra levels inserted between every pair of exoskeleton levels (match mode only).' },
+        { master:'fF2FNum',    name:'Floor-to-floor',   unit:'m',  desc:'Level spacing when the floors run independently of the exoskeleton.' },
+        { master:'fLvlOffNum', name:'Level offset',     unit:'m',  desc:'Vertical shift applied to every floor level.' },
         { master:'fOffset',    name:'Plate \u00d8 offset', unit:'m', desc:'Grows or shrinks every floor plate relative to the spline.' },
         { master:'fWedgeN',    name:'Wedges',           unit:'',   desc:'Equal sectors cut out of each floor plate.' },
         { master:'fWedgeD',    name:'Point distance',   unit:'m',  desc:'How far the wedge cuts slide out toward the rim.' },
@@ -4354,9 +4474,13 @@
       readout:function(){
         var lv = (window.floorsLevels || []).length;
         var h = window.bldgHeight || 0;
-        var t = 400;   // fixed slab depth (thickness control removed)
         var tw = parseFloat((el('fTwist')||{}).value)||0;
-        return lv + ' SSL levels \u00b7 height ' + fmt(h) + ' m \u00b7 ' + t + ' mm slabs \u00b7 twist ' + fmt(tw) + '\u00b0/floor';
+        var match = !!(el('fMatchExo')||{}).checked;
+        var off = parseFloat((el('fLvlOffNum')||{}).value)||0;
+        var mode = match ? 'on exoskeleton levels'
+                         : ('free stack \u00b7 flr\u2013flr ' + fmt(parseFloat((el('fF2FNum')||{}).value)||0) + ' m');
+        return lv + ' SSL levels \u00b7 height ' + fmt(h) + ' m \u00b7 ' + mode +
+               ' \u00b7 offset ' + fmt(off) + ' m \u00b7 twist ' + fmt(tw) + '\u00b0/floor';
       }
     }
   };
