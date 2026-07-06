@@ -785,39 +785,31 @@
           <input type="number" id="fF2FNum" min="0.5" max="100" step="0.1" value="4">
           <span class="unit">m</span>
         </div>
-        <div class="row">
-          <label for="fLvlOff">Offset</label>
-          <input type="range" id="fLvlOff" min="-20" max="20" step="0.1" value="0">
-          <input type="number" id="fLvlOffNum" min="-100" max="100" step="0.1" value="0">
-          <span class="unit">m</span>
-        </div>
         <div class="statline" id="fModeNote">Floors sit on the exoskeleton levels.</div>
         <div class="statline">Levels: <b id="fLevels">11</b> &middot; spacing <b id="fFloorH">10.0</b> m</div>
       </div>
 
       <div class="card">
-        <h2>Core cut</h2>
+        <h2>Floor extents</h2>
         <div class="row">
-          <label for="fCoreDia">&Oslash;</label>
+          <label for="fOffset">Plate &Oslash; offset</label>
+          <input type="range" id="fOffset" min="-20" max="20" step="0.5" value="0">
+          <input type="number" id="fOffsetNum" min="-20" max="20" step="0.5" value="0">
+          <span class="unit">m</span>
+        </div>
+        <div class="statline">Plate &Oslash; = spline &Oslash; + offset &mdash; grows or shrinks every plate.</div>
+        <div class="row">
+          <label for="fCoreDia">Core hole &Oslash;</label>
           <input type="range" id="fCoreDia" min="0" max="30" step="0.5" value="0">
           <input type="number" id="fCoreDiaNum" min="0" max="60" step="0.5" value="0">
+          <span class="unit">m</span>
         </div>
         <div class="row">
-          <label for="fCoreTop">Up to level</label>
+          <label for="fCoreTop">Hole up to level</label>
           <input type="range" id="fCoreTop" min="0" max="100" step="1" value="0">
           <input type="number" id="fCoreTopNum" min="0" max="500" step="1" value="0">
         </div>
-        <div class="statline" id="fCoreInfo">A centred circular hole is cut through the core, from the base up to the chosen level.</div>
-      </div>
-
-      <div class="card">
-        <h2>Floor plates</h2>
-        <div class="row">
-          <label for="fOffset">&Oslash; offset</label>
-          <input type="range" id="fOffset" min="-20" max="20" step="0.5" value="0">
-          <input type="number" id="fOffsetNum" min="-20" max="20" step="0.5" value="0">
-        </div>
-        <div class="statline">Plate &Oslash; = spline &Oslash; + offset</div>
+        <div class="statline" id="fCoreInfo">A centred circular hole is cut through the plates, from the base up to the chosen level.</div>
       </div>
 
       <div class="card">
@@ -1281,7 +1273,6 @@
   var fMatchEl = el('fMatchExo'), fExoInfo = el('fExoInfo'), fModeNote = el('fModeNote');
   var fSecRow = el('fSecRow'), fF2FRow = el('fF2FRow');
   var fF2FEl = el('fF2F'), fF2FNum = el('fF2FNum');
-  var fLvlOffEl = el('fLvlOff'), fLvlOffNum = el('fLvlOffNum');
 
   var bldgHeight = 100;
   var levelH = 10;            // exoskeleton level height (m)
@@ -1290,7 +1281,6 @@
   var secSplits = 0;          // match mode: extra levels inside each bay (0–5)
   var fMatch = true;          // floors sit on the exoskeleton levels
   var fF2F = 4;               // free mode: floor-to-floor height (m)
-  var fLvlOff = 0;            // vertical offset applied to every floor level (m)
 
   /* the one shared profile */
   var P = { pts:[], sel:-1, degree:3, closed:false, showPoly:true, showGrid:true, snap:true, undoStack:[] };
@@ -1444,9 +1434,9 @@
     }
     return { rad:rad, hits:hts };
   }
-  // Floors: either sit on the exoskeleton levels (offset by fLvlOff, with
-  // secSplits extra levels inside each bay), or run as an independent stack
-  // every fF2F meters from the frame base plus the offset.
+  // Floors: either sit on the exoskeleton levels (with secSplits extra levels
+  // inside each bay), or run as an independent stack every fF2F meters from
+  // the frame base.
   function floorsSamples(){
     var lv = [], hts = [];
     if(!curve.length) return { levels: lv, hits: hts };
@@ -1455,24 +1445,22 @@
     if(fMatch){
       var ex = exoLevelZs();
       for(var k = 0; k < ex.length; k++){
-        zs.push(ex[k] + fLvlOff); primaries.push(true);
+        zs.push(ex[k]); primaries.push(true);
         if(k < ex.length - 1 && secSplits > 0){
           var stepK = (ex[k + 1] - ex[k]) / (secSplits + 1);
           for(var j = 1; j <= secSplits; j++){
-            zs.push(ex[k] + fLvlOff + stepK * j); primaries.push(false);
+            zs.push(ex[k] + stepK * j); primaries.push(false);
           }
         }
       }
     } else {
       var s = Math.max(0.5, fF2F);
-      for(var zf = fs.lo + fLvlOff; zf <= fs.hi + 1e-6; zf += s){
-        if(zf >= -1e-6){ zs.push(zf); primaries.push(true); }
+      for(var zf = fs.lo; zf <= fs.hi + 1e-6; zf += s){
+        zs.push(zf); primaries.push(true);
       }
     }
     var idx = 0;
     for(var i = 0; i < zs.length; i++){
-      // the offset can push levels outside the tower — drop those, both modes
-      if(zs[i] < -1e-6 || zs[i] > bldgHeight + 1e-6) continue;
       var sp = sampleAtZ(zs[i]);
       lv.push({ z: sp.z, r: sp.r, primary: primaries[i],
                 label: 'SSL LEVEL ' + idx }); idx++;
@@ -1767,11 +1755,7 @@
       fSpacing = bay / (secSplits + 1);
     } else {
       var s = Math.max(0.5, fF2F);
-      if(sampled.length){ fCount = sampled.length; }
-      else {
-        fCount = 0;
-        for(var z = fs.lo + fLvlOff; z <= fs.hi + 1e-6; z += s){ if(z >= -1e-6) fCount++; }
-      }
+      fCount = sampled.length || (Math.floor((fs.hi - fs.lo) / s) + 1);
       fSpacing = s;
     }
     if(fLevelsOut) fLevelsOut.textContent = fCount;
@@ -1824,8 +1808,8 @@
     if(fSecRow) fSecRow.hidden = !fMatch;
     if(fF2FRow) fF2FRow.hidden = fMatch;
     if(fModeNote) fModeNote.textContent = fMatch
-      ? 'Floors sit on the exoskeleton levels — “Between” adds equally-spaced levels inside each bay, “Offset” shifts every level vertically.'
-      : 'Independent stack: a level every floor-to-floor height up the frame, starting at the frame base plus the offset.';
+      ? 'Floors sit on the exoskeleton levels — “Between” adds equally-spaced levels inside each bay.'
+      : 'Independent stack: a level every floor-to-floor height up the frame.';
   }
   function setMatch(on){
     fMatch = !!on;
@@ -1841,13 +1825,6 @@
     updateFloorOuts();
     drawAll();
   }
-  function setLvlOff(v){
-    fLvlOff = Math.max(-100, Math.min(100, isFinite(v) ? v : fLvlOff));
-    if(fLvlOffEl) fLvlOffEl.value = fLvlOff;
-    if(fLvlOffNum) fLvlOffNum.value = fLvlOff;
-    updateFloorOuts();
-    drawAll();
-  }
   if(eLH) eLH.addEventListener('input', function(){ setLevelH(parseFloat(this.value)); });
   if(eLHN) eLHN.addEventListener('input', function(){ setLevelH(parseFloat(this.value)); });
   if(fSecEl) fSecEl.addEventListener('input', function(){ setSec(parseFloat(this.value)); });
@@ -1855,8 +1832,6 @@
   if(fMatchEl) fMatchEl.addEventListener('change', function(){ setMatch(this.checked); });
   if(fF2FEl) fF2FEl.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
   if(fF2FNum) fF2FNum.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
-  if(fLvlOffEl) fLvlOffEl.addEventListener('input', function(){ setLvlOff(parseFloat(this.value)); });
-  if(fLvlOffNum) fLvlOffNum.addEventListener('input', function(){ setLvlOff(parseFloat(this.value)); });
 
   // ── undo / clear: one shared history ──
   function undo(){
@@ -1874,7 +1849,7 @@
 
   degreeVals.forEach(function(o){ o.textContent = P.degree; });
   setLevelH(levelH); setSec(secSplits);
-  setMatch(fMatch); setF2F(fF2F); setLvlOff(fLvlOff);
+  setMatch(fMatch); setF2F(fF2F);
   setTopOff(topOffset); setBotOff(botOffset);
   setHeight(bldgHeight);
   for(var bi = 0; bi < boards.length; bi++) boards[bi].resize();
@@ -3977,7 +3952,7 @@
   // every persisted control, by id. checkboxes store .checked, the rest store .value.
   var FIELDS = [
     'splineDegree','splineClosed','splinePoly','splineGrid','splineSnap',
-    'bldgHeight','zLevelHNum','fZSec','fMatchExo','fF2FNum','fLvlOffNum',
+    'bldgHeight','zLevelHNum','fZSec','fMatchExo','fF2FNum',
     'pointsSlider','connectToggle','evenToggle',
     'fOffset','fWedgeN','fWedgeD','fTwist','fCoreDia','fCoreTop',
     'fBotN','fBotType','fTopN','fTopType','fMidType','fEvery','fEveryType',
@@ -3987,7 +3962,7 @@
   function fire(elm, type){ elm.dispatchEvent(new Event(type, { bubbles:true })); }
 
   function gather(){
-    var cfg = { version: 18, controls: {} };
+    var cfg = { version: 19, controls: {} };
     FIELDS.forEach(function(id){
       var e = el(id); if(!e) return;
       cfg.controls[id] = (e.type === 'checkbox') ? !!e.checked : e.value;
@@ -4017,7 +3992,6 @@
     if(c.zBotOff != null && c.zBotOffNum == null) c.zBotOffNum = c.zBotOff;
     if(c.zLevelH != null && c.zLevelHNum == null) c.zLevelHNum = c.zLevelH;
     if(c.fF2F != null && c.fF2FNum == null) c.fF2FNum = c.fF2F;
-    if(c.fLvlOff != null && c.fLvlOffNum == null) c.fLvlOffNum = c.fLvlOff;
     if(c.zSplits != null && c.zLevelHNum == null){
       var mh = parseFloat(c.bldgHeight); if(!isFinite(mh)) mh = 100;
       var mspan = Math.max(0, mh - (parseFloat(c.zTopOffNum) || 0) - (parseFloat(c.zBotOffNum) || 0));
@@ -4464,7 +4438,6 @@
       params:[
         { master:'fZSec',      name:'Secondary splits', unit:'',   desc:'Extra levels inserted between every pair of exoskeleton levels (match mode only).' },
         { master:'fF2FNum',    name:'Floor-to-floor',   unit:'m',  desc:'Level spacing when the floors run independently of the exoskeleton.' },
-        { master:'fLvlOffNum', name:'Level offset',     unit:'m',  desc:'Vertical shift applied to every floor level.' },
         { master:'fOffset',    name:'Plate \u00d8 offset', unit:'m', desc:'Grows or shrinks every floor plate relative to the spline.' },
         { master:'fWedgeN',    name:'Wedges',           unit:'',   desc:'Equal sectors cut out of each floor plate.' },
         { master:'fWedgeD',    name:'Point distance',   unit:'m',  desc:'How far the wedge cuts slide out toward the rim.' },
@@ -4476,11 +4449,10 @@
         var h = window.bldgHeight || 0;
         var tw = parseFloat((el('fTwist')||{}).value)||0;
         var match = !!(el('fMatchExo')||{}).checked;
-        var off = parseFloat((el('fLvlOffNum')||{}).value)||0;
         var mode = match ? 'on exoskeleton levels'
                          : ('free stack \u00b7 flr\u2013flr ' + fmt(parseFloat((el('fF2FNum')||{}).value)||0) + ' m');
         return lv + ' SSL levels \u00b7 height ' + fmt(h) + ' m \u00b7 ' + mode +
-               ' \u00b7 offset ' + fmt(off) + ' m \u00b7 twist ' + fmt(tw) + '\u00b0/floor';
+               ' \u00b7 twist ' + fmt(tw) + '\u00b0/floor';
       }
     }
   };

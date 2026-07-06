@@ -314,15 +314,86 @@
   var statusEl = document.getElementById('selStatus');
 
   var PROJECTS = [
-    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      status:'enter the model', href:'dashboard.html', draw:drawGherkin  },
-    { the:'The',     name:'SHARD',    chip:'The Shard',        status:'coming soon',     href:null,             draw:drawShard    },
-    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     status:'coming soon',     href:null,             draw:drawBurj     },
-    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', status:'coming soon',     href:null,             draw:drawCrescent }
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      status:'enter the model', href:'dashboard.html', draw:drawGherkin,  shadow:0.34 },
+    { the:'The',     name:'SHARD',    chip:'The Shard',        status:'coming soon',     href:null,             draw:drawShard,    shadow:0.20 },
+    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     status:'coming soon',     href:null,             draw:drawBurj,     shadow:0.32 },
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', status:'coming soon',     href:null,             draw:drawCrescent, shadow:0.48 }
+  ];
+  // trees are anchored to the WORLD (plan angle + radius), so they swing with
+  // the camera like everything else on the island
+  var TREES = [
+    { p: 1.05, r: 0.88, s: 0.075 },
+    { p: 2.45, r: 0.90, s: 0.065 },
+    { p: 3.65, r: 0.80, s: 0.080 },
+    { p: 5.30, r: 0.85, s: 0.060 }
   ];
   var TAU = Math.PI * 2;
   var idx = 0;                 // selected project
-  var rot = 0, rotFrom = 0, rotTo = 0, animT = 1;   // turntable angle + easing state
+  var rot = 0, rotFrom = 0, rotTo = 0, animT = 1;   // camera yaw around the island + easing state
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- shared 3D projection: fixed pitch, camera yaw = rot ----
+  var SB = 0.22;                          // sin(pitch) — matches the island ellipse
+  var CB = Math.sqrt(1 - SB * SB);        // cos(pitch) — vertical foreshortening
+  var LIGHT = -0.9;                       // light azimuth in view space
+  // per-model projector: model meters → screen px (x0,gy = ground anchor)
+  function mkProj(x0, gy, k, yaw){
+    var ca = Math.cos(yaw), sa = Math.sin(yaw);
+    return function(mx, my, mz){
+      var rx = mx * ca - my * sa;
+      var ry = mx * sa + my * ca;        // +ry = toward the camera
+      return { x: x0 + rx * k, y: gy + (ry * SB - mz * CB) * k, d: -ry };
+    };
+  }
+  function shade(hex, br){
+    var n = parseInt(hex.slice(1), 16);
+    var r = Math.min(255, Math.round(((n >> 16) & 255) * br));
+    var g = Math.min(255, Math.round(((n >> 8) & 255) * br));
+    var b = Math.min(255, Math.round((n & 255) * br));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+  // painter-sorted flat-shaded faces. az = plan azimuth of the face normal
+  // (null = top face, drawn a touch brighter); yaw feeds the light so faces
+  // darken as the camera orbits past them.
+  function paintFaces(ctx, faces, prj, yaw, lineCol){
+    var out = faces.map(function(f){
+      var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
+      var d = 0;
+      for(var i = 0; i < pts.length; i++) d += pts[i].d;
+      var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
+      return { pts: pts, d: d / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){ return b.d - a.d; });
+    out.forEach(function(f){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = f.col; ctx.fill();
+      ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+  // vertical prism from a plan polygon: side quads (outward normals) + top
+  function prismFaces(faces, plan, z1, col){
+    var cx0 = 0, cy0 = 0;
+    plan.forEach(function(p){ cx0 += p[0] / plan.length; cy0 += p[1] / plan.length; });
+    for(var i = 0; i < plan.length; i++){
+      var a = plan[i], b = plan[(i + 1) % plan.length];
+      var nx = (b[1] - a[1]), ny = -(b[0] - a[0]);            // edge normal
+      var mx = (a[0] + b[0]) / 2 - cx0, my = (a[1] + b[1]) / 2 - cy0;
+      if(nx * mx + ny * my < 0){ nx = -nx; ny = -ny; }        // point outward
+      faces.push({ pts: [[a[0],a[1],0],[b[0],b[1],0],[b[0],b[1],z1],[a[0],a[1],z1]],
+                   col: col, az: Math.atan2(nx, ny) });
+    }
+    faces.push({ pts: plan.map(function(p){ return [p[0], p[1], z1]; }), col: col, az: null });
+  }
+  function rectPlan(ox, oy, dx, dy, hl, hw){                   // rect centred on (ox,oy), axis (dx,dy)
+    var L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+    var px = -dy, py = dx;
+    return [[ox + dx*hl + px*hw, oy + dy*hl + py*hw],
+            [ox - dx*hl + px*hw, oy - dy*hl + py*hw],
+            [ox - dx*hl - px*hw, oy - dy*hl - py*hw],
+            [ox + dx*hl - px*hw, oy + dy*hl - py*hw]];
+  }
 
   /* ---- scene painting ---- */
   function draw(){
@@ -367,29 +438,33 @@
     // paths worn into the grass
     ctx.strokeStyle = 'rgba(255,248,231,.65)'; ctx.lineWidth = Math.max(2, h * 0.012);
     ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.66, ry * 0.6, 0, 0, TAU); ctx.stroke();
-    // trees around the rim
-    tree(cx - rx * 0.86, cy + ry * 0.10, h * 0.075);
-    tree(cx + rx * 0.88, cy - ry * 0.05, h * 0.065);
-    tree(cx + rx * 0.72, cy + ry * 0.52, h * 0.08);
-    tree(cx - rx * 0.60, cy - ry * 0.55, h * 0.06);
-
-    // structures on the turntable — back first
-    var order = [];
-    for(var i = 0; i < PROJECTS.length; i++){
-      var a = rot + i * (TAU / PROJECTS.length);
-      var depth = (Math.cos(a) + 1) / 2;                       // 1 front · 0 back
-      order.push({ i: i, a: a, depth: depth });
+    // the camera orbits the island: every world feature (trees AND structures)
+    // shares one rigid rotation by the camera yaw. ground() maps a world plan
+    // position (angle, radius) to its screen point; depth 1 = nearest.
+    function ground(phi, r){
+      var a = phi - rot;
+      return { x: cx + rx * r * Math.sin(a),
+               y: cy + ry * r * Math.cos(a),
+               depth: Math.cos(a) };
     }
-    order.sort(function(p, q){ return p.depth - q.depth; });
-    order.forEach(function(o){
-      var x = cx + rx * 0.66 * Math.sin(o.a);
-      var gy = cy + ry * 0.84 * Math.cos(o.a);
-      var s = h * (0.15 + 0.19 * o.depth);                     // model height in px
-      ctx.fillStyle = 'rgba(0,0,0,.16)';
-      ctx.beginPath(); ctx.ellipse(x, gy + s * 0.015, s * 0.30, s * 0.055, 0, 0, TAU); ctx.fill();
-      PROJECTS[o.i].draw(ctx, x, gy, s);
-      chip(x, gy - s - h * 0.045, PROJECTS[o.i].chip, o.depth > 0.82, h);
+    var drawables = [];
+    TREES.forEach(function(t){
+      var g = ground(t.p, t.r);
+      drawables.push({ d: g.depth, run: function(){ tree(g.x, g.y, h * t.s); } });
     });
+    PROJECTS.forEach(function(p, i){
+      var g = ground(i * (TAU / PROJECTS.length), 0.62);
+      var depth01 = (g.depth + 1) / 2;
+      var s = h * (0.15 + 0.19 * depth01);                     // model height in px
+      drawables.push({ d: g.depth, run: function(){
+        ctx.fillStyle = 'rgba(0,0,0,.16)';
+        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
+        p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
+        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h);
+      }});
+    });
+    drawables.sort(function(a, b){ return a.d - b.d; });       // back → front
+    drawables.forEach(function(o){ o.run(); });
 
     // title plaque
     plaque(cx, h * 0.058, 'THE OTTOMANLABS PROJECTS', h);
@@ -451,100 +526,153 @@
     ctx.closePath();
   }
 
-  /* ---- the four structures, drawn low-poly style ---- */
-  function drawGherkin(ctx, x, gy, s){
-    var wMax = s * 0.30, wBase = s * 0.20;
-    function silhouette(){
-      ctx.beginPath();
-      ctx.moveTo(x - wBase, gy);
-      ctx.bezierCurveTo(x - wMax, gy - s * 0.20, x - wMax, gy - s * 0.58, x, gy - s);
-      ctx.bezierCurveTo(x + wMax, gy - s * 0.58, x + wMax, gy - s * 0.20, x + wBase, gy);
-      ctx.closePath();
+  /* ---- the four structures as true 3D models (yaw = camera orbit) ---- */
+
+  // The Gherkin — built from the dashboard's exported settings JSON
+  // (gherkinsettings 2026-07-06): cubic profile spline on the 600-logical
+  // board, H 180 m, levels every 8 m with a 1 m top offset, 22 diagrid nodes.
+  var GHERKIN = {
+    H: 180, levelH: 8, topOff: 1, N: 22,
+    pts: [[0, 0], [120, 0], [180, 390], [120, 600]]            // board space: y 0 = tip, 600 = base
+  };
+  var GK = (function(){
+    var P = GHERKIN.pts, S = 64, poly = [];
+    for(var i = 0; i <= S; i++){                               // degree-3, 4 points → a Bézier
+      var t = i / S, u = 1 - t;
+      poly.push({ x: u*u*u*P[0][0] + 3*u*u*t*P[1][0] + 3*u*t*t*P[2][0] + t*t*t*P[3][0],
+                  y: u*u*u*P[0][1] + 3*u*u*t*P[1][1] + 3*u*t*t*P[2][1] + t*t*t*P[3][1] });
     }
-    var g = ctx.createLinearGradient(x - wMax, 0, x + wMax, 0);
-    g.addColorStop(0, '#4E9E8C'); g.addColorStop(0.45, '#79C7B3'); g.addColorStop(1, '#5FAF9C');
-    silhouette(); ctx.fillStyle = g; ctx.fill();
-    ctx.save(); silhouette(); ctx.clip();
-    ctx.strokeStyle = 'rgba(36,94,82,.85)'; ctx.lineWidth = Math.max(1, s * 0.014);
-    var n = 6;
-    for(var k = -n; k <= n; k++){
-      var bx = x + k * (wMax * 2 / n);
-      ctx.beginPath(); ctx.moveTo(bx - wMax, gy); ctx.lineTo(bx + wMax, gy - s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(bx + wMax, gy); ctx.lineTo(bx - wMax, gy - s); ctx.stroke();
-    }
-    ctx.restore();
-    silhouette(); ctx.strokeStyle = '#245E52'; ctx.lineWidth = Math.max(1.2, s * 0.02); ctx.stroke();
-    ctx.fillStyle = '#DFF3EE';
-    ctx.beginPath(); ctx.arc(x, gy - s * 0.985, s * 0.028, 0, TAU); ctx.fill();
-  }
-  function drawShard(ctx, x, gy, s){
-    var w = s * 0.20;
-    ctx.fillStyle = '#93B4CC';
-    ctx.beginPath(); ctx.moveTo(x, gy - s); ctx.lineTo(x - w, gy); ctx.lineTo(x + w * 0.06, gy); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#B9D0E2';
-    ctx.beginPath(); ctx.moveTo(x, gy - s); ctx.lineTo(x + w * 0.06, gy); ctx.lineTo(x + w * 0.62, gy); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#7FA0BA';
-    ctx.beginPath(); ctx.moveTo(x, gy - s); ctx.lineTo(x + w * 0.62, gy); ctx.lineTo(x + w, gy); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(94,126,150,.8)'; ctx.lineWidth = Math.max(1, s * 0.012);
-    [0.25, 0.5, 0.75].forEach(function(f){
-      ctx.beginPath(); ctx.moveTo(x - w * f, gy - s * (1 - f)); ctx.lineTo(x + w * f, gy - s * (1 - f)); ctx.stroke();
+    var zs = [], hi = GHERKIN.H - GHERKIN.topOff;
+    for(var z = 0; z < hi - GHERKIN.levelH * 0.01; z += GHERKIN.levelH) zs.push(z);
+    zs.push(hi);
+    var rs = zs.map(function(zz){
+      var yL = (1 - zz / GHERKIN.H) * 600, best = 0;
+      for(var j = 0; j < poly.length - 1; j++){
+        var a = poly[j], b = poly[j + 1];
+        if((a.y - yL) * (b.y - yL) <= 0 && a.y !== b.y){
+          var xx = a.x + (b.x - a.x) * (yL - a.y) / (b.y - a.y);
+          if(xx > best) best = xx;
+        }
+      }
+      return best / 600 * GHERKIN.H;                           // logical x → meters
     });
-    ctx.strokeStyle = '#5E7E96'; ctx.lineWidth = Math.max(1.2, s * 0.016);
-    ctx.beginPath(); ctx.moveTo(x, gy - s); ctx.lineTo(x - w, gy); ctx.lineTo(x + w, gy); ctx.closePath(); ctx.stroke();
+    return { zs: zs, rs: rs };
+  })();
+
+  function drawGherkin(ctx, x0, gy, s, yaw){
+    var k = s / (GHERKIN.H * CB), prj = mkProj(x0, gy, k, yaw);
+    var N = GHERKIN.N, L = GK.zs.length, i, j;
+    // glass body: the silhouette of the surface of revolution (±r about the axis)
+    ctx.beginPath();
+    for(i = 0; i < L; i++){ var pR = prj(0, 0, GK.zs[i]); var X = pR.x + GK.rs[i] * k;
+      i ? ctx.lineTo(X, pR.y) : ctx.moveTo(X, pR.y); }
+    for(i = L - 1; i >= 0; i--){ var pL = prj(0, 0, GK.zs[i]); ctx.lineTo(pL.x - GK.rs[i] * k, pL.y); }
+    ctx.closePath();
+    var g = ctx.createLinearGradient(x0 - s * 0.3, 0, x0 + s * 0.3, 0);
+    g.addColorStop(0, '#4E9E8C'); g.addColorStop(0.45, '#82CDB9'); g.addColorStop(1, '#5FAF9C');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = '#245E52'; ctx.lineWidth = Math.max(1.1, s * 0.012); ctx.stroke();
+    // level rings — real 3D circles
+    ctx.strokeStyle = 'rgba(36,94,82,.42)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(i = 0; i < L; i++){
+      var r = GK.rs[i]; if(r < 1e-3) continue;
+      for(j = 0; j <= N; j++){
+        var th = TAU * j / N;
+        var p = prj(r * Math.cos(th), r * Math.sin(th), GK.zs[i]);
+        j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+      }
+    }
+    ctx.stroke();
+    // diagrid braces: node k joins the two bracketing nodes on the level above
+    ctx.strokeStyle = 'rgba(30,77,67,.75)'; ctx.lineWidth = Math.max(1, s * 0.008);
+    ctx.beginPath();
+    for(i = 0; i < L - 1; i++){
+      var r1 = GK.rs[i], r2 = GK.rs[i + 1];
+      if(r1 < 1e-3 || r2 < 1e-3) continue;
+      var o1 = (i % 2) * Math.PI / N, o2 = ((i + 1) % 2) * Math.PI / N;
+      var aOff = (i % 2 === 0) ? -1 : 0, bOff = (i % 2 === 0) ? 0 : 1;
+      for(j = 0; j < N; j++){
+        var a1 = TAU * j / N + o1;
+        var lo = prj(r1 * Math.cos(a1), r1 * Math.sin(a1), GK.zs[i]);
+        [aOff, bOff].forEach(function(off){
+          var jj = ((j + off) % N + N) % N;
+          var a2 = TAU * jj / N + o2;
+          var up = prj(r2 * Math.cos(a2), r2 * Math.sin(a2), GK.zs[i + 1]);
+          ctx.moveTo(lo.x, lo.y); ctx.lineTo(up.x, up.y);
+        });
+      }
+    }
+    ctx.stroke();
+    // cap
+    var tip = prj(0, 0, GHERKIN.H);
+    ctx.fillStyle = '#DFF3EE';
+    ctx.beginPath(); ctx.arc(tip.x, tip.y, Math.max(1.6, s * 0.02), 0, TAU); ctx.fill();
   }
-  function drawBurj(ctx, x, gy, s){
-    var w = s * 0.052;
-    function tier(off, tw, th, col){
-      ctx.fillStyle = col;
-      ctx.fillRect(x + off - tw / 2, gy - th, tw, th);
-      ctx.strokeStyle = 'rgba(110,120,134,.7)'; ctx.lineWidth = 1;
-      ctx.strokeRect(x + off - tw / 2, gy - th, tw, th);
+
+  function drawShard(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), w = 0.13;
+    var c = [[w, w], [-w, w], [-w, -w], [w, -w]], faces = [];
+    for(var i = 0; i < 4; i++){
+      var a = c[i], b = c[(i + 1) % 4];
+      faces.push({ pts: [[a[0], a[1], 0], [b[0], b[1], 0], [0, 0, 0.94]],
+                   col: '#A9C4D8', az: Math.atan2(a[0] + b[0], a[1] + b[1]) });
     }
-    tier(-w * 4.6, w * 2.0, s * 0.30, '#9CA6B3');
-    tier( w * 4.6, w * 2.0, s * 0.26, '#9CA6B3');
-    tier(-w * 2.4, w * 2.2, s * 0.52, '#B9C0CA');
-    tier( w * 2.4, w * 2.2, s * 0.46, '#B9C0CA');
-    tier(0, w * 2.6, s * 0.78, '#D6DAE0');
-    ctx.strokeStyle = '#8892A0'; ctx.lineWidth = Math.max(1.2, s * 0.014);
-    ctx.beginPath(); ctx.moveTo(x, gy - s * 0.78); ctx.lineTo(x, gy - s); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1;
-    for(var f = 0.1; f < 0.75; f += 0.09){
-      ctx.beginPath(); ctx.moveTo(x - w * 5.6, gy - s * f * 0.42); ctx.lineTo(x + w * 5.6, gy - s * f * 0.42); ctx.stroke();
-    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(94,126,150,.85)');
+    var t0 = prj(0, 0, 0.90), t1 = prj(0, 0, 1);               // the broken-tip spire
+    ctx.strokeStyle = '#5E7E96'; ctx.lineWidth = Math.max(1.1, s * 0.014);
+    ctx.beginPath(); ctx.moveTo(t0.x, t0.y); ctx.lineTo(t1.x, t1.y); ctx.stroke();
   }
-  function drawCrescent(ctx, x, gy, s){
-    var w = s * 0.92, fh = s * 0.42, curve = s * 0.10;
-    ctx.fillStyle = '#DECFA9';
-    ctx.beginPath();
-    ctx.moveTo(x - w / 2, gy - fh);
-    ctx.quadraticCurveTo(x, gy - fh - curve, x + w / 2, gy - fh);
-    ctx.lineTo(x + w / 2, gy);
-    ctx.quadraticCurveTo(x, gy - curve * 0.6, x - w / 2, gy);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#F2E7CD';
-    ctx.beginPath();
-    ctx.moveTo(x - w / 2, gy - fh);
-    ctx.quadraticCurveTo(x, gy - fh - curve, x + w / 2, gy - fh);
-    ctx.lineTo(x + w / 2, gy - fh * 0.82);
-    ctx.quadraticCurveTo(x, gy - fh * 0.82 - curve, x - w / 2, gy - fh * 0.82);
-    ctx.closePath(); ctx.fill();
-    var cols = 9;
-    ctx.strokeStyle = 'rgba(201,185,143,.9)'; ctx.lineWidth = Math.max(1, s * 0.014);
-    for(var i = 1; i < cols; i++){
-      var t = i / cols, px = x - w / 2 + w * t;
-      var lift = Math.sin(Math.PI * t) * curve * 0.6;
-      ctx.beginPath(); ctx.moveTo(px, gy - lift * 0.5); ctx.lineTo(px, gy - fh * 0.82 - lift); ctx.stroke();
+
+  function drawBurj(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    prismFaces(faces, rectPlan(0, 0, 1, 0.4, 0.075, 0.07), 0.80, '#D6DAE0');
+    [0, TAU / 3, TAU * 2 / 3].forEach(function(t){             // three wings, each stepping down
+      var dx = Math.sin(t), dy = Math.cos(t);
+      prismFaces(faces, rectPlan(dx * 0.10, dy * 0.10, dx, dy, 0.085, 0.045), 0.60, '#C6CCD5');
+      prismFaces(faces, rectPlan(dx * 0.19, dy * 0.19, dx, dy, 0.075, 0.038), 0.42, '#B7BEC9');
+      prismFaces(faces, rectPlan(dx * 0.27, dy * 0.27, dx, dy, 0.060, 0.032), 0.26, '#A8AFBB');
+    });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(110,120,134,.55)');
+    var s0 = prj(0, 0, 0.80), s1 = prj(0, 0, 1);
+    ctx.strokeStyle = '#8892A0'; ctx.lineWidth = Math.max(1.2, s * 0.012);
+    ctx.beginPath(); ctx.moveTo(s0.x, s0.y); ctx.lineTo(s1.x, s1.y); ctx.stroke();
+  }
+
+  function drawCrescent(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw);
+    var Ro = 0.50, Ri = 0.36, hB = 0.34, a0 = -1.15, a1 = 1.15, n = 14, faces = [], i;
+    var outer = [], inner = [];
+    for(i = 0; i <= n; i++){
+      var th = a0 + (a1 - a0) * i / n;
+      outer.push([Ro * Math.sin(th), Ro * Math.cos(th), th]);
+      inner.push([Ri * Math.sin(th), Ri * Math.cos(th), th]);
     }
-    ctx.fillStyle = '#7E93A8';
-    for(var j = 1; j < cols; j++){
-      var tj = (j - 0.5) / cols, wx = x - w / 2 + w * tj + w / cols * 0.5;
-      var lj = Math.sin(Math.PI * tj) * curve * 0.6;
-      ctx.fillRect(wx - s * 0.02, gy - fh * 0.62 - lj, s * 0.04, fh * 0.28);
+    for(i = 0; i < n; i++){
+      var oa = outer[i], ob = outer[i + 1], ia = inner[i], ib = inner[i + 1];
+      faces.push({ pts: [[oa[0], oa[1], 0], [ob[0], ob[1], 0], [ob[0], ob[1], hB], [oa[0], oa[1], hB]],
+                   col: '#F2E7CD', az: (oa[2] + ob[2]) / 2 });
+      faces.push({ pts: [[ia[0], ia[1], 0], [ib[0], ib[1], 0], [ib[0], ib[1], hB], [ia[0], ia[1], hB]],
+                   col: '#DECFA9', az: (ia[2] + ib[2]) / 2 + Math.PI });
     }
-    ctx.strokeStyle = '#B08F5A'; ctx.lineWidth = Math.max(1.2, s * 0.016);
+    [[outer[0], inner[0], a0 - Math.PI / 2], [outer[n], inner[n], a1 + Math.PI / 2]].forEach(function(e){
+      faces.push({ pts: [[e[0][0], e[0][1], 0], [e[1][0], e[1][1], 0], [e[1][0], e[1][1], hB], [e[0][0], e[0][1], hB]],
+                   col: '#E7D9B8', az: e[2] });
+    });
+    var roof = outer.map(function(p){ return [p[0], p[1], hB]; })
+      .concat(inner.slice().reverse().map(function(p){ return [p[0], p[1], hB]; }));
+    faces.push({ pts: roof, col: '#EADDBD', az: null });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(176,143,90,.55)');
+    // colonnade on the camera-facing stretch of the outer facade
+    ctx.strokeStyle = '#B08F5A'; ctx.lineWidth = Math.max(1, s * 0.012);
     ctx.beginPath();
-    ctx.moveTo(x - w / 2, gy - fh);
-    ctx.quadraticCurveTo(x, gy - fh - curve, x + w / 2, gy - fh);
+    for(i = 0; i <= n * 2; i++){
+      var tc = a0 + (a1 - a0) * i / (n * 2);
+      if(Math.cos(tc + yaw) < 0.25) continue;                  // hidden side of the arc
+      var b0 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), 0.03);
+      var b1 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), hB * 0.8);
+      ctx.moveTo(b0.x, b0.y); ctx.lineTo(b1.x, b1.y);
+    }
     ctx.stroke();
   }
 
@@ -556,7 +684,7 @@
     if(p.href){ banner.setAttribute('href', p.href); banner.removeAttribute('aria-disabled'); }
     else { banner.setAttribute('href', '#'); banner.setAttribute('aria-disabled', 'true'); }
   }
-  function targetRot(){ return -idx * (TAU / PROJECTS.length); }
+  function targetRot(){ return idx * (TAU / PROJECTS.length); }   // camera yaw that puts the pick up front
   function go(delta){
     idx = ((idx + delta) % PROJECTS.length + PROJECTS.length) % PROJECTS.length;
     syncBanner();

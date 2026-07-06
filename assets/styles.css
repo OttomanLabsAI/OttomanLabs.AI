@@ -248,6 +248,7 @@ a.box:hover{ text-decoration:none; box-shadow:0 0 0 1px var(--ink) inset; }
   border-bottom:1px solid var(--hair); padding-bottom:.55rem; margin-bottom:.75rem;
 }
 .row{ display:flex; align-items:center; gap:.6rem; margin:.5rem 0; }
+.row[hidden]{ display:none; }   /* display:flex would otherwise defeat the hidden attribute */
 .row label{
   flex:0 0 64px; font-family:var(--font-brand); font-size:.72rem;
   letter-spacing:.08em; color:var(--ink-60);
