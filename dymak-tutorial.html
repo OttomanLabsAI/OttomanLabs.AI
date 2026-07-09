@@ -16,6 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 /* Shell chrome — dashboard-page rules from ottomanlabs.ai, no masthead
    or footer: the site provides those when this is mounted as a page. */
@@ -30,7 +32,7 @@
   --font-brand:'Flux','Afacad Flux',sans-serif;
   --font-serif:'Newsreader',Georgia,serif;
   --font-display:'Prata',Georgia,serif;
-  --wrap:1080px; --gap:14px;
+  --wrap:1880px; --gap:14px;
 }
 :root[data-theme="dark"]{
   --paper:#111111; --ink:#FFFFFF; --ink-60:#A9A9A9; --ink-35:#5A5A5A; --hair:#FFFFFF;
@@ -217,11 +219,24 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
 <main id="main" class="wrap">
   <div class="title-strip">
     <span class="name">pyDymak</span>
     <span class="caps caps-tight muted" style="font-size:.62rem">The build, prompt by prompt &middot; seventeen steps</span>
-    <span class="caps caps-tight" style="font-size:.62rem;margin-left:auto"><a href="dymak.html" style="color:inherit;text-decoration:none">&#8592; Dymak HQ dashboard</a> &nbsp;&middot;&nbsp; <a href="index.html" style="color:inherit;text-decoration:none">OttomanLabs.AI home</a></span>
+    <span class="caps caps-tight" style="font-size:.62rem;margin-left:auto"><a href="dymak.html" style="color:inherit;text-decoration:none">&#8592; Dymak HQ dashboard</a></span>
   </div>
 
   <div class="settings-bar">
@@ -315,6 +330,43 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
     </div>
   </section>
 </main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
 
 <div class="olay" id="olay" hidden role="dialog" aria-modal="true" aria-labelledby="oNum">
   <div class="olay-bar">
@@ -874,5 +926,6 @@ tBtn.addEventListener('click',()=>{
 
 activate(0);
 </script>
+<script>document.getElementById('themeToggle').addEventListener('click',function(){try{localStorage.setItem('ol-theme',document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');}catch(e){}});</script>
 </body>
 </html>

@@ -185,12 +185,30 @@
     if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
     if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
   }
+  // keep the embedded superstructure's theme in step with the shell by
+  // pressing its own Dark button (its applyTheme redraws the canvases)
+  var frame = document.getElementById('superFrame');
+  function syncFrame(){
+    try{
+      var d = frame && frame.contentDocument;
+      if(!d || !d.documentElement) return;
+      var frameDark = d.documentElement.dataset.theme === 'dark';
+      var shellDark = root.getAttribute('data-theme') === 'dark';
+      if(frameDark === shellDark) return;
+      var b = d.getElementById('btnTheme');
+      if(b) b.click();
+      else if(shellDark) d.documentElement.dataset.theme = 'dark';
+      else delete d.documentElement.dataset.theme;
+    }catch(e){}
+  }
+  if(frame) frame.addEventListener('load', syncFrame);
   var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
   paint(saved);
   if(btn) btn.addEventListener('click', function(){
     var dark = root.getAttribute('data-theme')!=='dark';
     paint(dark);
     try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+    syncFrame();
   });
 
   /* tabs */

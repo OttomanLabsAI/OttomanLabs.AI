@@ -192,6 +192,47 @@ footer{border-top:1px solid var(--line);padding:16px 26px 22px;color:var(--muted
 footer p{margin:4px 0}
 footer a{color:var(--muted)}
 </style>
+
+<!-- OttomanLabs skin — the same rebrand the tutorial applies to embedded builds -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<style id="ottoman-skin">
+@font-face{ font-family:'Flux';
+  src:url('assets/fonts/Flux-Regular.woff2') format('woff2');
+  font-weight:400 700; font-display:swap; }
+/* hide the embedded site header and footer — the page provides its own chrome */
+.site, footer{ display:none !important; }
+/* token remap — paper & ink */
+:root{
+  --bg:#FFFFFF; --panel:#FFFFFF; --board:#FFFFFF;
+  --ink:#111111; --muted:#5A5A5A;
+  --line:#111111; --grid:#E3E3E3;
+  --accent:#111111;  --accent-fill:rgba(17,17,17,.04);
+  --accent2:#5A5A5A; --accent2-fill:rgba(17,17,17,.09);
+  --font-ui:'Flux','Afacad Flux',sans-serif;
+  --font-mono:'Flux','Afacad Flux',sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#111111; --panel:#111111; --board:#111111;
+  --ink:#FFFFFF; --muted:#A9A9A9;
+  --line:#FFFFFF; --grid:#3A3A3A;
+  --accent:#FFFFFF;  --accent-fill:rgba(255,255,255,.05);
+  --accent2:#A9A9A9; --accent2-fill:rgba(255,255,255,.10);
+}
+/* boxed-mosaic polish */
+*{ border-radius:0 !important; box-shadow:none !important; }
+body{ font-variant-numeric:tabular-nums; }
+::selection{ background:var(--ink); color:var(--bg); }
+input{ accent-color:var(--ink); }
+.btn{ font-family:'Flux','Afacad Flux',sans-serif; font-weight:500;
+  text-transform:uppercase; letter-spacing:.18em; }
+.btn:hover{ background:var(--ink); color:var(--bg); }
+.controls h2{ font-family:'Flux','Afacad Flux',sans-serif; font-weight:500;
+  text-transform:uppercase; letter-spacing:.3em; }
+.masthead h1{ font-family:'Prata',Georgia,serif; font-weight:400; letter-spacing:.02em; }
+.hint, footer p{ font-family:'Newsreader',Georgia,serif; font-style:italic; }
+</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -1047,7 +1088,7 @@ footer a{color:var(--muted)}
   $('btnExport').addEventListener('click', function(){
     var payload = { app:'the-eccentric', version:11, units:'m',
                     model:state, view:view, structure:buildStructure() };
-    download('the-eccentric-model.json',
+    download('pydymak-model.json',
       new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' }));
   });
 
@@ -1113,7 +1154,7 @@ footer a{color:var(--muted)}
     clone.insertBefore(bgRect, clone.firstChild);
     clone.setAttribute('xmlns', NS);
     clone.setAttribute('width', 800); clone.setAttribute('height', 800);
-    download('the-eccentric-plan.svg',
+    download('pydymak-plan.svg',
       new Blob([new XMLSerializer().serializeToString(clone)], { type:'image/svg+xml' }));
   });
 
@@ -1126,7 +1167,7 @@ footer a{color:var(--muted)}
     t.fillRect(0, 0, tmp.width, tmp.height);
     t.drawImage(c3, 0, 0);
     tmp.toBlob(function(b){
-      if (b) download('the-eccentric-3d.png', b);
+      if (b) download('pydymak-3d.png', b);
     }, 'image/png');
   });
 
