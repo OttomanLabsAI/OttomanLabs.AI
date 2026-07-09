@@ -41,8 +41,9 @@
   .top-tabs .tab:hover{ color:var(--ink); }
   .top-tabs .tab.active{ color:var(--ink); border-bottom-color:var(--ink); }
 
-  /* superstructure iframe */
-  .model-frame{ width:100%; height:max(560px, calc(100vh - 290px)); border:1px solid var(--hair);
+  /* superstructure iframe — height follows the content (set by fitFrame),
+     so the page scrolls as one, like the tutorial's prompt frames */
+  .model-frame{ width:100%; min-height:560px; border:1px solid var(--hair);
     background:var(--paper); display:block; }
 
   /* facade — coming soon */
@@ -201,7 +202,33 @@
       else delete d.documentElement.dataset.theme;
     }catch(e){}
   }
-  if(frame) frame.addEventListener('load', syncFrame);
+  /* fit the frame to its content so it never scrolls on its own — fresh
+     re-measure on load/tab-switch/resize; observer ticks are growth-only,
+     so they can never feedback-loop (same approach as the tutorial). */
+  function fitFrame(fresh){
+    try{
+      var d = frame && frame.contentDocument;
+      if(!frame || !d || !d.documentElement) return;
+      if(fresh) frame.style.height = '10px';
+      var h = Math.max(d.documentElement.scrollHeight, d.body ? d.body.scrollHeight : 0);
+      if(fresh || h > frame.offsetHeight + 2) frame.style.height = h + 'px';
+    }catch(e){}
+  }
+  function watchFrame(){
+    try{
+      var w = frame.contentWindow, d = frame.contentDocument;
+      if(!w || !d || d.__fit) return;
+      d.__fit = true;
+      if(w.ResizeObserver){
+        var ro = new w.ResizeObserver(function(){ fitFrame(false); });
+        ro.observe(d.documentElement);
+        if(d.body) ro.observe(d.body);
+      }
+      w.addEventListener('resize', function(){ fitFrame(false); });
+    }catch(e){}
+  }
+  if(frame) frame.addEventListener('load', function(){ syncFrame(); watchFrame(); fitFrame(true); });
+  window.addEventListener('resize', function(){ fitFrame(true); });
   var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
   paint(saved);
   if(btn) btn.addEventListener('click', function(){
@@ -225,6 +252,7 @@
         document.getElementById(o.btn).setAttribute('aria-selected', active ? 'true' : 'false');
         document.getElementById(o.panel).hidden = !active;
       });
+      if(t.btn === 'tabSuper') fitFrame(true);
     });
   });
 
