@@ -325,7 +325,7 @@
     { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20 },
     { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32 },
     { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48 },
-    { the:'pyDymak', name:'HQ',       chip:'pyDymakHQ',        dash:null,             tut:null, draw:drawDymak,    shadow:0.46 }
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:null,             tut:null, draw:drawDymak,    shadow:0.46 }
   ];
   // trees are anchored to the WORLD (plan angle + radius), so they swing with
   // the camera like everything else on the island
@@ -699,7 +699,7 @@
     ctx.stroke();
   }
 
-  // pyDymakHQ — round glass hall under a swirling shingled roof that dips
+  // Dymak HQ — round glass hall under a swirling shingled roof that dips
   // into a central open courtyard (modelled from the reference photos)
   function drawDymak(ctx, x0, gy, s, yaw){
     var k = s / CB, prj = mkProj(x0, gy, k, yaw);
