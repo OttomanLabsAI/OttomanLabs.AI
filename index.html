@@ -26,9 +26,10 @@
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
   .mosaic-projects{
+    grid-template-columns:repeat(5,minmax(0,1fr));
     grid-template-areas:
-      "gherkin shard burj regents"
-      "selector selector selector selector";
+      "gherkin shard burj regents pydymak"
+      "selector selector selector selector selector";
   }
   .mosaic-rest{
     grid-template-areas:
@@ -37,7 +38,7 @@
       "youtube b3     b4     b2";
   }
   .a-gherkin{grid-area:gherkin} .a-shard{grid-area:shard} .a-burj{grid-area:burj}
-  .a-regents{grid-area:regents} .a-selector{grid-area:selector}
+  .a-regents{grid-area:regents} .a-pydymak{grid-area:pydymak} .a-selector{grid-area:selector}
 
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
@@ -97,6 +98,7 @@
       grid-template-areas:
         "gherkin shard"
         "burj    regents"
+        "pydymak pydymak"
         "selector selector";
     }
     .mosaic-rest{
@@ -178,6 +180,17 @@
       </span>
       <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
       <span class="sub">Classic European Facade</span>
+      <span class="caps caps-tight muted">coming soon</span>
+    </div>
+
+    <!-- ════════ PYDYMAK HQ ════════ -->
+    <div class="box bldg a-pydymak">
+      <span>
+        <span class="ital" style="display:block">pyDymak</span>
+        <span class="display big-word">HQ</span>
+      </span>
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="sub">Spiralling Roof &amp; Central Court</span>
       <span class="caps caps-tight muted">coming soon</span>
     </div>
 
@@ -317,7 +330,8 @@
     { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      status:'enter the model', href:'dashboard.html', draw:drawGherkin,  shadow:0.34 },
     { the:'The',     name:'SHARD',    chip:'The Shard',        status:'coming soon',     href:null,             draw:drawShard,    shadow:0.20 },
     { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     status:'coming soon',     href:null,             draw:drawBurj,     shadow:0.32 },
-    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', status:'coming soon',     href:null,             draw:drawCrescent, shadow:0.48 }
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', status:'coming soon',     href:null,             draw:drawCrescent, shadow:0.48 },
+    { the:'pyDymak', name:'HQ',       chip:'pyDymakHQ',        status:'coming soon',     href:null,             draw:drawDymak,    shadow:0.46 }
   ];
   // trees are anchored to the WORLD (plan angle + radius), so they swing with
   // the camera like everything else on the island
@@ -672,6 +686,60 @@
       var b0 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), 0.03);
       var b1 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), hB * 0.8);
       ctx.moveTo(b0.x, b0.y); ctx.lineTo(b1.x, b1.y);
+    }
+    ctx.stroke();
+  }
+
+  // pyDymakHQ — round glass hall under a swirling shingled roof that dips
+  // into a central open courtyard (modelled from the reference photos)
+  function drawDymak(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw);
+    var Ro = 0.40, Re = 0.45, Ri = 0.13, hw = 0.26, n = 22, faces = [], i;
+    var hOc = 0.17;                                            // oculus rim, below the wall top
+    function rim(th){ return hw + 0.05 + 0.20 * (1 + Math.cos(th - 0.8)) / 2; }
+    for(i = 0; i < n; i++){
+      var t0 = TAU * i / n, t1 = TAU * (i + 1) / n, tm = (t0 + t1) / 2;
+      var s0 = Math.sin(t0), c0 = Math.cos(t0), s1 = Math.sin(t1), c1 = Math.cos(t1);
+      // glass drum, set in from the eave
+      faces.push({ pts: [[Ro*s0,Ro*c0,0],[Ro*s1,Ro*c1,0],[Ro*s1,Ro*c1,hw],[Ro*s0,Ro*c0,hw]],
+                   col: '#C79E6F', az: tm });
+      // fascia: wall top up to the swirling rim
+      faces.push({ pts: [[Re*s0,Re*c0,hw],[Re*s1,Re*c1,hw],[Re*s1,Re*c1,rim(t1)],[Re*s0,Re*c0,rim(t0)]],
+                   col: '#9C5F3E', az: tm });
+      // roof: swirling outer rim sweeping down into the oculus
+      faces.push({ pts: [[Re*s0,Re*c0,rim(t0)],[Re*s1,Re*c1,rim(t1)],[Ri*s1,Ri*c1,hOc],[Ri*s0,Ri*c0,hOc]],
+                   col: '#B5734D', az: tm });
+    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(90,52,32,.45)');
+    // radial roof seams — the far half is the visible bowl of the crater
+    ctx.strokeStyle = 'rgba(90,52,32,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(i = 0; i < n; i++){
+      var ts = TAU * (i + 0.5) / n;
+      if(Math.cos(ts + yaw) > -0.1) continue;
+      var r0 = prj(Re * Math.sin(ts), Re * Math.cos(ts), rim(ts));
+      var r1 = prj(Ri * Math.sin(ts), Ri * Math.cos(ts), hOc);
+      ctx.moveTo(r0.x, r0.y); ctx.lineTo(r1.x, r1.y);
+    }
+    ctx.stroke();
+    // the swirl edge itself
+    ctx.strokeStyle = '#8A5637'; ctx.lineWidth = Math.max(1.1, s * 0.012);
+    ctx.beginPath();
+    for(i = 0; i <= n * 2; i++){
+      var te = TAU * i / (n * 2);
+      var pe = prj(Re * Math.sin(te), Re * Math.cos(te), rim(te));
+      i ? ctx.lineTo(pe.x, pe.y) : ctx.moveTo(pe.x, pe.y);
+    }
+    ctx.stroke();
+    // mullions on the camera-facing glass
+    ctx.strokeStyle = '#6E4A2E'; ctx.lineWidth = Math.max(1, s * 0.01);
+    ctx.beginPath();
+    for(i = 0; i < n * 2; i++){
+      var tc = TAU * i / (n * 2);
+      if(Math.cos(tc + yaw) < 0.2) continue;
+      var m0 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), 0.01);
+      var m1 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), hw - 0.01);
+      ctx.moveTo(m0.x, m0.y); ctx.lineTo(m1.x, m1.y);
     }
     ctx.stroke();
   }
