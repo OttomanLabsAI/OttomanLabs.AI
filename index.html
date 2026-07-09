@@ -46,14 +46,22 @@
   .sel-arrow.prev{ left:.7rem; }
   .sel-arrow.next{ right:.7rem; }
   .sel-banner{
-    display:flex; align-items:baseline; justify-content:center; gap:1rem;
+    display:flex; align-items:center; justify-content:center; gap:1.4rem; flex-wrap:wrap;
     width:100%; padding:.72rem 1rem; background:var(--ink); color:var(--paper);
   }
   .sel-banner .sel-name{ font-family:var(--font-display); font-size:1.35rem; letter-spacing:.05em; }
-  .sel-banner .sel-status{ font-family:var(--font-brand); font-size:.62rem; letter-spacing:.22em;
-    text-transform:uppercase; opacity:.75; }
-  a.sel-banner:hover{ text-decoration:none; }
-  .sel-banner.nope{ animation:selNope .4s; }
+  .sel-opts{ display:flex; gap:.6rem; align-items:stretch; }
+  .sel-opt{
+    display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
+    font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--paper); border:1px solid var(--paper);
+    padding:.45rem 1rem; text-decoration:none; text-align:center;
+  }
+  .sel-opt small{ font-size:.5rem; font-weight:500; letter-spacing:.18em; opacity:.65; }
+  .sel-opt:hover{ background:var(--paper); color:var(--ink); text-decoration:none; }
+  .sel-opt[aria-disabled="true"]{ opacity:.5; cursor:default; }
+  .sel-opt[aria-disabled="true"]:hover{ background:none; color:var(--paper); }
+  .sel-opt.nope{ animation:selNope .4s; }
   @keyframes selNope{ 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); } }
   .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
   .a-follow{grid-area:follow} .a-cv{grid-area:cv}
@@ -124,10 +132,13 @@
         <button class="sel-arrow prev" id="selPrev" aria-label="Previous project">&#8249;</button>
         <button class="sel-arrow next" id="selNext" aria-label="Next project">&#8250;</button>
       </div>
-      <a class="sel-banner" id="selBanner" href="dashboard.html">
+      <div class="sel-banner" id="selBanner" aria-live="polite">
         <span class="sel-name" id="selName">THE GHERKIN</span>
-        <span class="sel-status" id="selStatus" aria-live="polite">enter the model</span>
-      </a>
+        <span class="sel-opts">
+          <a class="sel-opt" id="selDash" href="dashboard.html">Enter the dashboard<small>open the model</small></a>
+          <a class="sel-opt" id="selTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        </span>
+      </div>
     </div>
 
   <h2 class="section-head">The Studio<span class="sh-sub">writing, picks, code &amp; ways to follow along</span></h2>
@@ -292,16 +303,17 @@
   var canvas = document.getElementById('selCanvas');
   if(!stage || !canvas) return;
   var ctx = canvas.getContext('2d');
-  var banner = document.getElementById('selBanner');
   var nameEl = document.getElementById('selName');
-  var statusEl = document.getElementById('selStatus');
+  var dashBtn = document.getElementById('selDash');
+  var tutBtn = document.getElementById('selTut');
 
+  // dash / tut: destinations for the two entry options (null = coming soon)
   var PROJECTS = [
-    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      status:'enter the model', href:'dashboard.html', draw:drawGherkin,  shadow:0.34 },
-    { the:'The',     name:'SHARD',    chip:'The Shard',        status:'coming soon',     href:null,             draw:drawShard,    shadow:0.20 },
-    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     status:'coming soon',     href:null,             draw:drawBurj,     shadow:0.32 },
-    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', status:'coming soon',     href:null,             draw:drawCrescent, shadow:0.48 },
-    { the:'pyDymak', name:'HQ',       chip:'pyDymakHQ',        status:'coming soon',     href:null,             draw:drawDymak,    shadow:0.46 }
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'dashboard.html', tut:null, draw:drawGherkin,  shadow:0.34 },
+    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20 },
+    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32 },
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48 },
+    { the:'pyDymak', name:'HQ',       chip:'pyDymakHQ',        dash:null,             tut:null, draw:drawDymak,    shadow:0.46 }
   ];
   // trees are anchored to the WORLD (plan angle + radius), so they swing with
   // the camera like everything else on the island
@@ -445,7 +457,7 @@
         ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
         p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
         chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h,
-             p.href ? 'click to enter' : 'coming soon');
+             p.dash ? 'click to enter' : 'coming soon');
       }});
     });
     drawables.sort(function(a, b){ return a.d - b.d; });       // back → front
@@ -730,13 +742,31 @@
   }
 
   /* ---- interaction ---- */
+  function wobble(btn){
+    btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope');
+  }
+  function setOpt(btn, url, liveNote){
+    if(url){
+      btn.setAttribute('href', url);
+      btn.removeAttribute('aria-disabled');
+      btn.querySelector('small').textContent = liveNote;
+    } else {
+      btn.setAttribute('href', '#');
+      btn.setAttribute('aria-disabled', 'true');
+      btn.querySelector('small').textContent = 'coming soon';
+    }
+  }
   function syncBanner(){
     var p = PROJECTS[idx];
     nameEl.textContent = (p.the + ' ' + p.name).toUpperCase();
-    statusEl.textContent = p.status;
-    if(p.href){ banner.setAttribute('href', p.href); banner.removeAttribute('aria-disabled'); }
-    else { banner.setAttribute('href', '#'); banner.setAttribute('aria-disabled', 'true'); }
+    setOpt(dashBtn, p.dash, 'open the model');
+    setOpt(tutBtn, p.tut, 'start learning');
   }
+  [dashBtn, tutBtn].forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      if(btn.getAttribute('aria-disabled') === 'true'){ e.preventDefault(); wobble(btn); }
+    });
+  });
   function targetRot(){ return idx * (TAU / PROJECTS.length); }   // camera yaw that puts the pick up front
   function go(delta){
     idx = ((idx + delta) % PROJECTS.length + PROJECTS.length) % PROJECTS.length;
@@ -760,7 +790,7 @@
   stage.addEventListener('keydown', function(e){
     if(e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); }
     if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
-    if(e.key === 'Enter'){ banner.click(); }
+    if(e.key === 'Enter'){ dashBtn.click(); }
   });
   // swipe / click on the scene
   var downX = null;
@@ -770,14 +800,8 @@
     var dx = e.clientX - downX; downX = null;
     if(Math.abs(dx) > 40){ go(dx < 0 ? 1 : -1); return; }
     var p = PROJECTS[idx];
-    if(p.href) window.location.href = p.href;
-    else { banner.classList.remove('nope'); void banner.offsetWidth; banner.classList.add('nope'); }
-  });
-  banner.addEventListener('click', function(e){
-    if(banner.getAttribute('aria-disabled') === 'true'){
-      e.preventDefault();
-      banner.classList.remove('nope'); void banner.offsetWidth; banner.classList.add('nope');
-    }
+    if(p.dash) window.location.href = p.dash;
+    else wobble(dashBtn);
   });
 
   function resize(){
