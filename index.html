@@ -58,23 +58,27 @@
   .sel-arrow.prev{ left:.7rem; }
   .sel-arrow.next{ right:.7rem; }
   .sel-banner{
-    display:flex; align-items:center; justify-content:center; gap:1.4rem; flex-wrap:wrap;
+    display:flex; align-items:center; justify-content:center;
     width:100%; padding:.72rem 1rem; background:var(--ink); color:var(--paper);
   }
   .sel-banner .sel-name{ font-family:var(--font-display); font-size:1.35rem; letter-spacing:.05em; }
-  .sel-opts{ display:flex; gap:.6rem; align-items:stretch; }
+  /* entry options float over the sea, either side of the island */
   .sel-opt{
+    position:absolute; bottom:7%; z-index:2;
     display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
-    font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.2em;
-    text-transform:uppercase; color:var(--paper); border:1px solid var(--paper);
-    padding:.45rem 1rem; text-decoration:none; text-align:center;
+    font-family:var(--font-brand); font-weight:600; font-size:.64rem; letter-spacing:.2em;
+    text-transform:uppercase; color:#fff; border:1px solid #fff;
+    background:rgba(17,17,17,.38); padding:.5rem 1.1rem; text-decoration:none; text-align:center;
   }
-  .sel-opt small{ font-size:.5rem; font-weight:500; letter-spacing:.18em; opacity:.65; }
-  .sel-opt:hover{ background:var(--paper); color:var(--ink); text-decoration:none; }
-  .sel-opt[aria-disabled="true"]{ opacity:.5; cursor:default; }
-  .sel-opt[aria-disabled="true"]:hover{ background:none; color:var(--paper); }
+  .opt-dash{ left:3%; }
+  .opt-tut{ right:3%; }
+  .sel-opt small{ font-size:.5rem; font-weight:500; letter-spacing:.18em; opacity:.75; }
+  .sel-opt:hover{ background:#fff; color:#111; text-decoration:none; }
+  .sel-opt[aria-disabled="true"]{ opacity:.55; cursor:default; }
+  .sel-opt[aria-disabled="true"]:hover{ background:rgba(17,17,17,.38); color:#fff; }
   .sel-opt.nope{ animation:selNope .4s; }
   @keyframes selNope{ 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); } }
+  @media (max-width:700px){ .sel-opt small{ display:none; } .sel-opt{ padding:.4rem .7rem; } }
   .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
   .a-follow{grid-area:follow} .a-cv{grid-area:cv}
   .a-stocks{grid-area:stocks} .a-youtube{grid-area:youtube}
@@ -143,13 +147,11 @@
         <canvas id="selCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="selPrev" aria-label="Previous project">&#8249;</button>
         <button class="sel-arrow next" id="selNext" aria-label="Next project">&#8250;</button>
+        <a class="sel-opt opt-dash" id="selDash" href="dashboard.html">Enter the dashboard<small>open the model</small></a>
+        <a class="sel-opt opt-tut" id="selTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" id="selBanner" aria-live="polite">
         <span class="sel-name" id="selName">THE GHERKIN</span>
-        <span class="sel-opts">
-          <a class="sel-opt" id="selDash" href="dashboard.html">Enter the dashboard<small>open the model</small></a>
-          <a class="sel-opt" id="selTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
-        </span>
       </div>
     </div>
 
@@ -325,7 +327,7 @@
     { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20 },
     { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32 },
     { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48 },
-    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:null,             tut:null, draw:drawDymak,    shadow:0.46 }
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.46 }
   ];
   // trees are anchored to the WORLD (plan angle + radius), so they swing with
   // the camera like everything else on the island
@@ -338,6 +340,7 @@
   var TAU = Math.PI * 2;
   var idx = 0;                 // selected project
   var rot = 0, rotFrom = 0, rotTo = 0, animT = 1;   // camera yaw around the island + easing state
+  var hitZones = [];           // screen-space model bounds, refreshed by draw()
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---- shared 3D projection: fixed pitch, camera yaw = rot ----
@@ -456,6 +459,7 @@
                depth: Math.cos(a) };
     }
     var drawables = [];
+    hitZones = [];
     TREES.forEach(function(t){
       var g = ground(t.p, t.r);
       drawables.push({ d: g.depth, run: function(){ tree(g.x, g.y, h * t.s); } });
@@ -464,12 +468,12 @@
       var g = ground(i * (TAU / PROJECTS.length), 0.62);
       var depth01 = (g.depth + 1) / 2;
       var s = h * (0.15 + 0.19 * depth01);                     // model height in px
+      hitZones.push({ i: i, x: g.x, gy: g.y, s: s, d: g.depth });
       drawables.push({ d: g.depth, run: function(){
         ctx.fillStyle = 'rgba(0,0,0,.16)';
         ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
         p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
-        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h,
-             p.dash ? 'click to enter' : 'coming soon');
+        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h);
       }});
     });
     drawables.sort(function(a, b){ return a.d - b.d; });       // back → front
@@ -501,7 +505,6 @@
     ctx.beginPath(); ctx.moveTo(x, y - s * 1.22); ctx.lineTo(x - s * 0.22, y - s * 0.62); ctx.lineTo(x + s * 0.22, y - s * 0.62); ctx.closePath(); ctx.fill();
   }
   function chip(x, y, text, big, h, sub){
-    if(window.__ogClean) return;   // og-thumbnail capture hook: hide the labels
     var fs = Math.max(9, h * (big ? 0.045 : 0.03));
     var fs2 = fs * 0.6;
     var f1 = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
@@ -782,8 +785,9 @@
     });
   });
   function targetRot(){ return idx * (TAU / PROJECTS.length); }   // camera yaw that puts the pick up front
-  function go(delta){
-    idx = ((idx + delta) % PROJECTS.length + PROJECTS.length) % PROJECTS.length;
+  function go(delta){ goTo(idx + delta); }
+  function goTo(i){
+    idx = (i % PROJECTS.length + PROJECTS.length) % PROJECTS.length;
     syncBanner();
     rotFrom = rot; rotTo = targetRot();
     // rotate the short way round
@@ -813,9 +817,17 @@
     if(downX === null) return;
     var dx = e.clientX - downX; downX = null;
     if(Math.abs(dx) > 40){ go(dx < 0 ? 1 : -1); return; }
-    var p = PROJECTS[idx];
-    if(p.dash) window.location.href = p.dash;
-    else wobble(dashBtn);
+    // a plain click brings the clicked model to the front — navigation only
+    // ever happens through the dashboard / tutorial buttons
+    var r = canvas.getBoundingClientRect();
+    var cx = e.clientX - r.left, cy = e.clientY - r.top;
+    var hit = null;
+    hitZones.forEach(function(z){
+      if(Math.abs(cx - z.x) < z.s * 0.42 && cy > z.gy - z.s * 1.05 && cy < z.gy + z.s * 0.12){
+        if(!hit || z.d > hit.d) hit = z;                       // frontmost wins on overlap
+      }
+    });
+    if(hit && hit.i !== idx) goTo(hit.i);
   });
 
   function resize(){

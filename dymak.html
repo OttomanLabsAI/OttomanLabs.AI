@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dymak HQ — OttomanLabs.AI</title>
+<meta name="description" content="Dymak HQ by OttomanLabs.AI: a sloped circular roof frame — draw the plan, offset the hole, set opposed slopes, and export the column & beam frame for Revit.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="Dymak HQ — OttomanLabs.AI">
+<meta property="og:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta property="og:url" content="https://ottomanlabs.ai/dymak.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dymak HQ — OttomanLabs.AI">
+<meta name="twitter:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  /* hero strip */
+  .hero{ border:1px solid var(--hair); padding:.9rem 1.2rem; margin-bottom:var(--gap);
+    display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  .hero .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.5rem; }
+  .hero .display{ font-family:var(--font-display); font-size:1.9rem; letter-spacing:.04em; }
+  .hero .sub{ font-family:var(--font-brand); font-size:.62rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); }
+
+  /* top tabs */
+  .top-tabs{ display:flex; gap:.4rem 1.6rem; flex-wrap:wrap; justify-content:center;
+    border:1px solid var(--hair); padding:.55rem .8rem; margin-bottom:var(--gap); }
+  .top-tabs .tab{
+    font-family:var(--font-brand); font-weight:500; font-size:.72rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60); background:none; border:0;
+    border-bottom:2px solid transparent; padding:.3rem .2rem; cursor:pointer;
+  }
+  .top-tabs .tab:hover{ color:var(--ink); }
+  .top-tabs .tab.active{ color:var(--ink); border-bottom-color:var(--ink); }
+
+  /* superstructure iframe */
+  .model-frame{ width:100%; height:max(560px, calc(100vh - 290px)); border:1px solid var(--hair);
+    background:var(--paper); display:block; }
+
+  /* facade — coming soon */
+  .facade-panel{ border:1px solid var(--hair); padding:clamp(3rem,10vh,6rem) 1.5rem;
+    display:flex; flex-direction:column; align-items:center; gap:1.2rem; text-align:center; }
+  .facade-soon{ font-family:var(--font-brand); font-weight:600;
+    font-size:clamp(2rem,6vw,3.6rem); letter-spacing:.3em; text-transform:uppercase; color:var(--ink); }
+  .facade-panel p{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
+    font-size:1.02rem; max-width:34rem; margin:0; line-height:1.6; }
+  .facade-form{ display:flex; gap:.5rem; width:min(26rem,100%); }
+  .facade-form input{ flex:1; min-width:0; font-family:var(--font-serif); font-size:.95rem;
+    padding:.65rem .7rem; border:1px solid var(--hair); background:var(--paper); color:var(--ink); border-radius:0; }
+  .facade-form input:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .facade-form button{ font-family:var(--font-brand); font-weight:600; font-size:.68rem;
+    letter-spacing:.16em; text-transform:uppercase; background:var(--ink); color:var(--paper);
+    border:1px solid var(--ink); padding:.65rem 1.1rem; cursor:pointer; }
+  .facade-form button:hover{ background:var(--paper); color:var(--ink); }
+  .facade-note{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); min-height:1em; }
+
+  /* pyDymak placeholder */
+  .pyd-hero{ border:1px solid var(--hair); padding:2.2rem 1.8rem; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:1rem; }
+  .pyd-mark{ font-family:var(--font-display); font-size:clamp(1.7rem,4.5vw,2.6rem); letter-spacing:.03em; }
+  .pyd-lede{ font-family:var(--font-serif); color:var(--ink-60); max-width:44rem;
+    font-size:1.02rem; line-height:1.65; margin:0; }
+  .pyd-dl{ font-family:var(--font-brand); font-weight:600; font-size:.72rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); border:1px dashed var(--ink-35);
+    padding:.8rem 1.4rem; cursor:default; }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="hero">
+    <span><span class="ital">Dymak</span> <span class="display">HQ</span></span>
+    <span class="sub">spiralling roof &middot; central court &middot; column &amp; beam frame</span>
+    <span class="sub" style="margin-left:auto"><a href="dymak-tutorial.html" style="color:inherit">built prompt by prompt &mdash; read the tutorial &#8599;</a></span>
+  </div>
+
+  <div class="top-tabs" role="tablist" aria-label="Dymak HQ sections">
+    <button class="tab active" id="tabSuper" role="tab" aria-selected="true">Superstructure</button>
+    <button class="tab" id="tabFacade" role="tab" aria-selected="false">Facade</button>
+    <button class="tab" id="tabPyd" role="tab" aria-selected="false">pyDymak</button>
+  </div>
+
+  <!-- ════════ SUPERSTRUCTURE ════════ -->
+  <div id="panelSuper" role="tabpanel">
+    <iframe class="model-frame" id="superFrame" src="dymak-superstructure.html"
+            title="Dymak HQ superstructure model — roof plan, offset hole, opposed slopes, column and beam frame"></iframe>
+  </div>
+
+  <!-- ════════ FACADE ════════ -->
+  <div id="panelFacade" role="tabpanel" hidden>
+    <div class="facade-panel">
+      <div class="facade-soon">Coming Soon</div>
+      <p>The facade module &mdash; mullions, panels and the glazing line around the drum &mdash; is on the bench now.</p>
+      <form class="facade-form" id="facadeForm" novalidate>
+        <label class="skip" for="facadeEmail">Email address</label>
+        <input type="email" id="facadeEmail" placeholder="your@address &mdash; tell me when it lands" required autocomplete="email">
+        <button type="submit">Inform me</button>
+      </form>
+      <span class="facade-note" id="facadeNote" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <!-- ════════ PYDYMAK ════════ -->
+  <div id="panelPyd" role="tabpanel" hidden>
+    <div class="pyd-hero">
+      <div class="pyd-mark">pyDymak</div>
+      <p class="pyd-lede">A pyRevit extension that rebuilds Dymak HQ in Revit. Design the roof frame on the
+        Superstructure tab, export the model JSON, and pyDymak reconstructs the columns, rim beams and
+        connection nodes inside your Revit project &mdash; the same loop as pyGherkin.</p>
+      <span class="pyd-dl">&#8595;&nbsp; Download pyDymak extension &mdash; coming soon</span>
+      <p class="pyd-lede" style="font-size:.85rem">The packaged extension lands here shortly. The Superstructure
+        export already writes the JSON it will read.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">The Gherkin</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  /* theme toggle */
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+
+  /* tabs */
+  var tabs = [
+    { btn:'tabSuper',  panel:'panelSuper'  },
+    { btn:'tabFacade', panel:'panelFacade' },
+    { btn:'tabPyd',    panel:'panelPyd'    }
+  ];
+  tabs.forEach(function(t){
+    document.getElementById(t.btn).addEventListener('click', function(){
+      tabs.forEach(function(o){
+        var active = o.btn === t.btn;
+        document.getElementById(o.btn).classList.toggle('active', active);
+        document.getElementById(o.btn).setAttribute('aria-selected', active ? 'true' : 'false');
+        document.getElementById(o.panel).hidden = !active;
+      });
+    });
+  });
+
+  /* facade notify-me — same Mailchimp hookup as the homepage popup.
+     Paste the embedded-form action URL below (Audience → Signup forms →
+     Embedded forms). Until it's set, signups show a thank-you only. */
+  var MAILCHIMP_URL = '';
+  function subscribe(email, done){
+    if(!MAILCHIMP_URL){
+      console.warn('Mailchimp not connected — set MAILCHIMP_URL in dymak.html');
+      done(true);
+      return;
+    }
+    var cb = 'mc' + Math.floor(Math.random() * 1e9);
+    var tag = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); done(false); }, 8000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(tag.parentNode) tag.parentNode.removeChild(tag); }
+    window[cb] = function(res){ cleanup(); done(res && res.result === 'success', res && res.msg); };
+    tag.src = MAILCHIMP_URL.replace('/post?', '/post-json?') +
+              '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    document.body.appendChild(tag);
+  }
+  var fForm = document.getElementById('facadeForm');
+  var fEmail = document.getElementById('facadeEmail');
+  var fNote = document.getElementById('facadeNote');
+  if(fForm) fForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!fEmail.value || !fEmail.checkValidity()){ fEmail.focus(); return; }
+    fNote.textContent = 'Noting that down…';
+    subscribe(fEmail.value, function(ok){
+      fNote.textContent = ok ? 'Noted — you’ll be first to know.' : 'That didn’t go through — try again in a moment.';
+      if(ok) fForm.reset();
+    });
+  });
+})();
+</script>
+</body>
+</html>
