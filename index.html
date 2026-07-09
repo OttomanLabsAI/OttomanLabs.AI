@@ -25,21 +25,12 @@
     display:grid; gap:var(--gap);
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
-  .mosaic-projects{
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    grid-template-areas:
-      "gherkin shard burj regents pydymak"
-      "selector selector selector selector selector";
-  }
   .mosaic-rest{
     grid-template-areas:
       "news    read   follow github"
       "stocks  cv     cv     github"
       "youtube b3     b4     b2";
   }
-  .a-gherkin{grid-area:gherkin} .a-shard{grid-area:shard} .a-burj{grid-area:burj}
-  .a-regents{grid-area:regents} .a-pydymak{grid-area:pydymak} .a-selector{grid-area:selector}
-
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
   .selector-stage{ position:relative; width:100%; }
@@ -70,11 +61,6 @@
   .a-b2{grid-area:b2} .a-b3{grid-area:b3} .a-b4{grid-area:b4}
   .box.blank{ min-height:150px; }
 
-  .big-word{ font-size:clamp(1.55rem,2.7vw,2rem); }
-  .bldg{ gap:.45rem; padding-top:1.5rem; padding-bottom:1.5rem; }
-  .bldg .sub{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
-    font-size:.82rem; line-height:1.3; max-width:15rem; }
-
   .a-github{ justify-content:space-between; padding-top:1.8rem; padding-bottom:1.8rem; gap:.8rem; }
 
   .oval{
@@ -93,14 +79,6 @@
     letter-spacing:.24em; text-transform:uppercase; }
 
   @media (max-width:900px){
-    .mosaic-projects{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      grid-template-areas:
-        "gherkin shard"
-        "burj    regents"
-        "pydymak pydymak"
-        "selector selector";
-    }
     .mosaic-rest{
       grid-template-columns:repeat(2,minmax(0,1fr));
       grid-template-areas:
@@ -137,65 +115,9 @@
 <main id="main" class="wrap">
 
   <h2 class="section-head">Projects<span class="sh-sub">parametric studies of landmark structures</span></h2>
-  <div class="mosaic mosaic-projects">
-
-    <!-- ════════ THE GHERKIN ════════ -->
-    <a class="box bldg a-gherkin" href="dashboard.html">
-      <span>
-        <span class="ital" style="display:block">The</span>
-        <span class="display big-word">GHERKIN</span>
-      </span>
-      <span class="sub">Diagrid Exoskeleton</span>
-      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
-      <span class="caps caps-tight muted">enter the model</span>
-    </a>
-
-    <!-- ════════ THE SHARD ════════ -->
-    <div class="box bldg a-shard">
-      <span>
-        <span class="ital" style="display:block">The</span>
-        <span class="display big-word">SHARD</span>
-      </span>
-      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
-      <span class="sub">Faceted Glass Facade</span>
-      <span class="caps caps-tight muted">coming soon</span>
-    </div>
-
-    <!-- ════════ BURJ KHALIFA ════════ -->
-    <div class="box bldg a-burj">
-      <span>
-        <span class="ital" style="display:block">Burj</span>
-        <span class="display big-word">KHALIFA</span>
-      </span>
-      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
-      <span class="sub">Buttressed Core</span>
-      <span class="caps caps-tight muted">coming soon</span>
-    </div>
-
-    <!-- ════════ REGENTS CRESCENT ════════ -->
-    <div class="box bldg a-regents">
-      <span>
-        <span class="ital" style="display:block">Regents</span>
-        <span class="display big-word">CRESCENT</span>
-      </span>
-      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
-      <span class="sub">Classic European Facade</span>
-      <span class="caps caps-tight muted">coming soon</span>
-    </div>
-
-    <!-- ════════ PYDYMAK HQ ════════ -->
-    <div class="box bldg a-pydymak">
-      <span>
-        <span class="ital" style="display:block">pyDymak</span>
-        <span class="display big-word">HQ</span>
-      </span>
-      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i></span>
-      <span class="sub">Spiralling Roof &amp; Central Court</span>
-      <span class="caps caps-tight muted">coming soon</span>
-    </div>
 
     <!-- ════════ PROJECT SELECTOR (the one colour tile) ════════ -->
-    <div class="box selector-box a-selector">
+    <div class="box selector-box">
       <div class="selector-stage" id="selStage" role="group" aria-roledescription="carousel"
            aria-label="Interactive project selector" tabindex="0">
         <canvas id="selCanvas" aria-hidden="true"></canvas>
@@ -207,8 +129,6 @@
         <span class="sel-status" id="selStatus" aria-live="polite">enter the model</span>
       </a>
     </div>
-
-  </div><!-- /mosaic-projects -->
 
   <h2 class="section-head">The Studio<span class="sh-sub">writing, picks, code &amp; ways to follow along</span></h2>
   <div class="mosaic mosaic-rest">
@@ -265,7 +185,6 @@
         <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
         <a href="https://instagram.com/fid_900" target="_blank" rel="noopener">Instagram &middot; personal</a>
         <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://www.pinterest.co.uk/denariart/" target="_blank" rel="noopener">Pinterest</a>
       </div>
     </div>
 
@@ -311,8 +230,59 @@
 
   </div>
 
-  <p class="credits">Illustrations drawn in-house · set in Flux, Newsreader &amp; Prata · © 2026 OttomanLabs.AI</p>
 </main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">The Gherkin</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<!-- ════════ NEWSLETTER POPUP ════════ -->
+<div class="nl-pop" id="nlPop" role="dialog" aria-modal="true" aria-labelledby="nlTitle" hidden>
+  <div class="nl-card">
+    <button class="nl-x" id="nlClose" aria-label="Close">&times;</button>
+    <span class="ital">Sign up for</span>
+    <h3 class="nl-title" id="nlTitle">THE NEWSLETTER</h3>
+    <p>Parametric design notes, new tools and project drops — a short letter, no spam.</p>
+    <form class="nl-form" id="nlForm" novalidate>
+      <label class="skip" for="nlEmail">Email address</label>
+      <input type="email" id="nlEmail" placeholder="your@address" required autocomplete="email">
+      <button type="submit">Subscribe</button>
+    </form>
+    <p class="nl-note" id="nlNote" role="status" aria-live="polite"></p>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -474,7 +444,8 @@
         ctx.fillStyle = 'rgba(0,0,0,.16)';
         ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
         p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
-        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h);
+        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h,
+             p.href ? 'click to enter' : 'coming soon');
       }});
     });
     drawables.sort(function(a, b){ return a.d - b.d; });       // back → front
@@ -505,16 +476,30 @@
     ctx.fillStyle = '#57A96B';
     ctx.beginPath(); ctx.moveTo(x, y - s * 1.22); ctx.lineTo(x - s * 0.22, y - s * 0.62); ctx.lineTo(x + s * 0.22, y - s * 0.62); ctx.closePath(); ctx.fill();
   }
-  function chip(x, y, text, big, h){
+  function chip(x, y, text, big, h, sub){
     var fs = Math.max(9, h * (big ? 0.045 : 0.03));
-    ctx.font = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
-    var tw = ctx.measureText(text).width, px = fs * 0.75, py = fs * 0.46;
+    var fs2 = fs * 0.6;
+    var f1 = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
+    var f2 = '500 ' + fs2 + 'px "Afacad Flux",sans-serif';
+    ctx.font = f1;
+    var tw = ctx.measureText(text).width, sw = 0;
+    var twoLine = !!(big && sub);
+    if(twoLine){ ctx.font = f2; sw = ctx.measureText(sub.toUpperCase()).width; }
+    var cw = Math.max(tw, sw), px = fs * 0.75, py = fs * 0.46;
+    var ch2 = fs + py * 2 + (twoLine ? fs2 * 1.5 : 0);
+    var top = y - ch2;
     ctx.fillStyle = big ? '#2B2B28' : 'rgba(43,43,40,.82)';
-    rround(x - tw / 2 - px, y - fs - py, tw + px * 2, fs + py * 2, (fs + py * 2) / 2);
+    rround(x - cw / 2 - px, top, cw + px * 2, ch2, twoLine ? fs * 0.55 : ch2 / 2);
     ctx.fill();
-    ctx.fillStyle = '#FFF8E7';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, y - fs * 0.44);
+    ctx.fillStyle = '#FFF8E7';
+    ctx.font = f1;
+    ctx.fillText(text, x, top + py + fs / 2);
+    if(twoLine){
+      ctx.fillStyle = 'rgba(255,248,231,.72)';
+      ctx.font = f2;
+      ctx.fillText(sub.toUpperCase(), x, top + py + fs + fs2 * 0.85);
+    }
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
   function plaque(x, y, text, h){
@@ -812,14 +797,89 @@
 <script>
 (function(){
   "use strict";
-  /* news coupon — front-end only */
+  /* ── Mailchimp ─────────────────────────────────────────────────────────
+     Connect your audience: Mailchimp → Audience → Signup forms → Embedded
+     forms — copy the <form action="…"> URL and paste it below. It looks like
+       https://ottomanlabs.usXX.list-manage.com/subscribe/post?u=XXXX&id=YYYY
+     Until it's set, signups show a thank-you but are not stored anywhere. */
+  var MAILCHIMP_URL = '';
+
+  function subscribe(email, done){
+    if(!MAILCHIMP_URL){
+      console.warn('Mailchimp not connected — set MAILCHIMP_URL in index.html');
+      done(true);
+      return;
+    }
+    // Mailchimp's JSONP endpoint (post-json) — works from a static site
+    var cb = 'mc' + Math.floor(Math.random() * 1e9);
+    var tag = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); done(false); }, 8000);
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cb];
+      if(tag.parentNode) tag.parentNode.removeChild(tag);
+    }
+    window[cb] = function(res){
+      cleanup();
+      done(res && res.result === 'success', res && res.msg);
+    };
+    tag.src = MAILCHIMP_URL.replace('/post?', '/post-json?') +
+              '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    document.body.appendChild(tag);
+  }
+
+  /* news coupon in the Studio mosaic */
   var form = document.getElementById('newsForm');
-  form.addEventListener('submit', function(e){
+  if(form) form.addEventListener('submit', function(e){
     e.preventDefault();
     var email = document.getElementById('newsEmail');
     if (!email.value || !email.checkValidity()){ email.focus(); return; }
-    form.style.display = 'none';
-    document.getElementById('newsOk').style.display = 'block';
+    subscribe(email.value, function(){
+      form.style.display = 'none';
+      document.getElementById('newsOk').style.display = 'block';
+      try{ localStorage.setItem('ol-nl', JSON.stringify({ k:'done' })); }catch(err){}
+    });
+  });
+
+  /* ── newsletter popup: once per visitor, resurfaces after 30 days ── */
+  var pop = document.getElementById('nlPop');
+  var nlForm = document.getElementById('nlForm');
+  var nlEmail = document.getElementById('nlEmail');
+  var nlNote = document.getElementById('nlNote');
+  if(!pop) return;
+  function nlState(){
+    try{ return JSON.parse(localStorage.getItem('ol-nl') || 'null'); }catch(e){ return null; }
+  }
+  function nlSave(v){ try{ localStorage.setItem('ol-nl', JSON.stringify(v)); }catch(e){} }
+  function closePop(remember){
+    pop.hidden = true;
+    if(remember) nlSave({ k:'later', t: Date.now() });
+  }
+  var st = nlState();
+  var due = !st || (st.k === 'later' && Date.now() - (st.t || 0) > 30 * 864e5);
+  if(due){
+    setTimeout(function(){
+      pop.hidden = false;
+      try{ nlEmail.focus({ preventScroll: true }); }catch(e){ nlEmail.focus(); }
+    }, 7000);
+  }
+  document.getElementById('nlClose').addEventListener('click', function(){ closePop(true); });
+  pop.addEventListener('click', function(e){ if(e.target === pop) closePop(true); });
+  window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !pop.hidden) closePop(true); });
+  nlForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!nlEmail.value || !nlEmail.checkValidity()){ nlEmail.focus(); return; }
+    nlNote.textContent = 'Subscribing…'; nlNote.classList.add('show');
+    subscribe(nlEmail.value, function(ok, msg){
+      if(ok){
+        nlSave({ k:'done' });
+        nlNote.textContent = 'Noted — thank you.';
+        setTimeout(function(){ closePop(false); }, 1600);
+      } else {
+        nlNote.textContent = (msg && String(msg).replace(/<[^>]*>/g, '').slice(0, 120)) ||
+                             'That didn’t go through — try again in a moment.';
+      }
+    });
   });
 })();
 </script>

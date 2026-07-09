@@ -152,14 +152,44 @@
 
   </div>
 
-  <p class="estab" style="margin-top:1.6rem">
-    OttomanLabs establishments:&nbsp;
-    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">OttomanAI</a> ·
-    <a href="https://denariart.com/" target="_blank" rel="noopener">DenariArt</a> ·
-    <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor's CV</a>
-  </p>
-  <p class="credits">Set in Flux, Newsreader &amp; Prata · © 2026 OttomanLabs.AI</p>
 </main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">The Gherkin</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
 
 <script>
 (function(){
@@ -221,6 +251,17 @@
     sendBtn.disabled = true;
     setStatus('Sending…');
 
+    // If the form service can't be reached (ad blockers and Brave shields
+    // often block it) fall back to opening the visitor's mail app with the
+    // message pre-filled — the message still reaches the inbox either way.
+    function mailFallback(reason){
+      var subject = (document.getElementById('cSubject').value.trim() || 'OttomanLabs.AI — message from ' + name);
+      var body = 'From: ' + name + ' <' + email + '>\n\n' + message;
+      setStatus(reason + ' Opening your mail app with the message pre-filled…', 'err');
+      window.location.href = 'mailto:fid_kk@proton.me?subject=' +
+        encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    }
+
     fetch('https://formsubmit.co/ajax/fid_kk@proton.me', {
       method: 'POST',
       headers: { 'Accept': 'application/json' },
@@ -228,15 +269,19 @@
     })
     .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(j){ return { ok: res.ok, body: j }; }); })
     .then(function(r){
-      if(r.ok){
+      var msg = r.body && (r.body.message || r.body.error);
+      if(r.ok && String(r.body.success) !== 'false'){
         setStatus('Thanks — your message has been sent.', 'ok');
         form.reset();
+      } else if(msg && /activat/i.test(msg)){
+        // FormSubmit sends a one-time activation email to the inbox first
+        setStatus('Nearly there — the form service has emailed the site owner a one-time activation link.', 'err');
       } else {
-        setStatus('Something went wrong. Please use the “Open email” button instead.', 'err');
+        mailFallback('The form service didn’t accept the message.');
       }
     })
     .catch(function(){
-      setStatus('Network error. Please use the “Open email” button instead.', 'err');
+      mailFallback('The form service was blocked or unreachable.');
     })
     .then(function(){ sendBtn.disabled = false; });
   });
