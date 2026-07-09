@@ -48,11 +48,11 @@
   .sub-tabs{ border:0; border-bottom:1px solid var(--hair); padding:.2rem .8rem .55rem; }
   .sub-tabs .tab{ font-size:.66rem; }
 
-  /* which boards each sub-tab shows */
+  /* which boards each sub-tab shows — Parameters shows plan AND 3D */
   #superRoot.mode-3d .controls{ display:none; }
   #superRoot.mode-3d .cell-plan{ display:none; }
   #superRoot.mode-3d .layout{ grid-template-columns:1fr; }
-  #superRoot.mode-params .cell-3d{ display:none; }
+  #superRoot.mode-3d .layout > section{ display:none; }
 
   /* facade — coming soon */
   .facade-panel{ border:1px solid var(--hair); padding:clamp(3rem,10vh,6rem) 1.5rem;
@@ -156,7 +156,7 @@ html[data-theme="dark"] #superRoot{
 
 /* ---------- controls ---------- */
 .controls section{margin:0 0 26px}
-.controls h2{
+#superRoot section h2{
   margin:0 0 12px;color:var(--muted);
   font-family:var(--font-mono);font-size:11px;font-weight:600;
   text-transform:uppercase;letter-spacing:.14em;
@@ -267,7 +267,7 @@ html[data-theme="dark"] #superRoot{
 .btn{ font-family:'Flux','Afacad Flux',sans-serif; font-weight:500;
   text-transform:uppercase; letter-spacing:.18em; }
 .btn:hover{ background:var(--ink); color:var(--bg); }
-.controls h2{ font-family:'Flux','Afacad Flux',sans-serif; font-weight:500;
+#superRoot section h2{ font-family:'Flux','Afacad Flux',sans-serif; font-weight:500;
   text-transform:uppercase; letter-spacing:.3em; }
 .hint{ font-family:'Newsreader',Georgia,serif; font-style:italic; }
 /* mobile: stop iOS text inflation, tighten the rhythm */
@@ -275,7 +275,7 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 @media (max-width:920px){
   .layout{ gap:16px !important; padding:14px !important; }
   .controls section{ margin:0 0 14px; }
-  .controls h2{ margin:0 0 8px; }
+  #superRoot section h2{ margin:0 0 8px; }
   .crow{ margin:0 0 10px; }
   }
 
@@ -650,6 +650,52 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
       if(ok) fForm.reset();
     });
   });
+
+  /* narrow screens: physically re-slot the model so it reads
+     radii + structure sliders, plan, rim-height sliders, 3D view, readout —
+     the same interleave the tutorial applies to its frames. Inline styles
+     and document order beat any stylesheet rule; above 920px the original
+     two-column layout is restored untouched. */
+  (function(){
+    var layout = document.querySelector('#superRoot .layout');
+    var aside = layout && layout.querySelector('.controls');
+    var bwrap = layout && layout.querySelector('.boardwrap');
+    if(!layout || !aside || !bwrap) return;
+    var asideKids = Array.prototype.slice.call(aside.children);
+    var bwrapKids = Array.prototype.slice.call(bwrap.children);
+    function secOf(sel){ var el = document.querySelector(sel); return el ? el.closest('section') : null; }
+    function boardOf(id){ var el = document.getElementById(id); return el ? (el.closest('.boardcell') || el.closest('.board')) : null; }
+    var readoutEl = document.querySelector('.controls .readout');
+    var wanted = [secOf('#inR'), secOf('#inr'), secOf('#inN'), boardOf('plot'),
+                  secOf('#inOHi'), secOf('#inIHi'), boardOf('c3'),
+                  readoutEl ? readoutEl.closest('section') : null]
+                 .filter(function(el, i, a){ return el && a.indexOf(el) === i; });
+    var mq = window.matchMedia('(max-width:920px)');
+    function apply(){
+      if(mq.matches){
+        wanted.forEach(function(el){ layout.appendChild(el); el.style.margin = '0'; });
+        asideKids.forEach(function(el){ if(wanted.indexOf(el) === -1) layout.appendChild(el); });
+        bwrapKids.forEach(function(el){ if(wanted.indexOf(el) === -1) layout.appendChild(el); });
+        aside.style.display = 'none';
+        bwrap.style.display = 'none';
+        layout.style.display = 'flex';
+        layout.style.flexDirection = 'column';
+        layout.style.gap = '16px';
+      } else {
+        asideKids.forEach(function(el){ aside.appendChild(el); el.style.margin = ''; });
+        bwrapKids.forEach(function(el){ bwrap.appendChild(el); el.style.margin = ''; });
+        aside.style.display = '';
+        bwrap.style.display = '';
+        layout.style.display = '';
+        layout.style.flexDirection = '';
+        layout.style.gap = '';
+      }
+      window.dispatchEvent(new Event('resize'));
+    }
+    if(mq.addEventListener) mq.addEventListener('change', apply);
+    else if(mq.addListener) mq.addListener(apply);
+    apply();
+  })();
 })();
 </script>
 <script>
