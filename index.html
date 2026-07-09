@@ -501,6 +501,7 @@
     ctx.beginPath(); ctx.moveTo(x, y - s * 1.22); ctx.lineTo(x - s * 0.22, y - s * 0.62); ctx.lineTo(x + s * 0.22, y - s * 0.62); ctx.closePath(); ctx.fill();
   }
   function chip(x, y, text, big, h, sub){
+    if(window.__ogClean) return;   // og-thumbnail capture hook: hide the labels
     var fs = Math.max(9, h * (big ? 0.045 : 0.03));
     var fs2 = fs * 0.6;
     var f1 = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
@@ -527,6 +528,7 @@
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
   function plaque(x, y, text, h){
+    if(window.__ogClean) return;   // og-thumbnail capture hook: hide the plaque
     var fs = Math.max(10, h * 0.038);
     ctx.font = '600 ' + fs + 'px "Afacad Flux",sans-serif';
     var tw = ctx.measureText(text).width, px = fs * 1.1, py = fs * 0.55;
