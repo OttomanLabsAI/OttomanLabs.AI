@@ -232,6 +232,16 @@ input{ accent-color:var(--ink); }
   text-transform:uppercase; letter-spacing:.3em; }
 .masthead h1{ font-family:'Prata',Georgia,serif; font-weight:400; letter-spacing:.02em; }
 .hint, footer p{ font-family:'Newsreader',Georgia,serif; font-style:italic; }
+/* mobile: stop iOS text inflation, tighten the rhythm */
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+@media (max-width:920px){
+  .layout{ gap:16px !important; padding:14px !important; }
+  .controls section{ margin:0 0 14px; }
+  .controls h2{ margin:0 0 8px; }
+  .crow{ margin:0 0 10px; }
+  .masthead{ padding:14px; }
+  .masthead h1{ margin:0 0 8px; }
+}
 </style>
 </head>
 <body>
@@ -287,8 +297,7 @@ input{ accent-color:var(--ink); }
         <span class="val"><input class="num" type="number" id="numd" min="-100" max="100" step="any" value="25" aria-label="Hole offset from centre in meters, signed"><span class="unit">m</span></span>
         <input type="range" id="ind" min="-100" max="100" step="1" value="25">
       </div>
-      <p class="micro">The hole slides on the straight 0°–180° axis ·
-      positive d shifts toward the roof's high side, negative toward the low side.</p>
+      <p class="micro">Positive d slides the hole toward the roof&rsquo;s high side, negative toward the low.</p>
     </section>
 
     <section>
@@ -303,11 +312,7 @@ input{ accent-color:var(--ink); }
         <span class="val"><input class="num" type="number" id="numM" min="0" max="12" step="1" value="3" aria-label="Number of secondary beam rings between main beams"></span>
         <input type="range" id="inM" min="0" max="12" step="1" value="3">
       </div>
-      <p class="micro">n columns spaced equally along the roof rim. Each beam aims at the hole
-      centre and stops at the hole rim, where a matching column rises to meet it.
-      m straight secondary beams tie each pair of neighbouring main beams together
-      at equal points along their length, plus an end tie on each rim —
-      one along the outer edge, one along the hole edge.</p>
+      <p class="micro">n columns ring the roof rim, a beam runs from each to the hole rim, and m secondary beams tie neighbours together.</p>
     </section>
 
     <section>
@@ -337,8 +342,7 @@ input{ accent-color:var(--ink); }
         <span class="val"><input class="num" type="number" id="numILo" min="0" max="100" step="any" value="27" aria-label="Hole rim low point height in meters"><span class="unit">m</span></span>
         <input type="range" id="inILo" min="0" max="100" step="1" value="27">
       </div>
-      <p class="micro">Opposed to the roof rim: the hole's high point faces the roof's
-      low side, and its low point faces the roof's high side.</p>
+      <p class="micro">Opposed to the roof rim &mdash; the hole&rsquo;s high point faces the roof&rsquo;s low side.</p>
     </section>
 
     <section>
@@ -399,9 +403,7 @@ input{ accent-color:var(--ink); }
           <circle id="hrhit" class="hit" r="8" aria-hidden="true"></circle>
         </svg>
       </div>
-      <p class="boardhelp"><strong>Move the hole</strong> — drag it along the axis; square handles resize.
-         Squares on the rims are columns; beams aim at the hole centre and stop where
-         they meet its rim, with thin ties between them. <strong>H</strong>/<strong>L</strong> mark each rim's high and low points.</p>
+      <p class="boardhelp"><strong>Move the hole</strong> &mdash; drag it along the axis, square handles resize, <strong>H</strong>/<strong>L</strong> mark each rim&rsquo;s high and low points.</p>
     </div>
 
     <div class="boardcell">
@@ -418,9 +420,7 @@ input{ accent-color:var(--ink); }
           <canvas id="c3" role="img" aria-label="3D view of the roof frame: columns rising to both sloped rims, beams between them with connection nodes, casting a shadow on the ground grid"></canvas>
         </div>
       </div>
-      <p class="boardhelp"><strong>Orbit</strong> — drag to spin around the frame · scroll to zoom.
-         Main beams shade from deep (low) to pale (high) and land on the hole rim with a
-         column beneath each; thin grey ties are the secondary beams, and dots mark every connection.</p>
+      <p class="boardhelp"><strong>Orbit</strong> &mdash; drag to spin, scroll to zoom; beams shade low&rarr;high with columns, ties and node dots.</p>
     </div>
 
   </section>

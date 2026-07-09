@@ -453,6 +453,15 @@ const SKIN = [
 '  text-transform:uppercase; letter-spacing:.3em; }',
 '.masthead h1{ font-family:\'Prata\',Georgia,serif; font-weight:400; letter-spacing:.02em; }',
 '.hint, footer p{ font-family:\'Newsreader\',Georgia,serif; font-style:italic; }',
+'/* mobile: stop iOS text inflation, tighten the rhythm, hide the footnotes */',
+'html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }',
+'@media (max-width:920px){',
+'  .layout{ gap:16px !important; padding:14px !important; }',
+'  .controls section{ margin:0 0 14px; }',
+'  .controls h2{ margin:0 0 8px; }',
+'  .crow{ margin:0 0 10px; }',
+'  .micro, .boardhelp{ display:none; }',
+'}',
 '</style>'
 ].join('\n');
 
