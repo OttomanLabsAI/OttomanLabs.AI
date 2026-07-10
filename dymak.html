@@ -621,10 +621,22 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     });
   });
 
-  /* Signups go through /api/subscribe on this domain (a Cloudflare Pages
-     Function that relays to Mailchimp server-side), so ad-blockers that
-     blacklist list-manage.com don't affect them. Audience u/id live in
-     functions/api/subscribe.js. */
+  /* Signups prefer /api/subscribe on this domain (a Cloudflare Pages
+     Function that relays to Mailchimp server-side, immune to ad-blockers).
+     If that endpoint isn't deployed, fall back to calling Mailchimp's
+     JSONP endpoint directly — ad-blockers may stop that hop, and the
+     note says so. */
+  var MC_FALLBACK = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-json?u=9a95e7b3013f3d844b00eb3f0&id=d15601aa5d';
+  function subscribeJsonp(email, done){
+    var cb = 'mc' + Math.floor(Math.random() * 1e9);
+    var tag = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); done(false, ''); }, 8000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(tag.parentNode) tag.parentNode.removeChild(tag); }
+    window[cb] = function(res){ cleanup(); done(res && res.result === 'success', (res && res.msg) || ''); };
+    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
+    tag.src = MC_FALLBACK + '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    document.body.appendChild(tag);
+  }
   function subscribe(email, done){
     var called = false;
     function once(ok, msg){ if(!called){ called = true; done(ok, msg); } }
@@ -636,10 +648,13 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     .then(function(r){
       return r.json().then(
         function(res){ once(!!res.ok, res.msg || ''); },
-        function(){ once(false, (r.status === 404 || r.status === 405) ? '__nofn__' : '__http_' + r.status); }
+        function(){
+          if(r.status === 404 || r.status === 405) subscribeJsonp(email, once);
+          else once(false, '__http_' + r.status);
+        }
       );
     })
-    .catch(function(){ once(false, '__blocked__'); });
+    .catch(function(){ subscribeJsonp(email, once); });
   }
   function mcFail(msg){
     if(msg === '__blocked__') return 'The request didn\u2019t leave the browser \u2014 check your connection or ad-blocker and try again.';
