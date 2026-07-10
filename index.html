@@ -953,7 +953,7 @@
     .catch(function(){ subscribeJsonp(email, once); });
   }
   function mcFail(msg){
-    if(msg === '__blocked__') return 'The request didn\u2019t leave the browser \u2014 check your connection or ad-blocker and try again.';
+    if(msg === '__blocked__') return 'Blocked in this browser \u2014 pause the ad-blocker and retry, or <a href="https://eepurl.com/ieW19L" target="_blank" rel="noopener">sign up on the direct form</a>.';
     if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
     if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') \u2014 tell the site owner.';
     var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
@@ -975,7 +975,7 @@
         okEl.textContent = 'NOTED — THANK YOU';
         try{ localStorage.setItem('ol-nl', JSON.stringify({ k:'done' })); }catch(err){}
       } else {
-        okEl.textContent = mcFail(msg);
+        okEl.innerHTML = mcFail(msg);
       }
       okEl.style.display = 'block';
     });
@@ -1016,7 +1016,7 @@
         nlNote.textContent = 'Noted — thank you.';
         setTimeout(function(){ closePop(false); }, 1600);
       } else {
-        nlNote.textContent = mcFail(msg);
+        nlNote.innerHTML = mcFail(msg);
       }
     });
   });
