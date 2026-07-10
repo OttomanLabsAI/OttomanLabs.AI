@@ -41,7 +41,7 @@
     grid-template-areas:
       "news    read   follow github"
       "stocks  cv     cv     github"
-      "youtube b3     b4     b2";
+      "youtube strategy strategy b2";
   }
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
@@ -82,7 +82,7 @@
   .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
   .a-follow{grid-area:follow} .a-cv{grid-area:cv}
   .a-stocks{grid-area:stocks} .a-youtube{grid-area:youtube}
-  .a-b2{grid-area:b2} .a-b3{grid-area:b3} .a-b4{grid-area:b4}
+  .a-b2{grid-area:b2} .a-strategy{grid-area:strategy}
   .box.blank{ min-height:150px; }
 
   .a-github{ justify-content:space-between; padding-top:1.8rem; padding-bottom:1.8rem; gap:.8rem; }
@@ -110,6 +110,7 @@
         "read    read"
         "news    follow"
         "stocks  youtube"
+        "strategy strategy"
         "cv      cv";
     }
     .box.blank{ display:none; }
@@ -187,7 +188,7 @@
     <a class="box a-read" href="reading.html">
       <div class="oval">
         <span class="caps">The Reading<br>Room</span>
-        <span class="ital" style="font-size:1rem">47 volumes</span>
+        <span class="ital" style="font-size:1rem">48 volumes</span>
         <span class="caps caps-tight muted" style="font-size:.6rem">2006 — present</span>
       </div>
     </a>
@@ -249,8 +250,19 @@
       <span class="display" style="font-size:1.4rem">YOUTUBE</span>
       <span class="caps caps-tight muted" style="font-size:.6rem">@OttomanlabsAI &middot; Revit, Grasshopper &amp; AI</span>
     </a>
-    <div class="box blank a-b3" aria-hidden="true"></div>
-    <div class="box blank a-b4" aria-hidden="true"></div>
+    <!-- ════════ AI STRATEGY ════════ -->
+    <a class="box a-strategy" href="strategy.html">
+      <svg viewBox="0 0 96 44" width="88" height="40" fill="none" stroke="#111" stroke-width="2" aria-hidden="true">
+        <rect x="2" y="14" width="22" height="16"/>
+        <rect x="37" y="2" width="22" height="16"/>
+        <rect x="37" y="26" width="22" height="16"/>
+        <rect x="72" y="14" width="22" height="16"/>
+        <path d="M24 22 H31 M31 22 V10 H37 M31 22 V34 H37 M59 10 H66 V22 H72 M59 34 H66 V22" stroke-width="1.6"/>
+      </svg>
+      <span class="ital">AI Strategy of</span>
+      <span class="display" style="font-size:1.4rem">BIM &amp; CONSTRUCTION</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">the playbook &middot; coming soon</span>
+    </a>
     <div class="box blank a-b2" aria-hidden="true"></div>
 
   </div>
