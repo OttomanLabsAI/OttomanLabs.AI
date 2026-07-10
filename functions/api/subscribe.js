@@ -18,7 +18,10 @@ export async function onRequestPost({ request }) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return respond(false, 'That email address doesn’t look right.', 400);
   }
-  const qs = new URLSearchParams({ u: MC_U, id: MC_LIST, EMAIL: email, c: 'cb' });
+  const qs = new URLSearchParams({
+    u: MC_U, id: MC_LIST, f_id: '00cdcae3f0', EMAIL: email, c: 'cb'
+  });
+  qs.set('b_' + MC_U + '_' + MC_LIST, '');   /* honeypot, empty like the real form */
   try {
     const r = await fetch(MC_ENDPOINT + '?' + qs.toString());
     const text = await r.text();
