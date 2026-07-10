@@ -29,6 +29,9 @@
     display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;
   }
   .section-head:first-of-type{ margin-top:.4rem; }
+  /* future disciplines — greyed until they land */
+  .section-head.sh-soon{ opacity:.55; }
+  .section-head.sh-soon + .section-head.sh-soon{ margin-top:0; }
   .section-head .sh-sub{ font-family:var(--font-brand); font-style:normal;
     font-size:clamp(.66rem,1.3vw,.8rem); color:var(--ink-60); letter-spacing:.18em;
     text-transform:uppercase; }
@@ -139,7 +142,7 @@
 
 <main id="main" class="wrap">
 
-  <h2 class="section-head">Projects<span class="sh-sub">parametric studies of landmark structures</span></h2>
+  <h2 class="section-head">Projects<span class="sh-sub">architecture and structural</span></h2>
 
     <!-- ════════ PROJECT SELECTOR (the one colour tile) ════════ -->
     <div class="box selector-box">
@@ -155,6 +158,9 @@
         <span class="sel-name" id="selName">THE GHERKIN</span>
       </div>
     </div>
+
+  <h2 class="section-head sh-soon">Topograph<span class="sh-sub">coming soon</span></h2>
+  <h2 class="section-head sh-soon">MEP<span class="sh-sub">coming soon</span></h2>
 
   <h2 class="section-head">The Studio<span class="sh-sub">writing, picks, code &amp; ways to follow along</span></h2>
   <div class="mosaic mosaic-rest">
