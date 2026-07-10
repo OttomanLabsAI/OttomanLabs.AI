@@ -135,6 +135,10 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
 .view-cap b{ font-family:var(--font-brand); font-weight:500; font-size:.68rem;
   letter-spacing:.28em; text-transform:uppercase; }
 .view-cap span{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60); }
+.hl-note{ margin:0; padding:.55rem .8rem; border-bottom:1px solid var(--hair);
+  font-family:var(--font-serif); font-style:italic; font-size:.9rem; color:var(--ink-60); }
+.hl-note b{ color:#6D071A; font-weight:600; }
+html[data-theme="dark"] .hl-note b{ color:#D4677E; }
 .stage{ position:relative; min-height:240px; background:var(--paper); }
 .stage iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:var(--paper); }
 .stage iframe[hidden]{ display:none; }
@@ -310,9 +314,10 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
 
   <div class="view">
     <div class="view-cap">
-      <b>End product</b>
+      <b>Result</b>
       <span id="capName"></span>
     </div>
+    <p class="hl-note" id="hlNote" hidden>New items from this prompt are shown in <b>burgundy</b>.</p>
     <div class="stage" id="stage"></div>
   </div>
 
@@ -467,9 +472,16 @@ const SKIN = [
 '</style>'
 ].join('\n');
 
+/* From Prompt 2 on, each step's additions are picked out in burgundy while
+   that prompt is the one on screen: UI boxes/elements via the CSS below,
+   model geometry via source patches that read the frame's `hl` root class. */
+const HL_CSS = {"2": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .num{border-color:var(--hlA) !important;color:var(--hlA) !important}html.hl section:has(#inH){outline:1px solid var(--hlA);outline-offset:8px}html.hl section:has(#inH) .num{border-color:transparent !important;color:inherit !important}html.hl .boardcell:has(#c3) .board{border-color:var(--hlA) !important}html.hl .readout dt:has(+ dd#roH),html.hl dd#roH{color:var(--hlA) !important}", "3": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .crow:has(#inOHi) label,html.hl .crow:has(#inOLo) label,html.hl .crow:has(#inOA) label{color:var(--hlA)}html.hl .crow:has(#inOHi) input[type=range],html.hl .crow:has(#inOLo) input[type=range],html.hl .crow:has(#inOA) input[type=range]{accent-color:var(--hlA) !important}html.hl #numOHi,html.hl #numOLo,html.hl #numOA{color:var(--hlA) !important}html.hl section:has(#inIHi){outline:1px solid var(--hlA);outline-offset:8px}html.hl .readout dt:has(+ dd#roHLo),html.hl dd#roHLo,html.hl .readout dt:has(+ dd#roHLi),html.hl dd#roHLi,html.hl .readout dt:has(+ dd#roSo),html.hl dd#roSo,html.hl .readout dt:has(+ dd#roSi),html.hl dd#roSi{color:var(--hlA) !important}html.hl .mkdot.roof,html.hl .mkdot.hole{fill:var(--hlA) !important}html.hl .mkdot.lo{fill:var(--hlB) !important}html.hl text.mk{fill:var(--hlA) !important}", "4": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .pop label:has(#cbShadow){color:var(--hlA)}html.hl #cbShadow{accent-color:var(--hlA)}", "5": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .pop label:has(#cbRims){color:var(--hlA)}html.hl #cbRims{accent-color:var(--hlA)}html.hl section:has(#inN){outline:1px solid var(--hlA);outline-offset:8px}html.hl .readout dt:has(+ dd#roN),html.hl dd#roN,html.hl .readout dt:has(+ dd#roSpan),html.hl dd#roSpan{color:var(--hlA) !important}html.hl .beam2d{stroke:var(--hlA) !important}html.hl .col2d{fill:var(--hlA) !important}", "6": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .readout dt:has(+ dd#roHub),html.hl dd#roHub{color:var(--hlA) !important}", "8": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .crow:has(#inM) label{color:var(--hlA)}html.hl .crow:has(#inM) input[type=range]{accent-color:var(--hlA) !important}html.hl #numM{color:var(--hlA) !important}html.hl .check:has(#cbAim){color:var(--hlA)}html.hl #cbAim{accent-color:var(--hlA)}html.hl .readout dt:has(+ dd#roSec),html.hl dd#roSec{color:var(--hlA) !important}html.hl .purlin2d{stroke:var(--hlA) !important;opacity:.85 !important}", "15": ":root{--hlA:#6D071A;--hlB:#9A2540}html[data-theme=\"dark\"]{--hlA:#D4677E;--hlB:#B45A6E}html.hl .purlin2d.rimtie{stroke:var(--hlA) !important;opacity:.9 !important}"};
+const HL_PATCHES = {"2": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["    var accRGB = hexRgb(cssVar('--accent'));\n    var acc2RGB = hexRgb(cssVar('--accent2'));", "    var accRGB = HL ? hlARGB : hexRgb(cssVar('--accent'));\n    var acc2RGB = HL ? hlBRGB : hexRgb(cssVar('--accent2'));"]], "3": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["    var marks = [\n      { x: px(state.oAng, state.R),                y: -py(state.oAng, state.R),                z: state.oHi, col: mutedC,          tag:'Hi ' + fmt(state.oHi) },\n      { x: px(state.oAng + 180, state.R),          y: -py(state.oAng + 180, state.R),          z: state.oLo, col: mutedC,          tag:'Lo ' + fmt(state.oLo) },\n      { x: hc.x + px(state.iAng, state.r),         y: hc.y - py(state.iAng, state.r),          z: state.iHi, col: rgbStr(acc2RGB,1), tag:'hi ' + fmt(state.iHi) },\n      { x: hc.x + px(state.iAng + 180, state.r),   y: hc.y - py(state.iAng + 180, state.r),    z: state.iLo, col: rgbStr(acc2RGB,1), tag:'lo ' + fmt(state.iLo) }\n    ];\n", "    var marks = [\n      { x: px(state.oAng, state.R),                y: -py(state.oAng, state.R),                z: state.oHi, col: HL ? hlA : mutedC,          tag:'Hi ' + fmt(state.oHi) },\n      { x: px(state.oAng + 180, state.R),          y: -py(state.oAng + 180, state.R),          z: state.oLo, col: HL ? hlA : mutedC,          tag:'Lo ' + fmt(state.oLo) },\n      { x: hc.x + px(state.iAng, state.r),         y: hc.y - py(state.iAng, state.r),          z: state.iHi, col: HL ? hlB : rgbStr(acc2RGB,1), tag:'hi ' + fmt(state.iHi) },\n      { x: hc.x + px(state.iAng + 180, state.r),   y: hc.y - py(state.iAng + 180, state.r),    z: state.iLo, col: HL ? hlB : rgbStr(acc2RGB,1), tag:'lo ' + fmt(state.iLo) }\n    ];\n"]], "4": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["      ctx.fillStyle = isDark ? 'rgba(0,0,0,0.42)' : 'rgba(15,25,20,0.15)';", "      ctx.fillStyle = HL ? (isDark ? 'rgba(212,103,126,0.35)' : 'rgba(109,7,26,0.22)') : (isDark ? 'rgba(0,0,0,0.42)' : 'rgba(15,25,20,0.15)');"]], "5": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["    var topLow  = mix(accRGB, white, 0.18);       /* beam elevation ramp */\n    var topHigh = mix(accRGB, white, 0.80);", "    var topLow  = mix(HL ? hlARGB : accRGB, white, 0.18);       /* beam elevation ramp */\n    var topHigh = mix(HL ? hlARGB : accRGB, white, 0.80);"], ["segs.push({ a:[O[0],O[1],0], b:O, col: rgbStr(accRGB, 0.9),  wid: 2.6 });", "segs.push({ a:[O[0],O[1],0], b:O, col: rgbStr(HL ? hlARGB : accRGB, 0.9),  wid: 2.6 });"], ["segs.push({ a:[I[0],I[1],0], b:I, col: rgbStr(acc2RGB, 0.95), wid: 2.2 });", "segs.push({ a:[I[0],I[1],0], b:I, col: rgbStr(HL ? hlBRGB : acc2RGB, 0.95), wid: 2.2 });"], ["segs.push({ a:O, b:O2, col: rgbStr(accRGB, 1),  wid: 1.3 });", "segs.push({ a:O, b:O2, col: rgbStr(HL ? hlARGB : accRGB, 1),  wid: 1.3 });"], ["segs.push({ a:I, b:I2, col: rgbStr(acc2RGB, 1), wid: 1.3 });", "segs.push({ a:I, b:I2, col: rgbStr(HL ? hlBRGB : acc2RGB, 1), wid: 1.3 });"], ["        ctx.arc(o.P.x, o.P.y, 3, 0, TAU);\n        ctx.fillStyle = inkC;", "        ctx.arc(o.P.x, o.P.y, 3, 0, TAU);\n        ctx.fillStyle = HL ? hlA : inkC;"]], "6": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["drawn.push({ kind:'node', P:HB, rad:4, depth: HB.d + 0.4 });", "drawn.push({ kind:'node', P:HB, rad:4, col: HL ? hlA : null, depth: HB.d + 0.4 });"], ["        ctx.arc(o.P.x, o.P.y, o.rad, 0, TAU);\n        ctx.fillStyle = inkC;", "        ctx.arc(o.P.x, o.P.y, o.rad, 0, TAU);\n        ctx.fillStyle = o.col || inkC;"]], "8": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["segs.push({ a:A, b:B, col: mutedC, wid: 1.1 });", "segs.push({ a:A, b:B, col: HL ? hlA : mutedC, wid: 1.1 });"], ["drawn.push({ kind:'node', P:P, rad:1.8, depth: P.d + 0.3 });", "drawn.push({ kind:'node', P:P, rad:1.8, col: HL ? hlA : null, depth: P.d + 0.3 });"], ["        ctx.arc(o.P.x, o.P.y, o.rad, 0, TAU);\n        ctx.fillStyle = inkC;", "        ctx.arc(o.P.x, o.P.y, o.rad, 0, TAU);\n        ctx.fillStyle = o.col || inkC;"]], "15": [["    var gridC = cssVar('--grid') || '#c9d1c7';", "    var gridC = cssVar('--grid') || '#c9d1c7';\n    var HL = document.documentElement.classList.contains('hl');\n    var hlARGB = hexRgb(cssVar('--hlA') || '#6D071A');\n    var hlBRGB = hexRgb(cssVar('--hlB') || '#9A2540');\n    var hlA = rgbStr(hlARGB, 1), hlB = rgbStr(hlBRGB, 1);"], ["      /* endpoint ties along both rims */\n      el = document.createElementNS(NS, 'line');\n      el.setAttribute('x1', oP[k][0]);  el.setAttribute('y1', oP[k][1]);\n      el.setAttribute('x2', oP[k2][0]); el.setAttribute('y2', oP[k2][1]);\n      el.setAttribute('class', 'purlin2d');\n      beams.appendChild(el);\n      el = document.createElementNS(NS, 'line');\n      el.setAttribute('x1', iP[k][0]);  el.setAttribute('y1', iP[k][1]);\n      el.setAttribute('x2', iP[k2][0]); el.setAttribute('y2', iP[k2][1]);\n      el.setAttribute('class', 'purlin2d');\n      beams.appendChild(el);\n      el = document.createElementNS(NS, 'rect');\n      el.setAttribute('x', oP[k][0] - 1.4); el.setAttribute('y', oP[k][1] - 1.4);\n      el.setAttribute('width', 2.8); el.setAttribute('height', 2.8);\n      el.setAttribute('class', 'col2d outer');\n      cols.appendChild(el);\n      el = document.createElementNS(NS, 'rect');\n      el.setAttribute('x', iP[k][0] - 1.2); el.setAttribute('y', iP[k][1] - 1.2);\n      el.setAttribute('width', 2.4); el.setAttribute('height', 2.4);\n      el.setAttribute('class', 'col2d inner');\n      cols.appendChild(el);\n    }\n\n", "      /* endpoint ties along both rims */\n      el = document.createElementNS(NS, 'line');\n      el.setAttribute('x1', oP[k][0]);  el.setAttribute('y1', oP[k][1]);\n      el.setAttribute('x2', oP[k2][0]); el.setAttribute('y2', oP[k2][1]);\n      el.setAttribute('class', 'purlin2d rimtie');\n      beams.appendChild(el);\n      el = document.createElementNS(NS, 'line');\n      el.setAttribute('x1', iP[k][0]);  el.setAttribute('y1', iP[k][1]);\n      el.setAttribute('x2', iP[k2][0]); el.setAttribute('y2', iP[k2][1]);\n      el.setAttribute('class', 'purlin2d rimtie');\n      beams.appendChild(el);\n      el = document.createElementNS(NS, 'rect');\n      el.setAttribute('x', oP[k][0] - 1.4); el.setAttribute('y', oP[k][1] - 1.4);\n      el.setAttribute('width', 2.8); el.setAttribute('height', 2.8);\n      el.setAttribute('class', 'col2d outer');\n      cols.appendChild(el);\n      el = document.createElementNS(NS, 'rect');\n      el.setAttribute('x', iP[k][0] - 1.2); el.setAttribute('y', iP[k][1] - 1.2);\n      el.setAttribute('width', 2.4); el.setAttribute('height', 2.4);\n      el.setAttribute('class', 'col2d inner');\n      cols.appendChild(el);\n    }\n\n"], ["      /* endpoint ties: one along the outer rim, one along the hole rim */\n      segs.push({ a:O, b:O2, col: mutedC, wid: 1.1 });\n      segs.push({ a:I, b:I2, col: mutedC, wid: 1.1 });", "      /* endpoint ties: one along the outer rim, one along the hole rim */\n      segs.push({ a:O, b:O2, col: HL ? hlA : mutedC, wid: 1.1 });\n      segs.push({ a:I, b:I2, col: HL ? hlA : mutedC, wid: 1.1 });"]]};
+
 const tabs  = document.getElementById('tabs');
 const stage = document.getElementById('stage');
 const capName = document.getElementById('capName');
+const hlNote = document.getElementById('hlNote');
 const pNum = document.getElementById('pNum');
 const pRaw = document.getElementById('pRaw');
 const inDash = document.getElementById('inDash');
@@ -510,6 +522,21 @@ function syncFrame(f){
     if(b) b.click();
     else if(shellDark()) d.documentElement.dataset.theme = 'dark';
     else delete d.documentElement.dataset.theme;
+  }catch(e){}
+}
+
+/* Burgundy highlights live in the frame's stylesheet + patched draw code and
+   key off an `hl` class on the frame's root — on only while the prompt that
+   introduced them is the active tab (shared frames show them for their owner
+   prompt alone). A resize ping repaints the canvases with the new palette. */
+function applyHl(f, fi, act){
+  try{
+    const d = f && f.contentDocument;
+    if(!d || !d.documentElement) return;
+    const on = act === fi && !!(HL_CSS[fi] || HL_PATCHES[fi]);
+    if(d.documentElement.classList.contains('hl') === on) return;
+    d.documentElement.classList.toggle('hl', on);
+    if(f.contentWindow) f.contentWindow.dispatchEvent(new f.contentWindow.Event('resize'));
   }catch(e){}
 }
 
@@ -623,10 +650,12 @@ function ensureFrame(fi){
   const f = document.createElement('iframe');
   f.title = holder.caption;
   f.hidden = true;
-  f.addEventListener('load',()=>{ syncFrame(f); setupNarrowReorder(f); watchFrame(f); fitFrame(f, true); if(holder.intro) injectRecs(f); });
+  f.addEventListener('load',()=>{ syncFrame(f); setupNarrowReorder(f); watchFrame(f); fitFrame(f, true); if(holder.intro) injectRecs(f); applyHl(f, fi, current); });
   let doc = decode(src.b64);
   RENAMES.forEach(r => { doc = doc.split(r[0]).join(r[1]); });
-  f.srcdoc = doc.replace(/<\/head>/i, m => SKIN + '\n' + m);
+  (HL_PATCHES[fi] || []).forEach(r => { doc = doc.split(r[0]).join(r[1]); });
+  const hlcss = HL_CSS[fi] ? '<style class="hl-css">' + HL_CSS[fi] + '</style>\n' : '';
+  f.srcdoc = doc.replace(/<\/head>/i, m => SKIN + '\n' + hlcss + m);
   stage.appendChild(f);
   frames[fi] = f;
   return f;
@@ -649,6 +678,8 @@ function activate(i){
   const fi = frameIndex(i);
   ensureFrame(fi);
   frames.forEach((f,j)=>{ if(f) f.hidden = (j!==fi); });
+  applyHl(frames[fi], fi, i);
+  hlNote.hidden = !(fi === i && !!(HL_CSS[fi] || HL_PATCHES[fi]));
   requestAnimationFrame(()=>fitFrame(frames[fi], true));
   tabs.querySelectorAll('.tab').forEach((b,j)=>{
     b.classList.toggle('active', j===i);
