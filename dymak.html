@@ -638,7 +638,14 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     window[cb] = function(res){ cleanup(); done(res && res.result === 'success', res && res.msg); };
     tag.src = MAILCHIMP_URL.replace('/post?', '/post-json?') +
               '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
     document.body.appendChild(tag);
+  }
+  function mcFail(msg){
+    if(msg === '__blocked__') return 'Your browser blocked the signup request \u2014 pause Shields or the ad-blocker for this site and try again.';
+    var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
+    if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
+    return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
   }
   var fForm = document.getElementById('facadeForm');
   var fEmail = document.getElementById('facadeEmail');
@@ -647,8 +654,8 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     e.preventDefault();
     if(!fEmail.value || !fEmail.checkValidity()){ fEmail.focus(); return; }
     fNote.textContent = 'Noting that down…';
-    subscribe(fEmail.value, function(ok){
-      fNote.textContent = ok ? 'Noted — you’ll be first to know.' : 'That didn’t go through — try again in a moment.';
+    subscribe(fEmail.value, function(ok, msg){
+      fNote.textContent = ok ? 'Noted — you’ll be first to know.' : mcFail(msg);
       if(ok) fForm.reset();
     });
   });
