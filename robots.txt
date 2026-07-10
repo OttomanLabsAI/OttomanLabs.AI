@@ -58,3 +58,6 @@ Disallow: /
 
 # END Cloudflare Managed Content
 
+
+# Sitemap
+Sitemap: https://ottomanlabs.ai/sitemap.xml

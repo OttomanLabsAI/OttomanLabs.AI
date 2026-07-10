@@ -3,25 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OttomanLabs.AI</title>
-<meta name="description" content="OttomanLabs.AI (formerly RevitTurboCharger): The Gherkin parametric tower board, open-source tools on GitHub, and a reading room.">
+<title>OttomanLabs.AI — Practical AI for BIM &amp; Construction</title>
+<meta name="description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1. Parametric building dashboards, prompt-by-prompt AI tutorials, and Revit integration through pyRevit add-ins and Revit-ready exports.">
+<link rel="canonical" href="https://ottomanlabs.ai/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OttomanLabs.AI">
-<meta property="og:title" content="OttomanLabs.AI">
-<meta property="og:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta property="og:title" content="OttomanLabs.AI — Practical AI for BIM &amp; Construction">
+<meta property="og:description" content="Weeks of work in minutes, from day 1 — parametric dashboards, prompt-by-prompt AI tutorials, and Revit integration via pyRevit.">
 <meta property="og:url" content="https://ottomanlabs.ai/">
 <meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OttomanLabs.AI">
-<meta name="twitter:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta name="twitter:title" content="OttomanLabs.AI — Practical AI for BIM &amp; Construction">
+<meta name="twitter:description" content="Weeks of work in minutes, from day 1 — parametric dashboards, prompt-by-prompt AI tutorials, and Revit integration via pyRevit.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://ottomanlabs.ai/#org",
+      "name": "OttomanLabs.AI",
+      "url": "https://ottomanlabs.ai/",
+      "logo": "https://ottomanlabs.ai/assets/og-thumb.png",
+      "description": "Practical AI for BIM & Construction — parametric building dashboards, prompt-by-prompt AI tutorials, and Revit integration through pyRevit add-ins.",
+      "founder": { "@type": "Person", "name": "Fadil Karim" },
+      "email": "fid_kk@proton.me",
+      "sameAs": [
+        "https://github.com/ottomanlabsai",
+        "https://www.youtube.com/@OttomanlabsAI",
+        "https://uk.linkedin.com/in/fadil-karim",
+        "https://instagram.com/ottomanlabs.ai",
+        "https://t.me/ottomanlabs.ai"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://ottomanlabs.ai/#site",
+      "url": "https://ottomanlabs.ai/",
+      "name": "OttomanLabs.AI",
+      "description": "Practical AI for BIM & Construction — weeks of work in minutes, from day 1.",
+      "publisher": { "@id": "https://ottomanlabs.ai/#org" }
+    }
+  ]
+}
+</script>
 <meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <style>
+  /* the one-line site claim under the masthead */
+  .claim{
+    border:1px solid var(--hair); padding:.75rem 1.2rem; margin:0 0 var(--gap);
+    display:flex; align-items:baseline; gap:.5rem 1.1rem; flex-wrap:wrap;
+  }
+  .claim h1{
+    margin:0; font-family:var(--font-brand); font-weight:600;
+    font-size:clamp(.8rem,1.7vw,1rem); letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink);
+  }
+  .claim-sub{ font-family:var(--font-serif); font-style:italic;
+    font-size:.98rem; color:var(--ink-60); }
+  .claim-tags{ margin-left:auto; font-family:var(--font-brand);
+    font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); }
+
   /* large text dividers between sections */
   .section-head{
     font-family:var(--font-display); font-size:clamp(1.6rem,4vw,2.8rem);
@@ -141,6 +189,12 @@
 </header>
 
 <main id="main" class="wrap">
+
+  <div class="claim">
+    <h1>Practical AI for BIM &amp; Construction</h1>
+    <span class="claim-sub">weeks of work in minutes &mdash; from day 1</span>
+    <span class="claim-tags caps-tight">prompt-by-prompt tutorials &middot; Revit integration via pyRevit</span>
+  </div>
 
   <h2 class="section-head">Projects<span class="sh-sub">architecture and structural</span></h2>
 
