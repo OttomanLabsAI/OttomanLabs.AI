@@ -424,7 +424,7 @@
     { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20 },
     { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32 },
     { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48 },
-    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.46 }
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58 }
   ];
   // trees are anchored to the WORLD (plan angle + radius), so they swing with
   // the camera like everything else on the island
@@ -803,22 +803,29 @@
 
   // Dymak HQ — round glass hall under a swirling shingled roof that dips
   // into a central open courtyard (modelled from the reference photos)
+  // Dymak HQ — proportions and rake from the exported pyDymak OBJ:
+  // R 70, hole r 25 offset 15 toward the low side, roof rim 35 m -> 10 m,
+  // hole rim 15 m -> 25 m opposed, 36 bays. u maps metres to model units.
   function drawDymak(ctx, x0, gy, s, yaw){
     var k = s / CB, prj = mkProj(x0, gy, k, yaw);
-    var Ro = 0.40, Re = 0.45, Ri = 0.13, hw = 0.26, n = 22, faces = [], i;
-    var hOc = 0.17;                                            // oculus rim, below the wall top
-    function rim(th){ return hw + 0.05 + 0.20 * (1 + Math.cos(th - 0.8)) / 2; }
+    var u = 0.0077, Re = 70 * u, Ro = Re * 0.94, Ri = 25 * u, n = 36, faces = [], i;
+    var PH = 0.8;                                              // plan angle of the roof high point
+    var hw = 8 * u;                                            // glass drum, under the 10 m low rim
+    var hcx = 15 * u * Math.sin(PH + Math.PI), hcy = 15 * u * Math.cos(PH + Math.PI);
+    function rimO(th){ return u * (22.5 + 12.5 * Math.cos(th - PH)); }
+    function rimI(th){ return u * (20.0 -  5.0 * Math.cos(th - PH)); }
     for(i = 0; i < n; i++){
       var t0 = TAU * i / n, t1 = TAU * (i + 1) / n, tm = (t0 + t1) / 2;
       var s0 = Math.sin(t0), c0 = Math.cos(t0), s1 = Math.sin(t1), c1 = Math.cos(t1);
       // glass drum, set in from the eave
       faces.push({ pts: [[Ro*s0,Ro*c0,0],[Ro*s1,Ro*c1,0],[Ro*s1,Ro*c1,hw],[Ro*s0,Ro*c0,hw]],
                    col: '#C79E6F', az: tm });
-      // fascia: wall top up to the swirling rim
-      faces.push({ pts: [[Re*s0,Re*c0,hw],[Re*s1,Re*c1,hw],[Re*s1,Re*c1,rim(t1)],[Re*s0,Re*c0,rim(t0)]],
+      // shingled fascia: deep on the high side, a sliver on the low side
+      faces.push({ pts: [[Re*s0,Re*c0,hw],[Re*s1,Re*c1,hw],[Re*s1,Re*c1,rimO(t1)],[Re*s0,Re*c0,rimO(t0)]],
                    col: '#9C5F3E', az: tm });
-      // roof: swirling outer rim sweeping down into the oculus
-      faces.push({ pts: [[Re*s0,Re*c0,rim(t0)],[Re*s1,Re*c1,rim(t1)],[Ri*s1,Ri*c1,hOc],[Ri*s0,Ri*c0,hOc]],
+      // roof: raked outer rim sweeping into the offset, counter-raked hole
+      faces.push({ pts: [[Re*s0,Re*c0,rimO(t0)],[Re*s1,Re*c1,rimO(t1)],
+                         [hcx+Ri*s1,hcy+Ri*c1,rimI(t1)],[hcx+Ri*s0,hcy+Ri*c0,rimI(t0)]],
                    col: '#B5734D', az: tm });
     }
     paintFaces(ctx, faces, prj, yaw, 'rgba(90,52,32,.45)');
@@ -828,17 +835,17 @@
     for(i = 0; i < n; i++){
       var ts = TAU * (i + 0.5) / n;
       if(Math.cos(ts + yaw) > -0.1) continue;
-      var r0 = prj(Re * Math.sin(ts), Re * Math.cos(ts), rim(ts));
-      var r1 = prj(Ri * Math.sin(ts), Ri * Math.cos(ts), hOc);
+      var r0 = prj(Re * Math.sin(ts), Re * Math.cos(ts), rimO(ts));
+      var r1 = prj(hcx + Ri * Math.sin(ts), hcy + Ri * Math.cos(ts), rimI(ts));
       ctx.moveTo(r0.x, r0.y); ctx.lineTo(r1.x, r1.y);
     }
     ctx.stroke();
-    // the swirl edge itself
+    // the raked rim edge itself
     ctx.strokeStyle = '#8A5637'; ctx.lineWidth = Math.max(1.1, s * 0.012);
     ctx.beginPath();
     for(i = 0; i <= n * 2; i++){
       var te = TAU * i / (n * 2);
-      var pe = prj(Re * Math.sin(te), Re * Math.cos(te), rim(te));
+      var pe = prj(Re * Math.sin(te), Re * Math.cos(te), rimO(te));
       i ? ctx.lineTo(pe.x, pe.y) : ctx.moveTo(pe.x, pe.y);
     }
     ctx.stroke();
