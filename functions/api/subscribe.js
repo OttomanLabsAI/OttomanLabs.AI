@@ -7,6 +7,11 @@ const MC_ENDPOINT = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-
 const MC_U = '9a95e7b3013f3d844b00eb3f0';
 const MC_LIST = 'd15601aa5d';
 
+/* GET = health check: lets a browser tab confirm the function is deployed. */
+export function onRequestGet() {
+  return respond(false, 'The signup service is live — it answers to POSTs from the site’s signup forms.');
+}
+
 export async function onRequestPost({ request }) {
   let email = '';
   try { email = String((await request.json()).email || '').trim(); } catch (e) {}
@@ -23,7 +28,8 @@ export async function onRequestPost({ request }) {
     if (!data || !data.result) {
       return respond(false, 'Mailchimp gave an unexpected reply — try again in a moment.', 502);
     }
-    return respond(data.result === 'success', String(data.msg || ''));
+    const ok = data.result === 'success';
+    return respond(ok, String(data.msg || (ok ? '' : 'Mailchimp rejected the signup without saying why.')));
   } catch (e) {
     return respond(false, 'Could not reach Mailchimp — try again in a moment.', 502);
   }

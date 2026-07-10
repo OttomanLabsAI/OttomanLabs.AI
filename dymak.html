@@ -626,6 +626,8 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
      blacklist list-manage.com don't affect them. Audience u/id live in
      functions/api/subscribe.js. */
   function subscribe(email, done){
+    var called = false;
+    function once(ok, msg){ if(!called){ called = true; done(ok, msg); } }
     fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -633,17 +635,19 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     })
     .then(function(r){
       return r.json().then(
-        function(res){ done(!!res.ok, res.msg || ''); },
-        function(){ done(false, (r.status === 404 || r.status === 405) ? '__nofn__' : ''); }
+        function(res){ once(!!res.ok, res.msg || ''); },
+        function(){ once(false, (r.status === 404 || r.status === 405) ? '__nofn__' : '__http_' + r.status); }
       );
     })
-    .catch(function(){ done(false, '__blocked__'); });
+    .catch(function(){ once(false, '__blocked__'); });
   }
   function mcFail(msg){
     if(msg === '__blocked__') return 'The request didn\u2019t leave the browser \u2014 check your connection or ad-blocker and try again.';
     if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
+    if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') \u2014 tell the site owner.';
     var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
     if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
+    if(!t && msg) return 'Mailchimp rejected the signup \u2014 no reason given.';
     return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
   }
   var fForm = document.getElementById('facadeForm');
