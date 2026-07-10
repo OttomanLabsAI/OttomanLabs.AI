@@ -1,0 +1,37 @@
+/* Cloudflare Pages Function: first-party newsletter signup.
+   The browser posts to /api/subscribe on this domain — ad-blockers and
+   Brave Shields that blacklist list-manage.com never see a Mailchimp
+   request. The hop to Mailchimp happens here, server-side. */
+
+const MC_ENDPOINT = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-json';
+const MC_U = '9a95e7b3013f3d844b00eb3f0';
+const MC_LIST = 'd15601aa5d';
+
+export async function onRequestPost({ request }) {
+  let email = '';
+  try { email = String((await request.json()).email || '').trim(); } catch (e) {}
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return respond(false, 'That email address doesn’t look right.', 400);
+  }
+  const qs = new URLSearchParams({ u: MC_U, id: MC_LIST, EMAIL: email, c: 'cb' });
+  try {
+    const r = await fetch(MC_ENDPOINT + '?' + qs.toString());
+    const text = await r.text();
+    /* post-json replies as JSONP: cb({"result":"success","msg":"..."}) */
+    const m = text.match(/^\s*cb\((.*)\)\s*;?\s*$/s);
+    const data = m ? JSON.parse(m[1]) : null;
+    if (!data || !data.result) {
+      return respond(false, 'Mailchimp gave an unexpected reply — try again in a moment.', 502);
+    }
+    return respond(data.result === 'success', String(data.msg || ''));
+  } catch (e) {
+    return respond(false, 'Could not reach Mailchimp — try again in a moment.', 502);
+  }
+}
+
+function respond(ok, msg, status = 200) {
+  return new Response(JSON.stringify({ ok: ok, msg: msg }), {
+    status: status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+  });
+}

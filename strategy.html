@@ -139,25 +139,19 @@
     try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
   });
 
-  /* notify-me — same Mailchimp hookup as the homepage popup. Paste the
-     embedded-form action URL below; until it's set, signups show a
-     thank-you only. */
-  var MAILCHIMP_URL = 'https://moneyafterdark.us17.list-manage.com/subscribe/post?u=9a95e7b3013f3d844b00eb3f0&id=d15601aa5d';
+  /* Signups go through /api/subscribe on this domain (a Cloudflare Pages
+     Function that relays to Mailchimp server-side), so ad-blockers that
+     blacklist list-manage.com don't affect them. Audience u/id live in
+     functions/api/subscribe.js. */
   function subscribe(email, done){
-    if(!MAILCHIMP_URL){
-      console.warn('Mailchimp not connected — set MAILCHIMP_URL in strategy.html');
-      done(true);
-      return;
-    }
-    var cb = 'mc' + Math.floor(Math.random() * 1e9);
-    var tag = document.createElement('script');
-    var timer = setTimeout(function(){ cleanup(); done(false); }, 8000);
-    function cleanup(){ clearTimeout(timer); delete window[cb]; if(tag.parentNode) tag.parentNode.removeChild(tag); }
-    window[cb] = function(res){ cleanup(); done(res && res.result === 'success', res && res.msg); };
-    tag.src = MAILCHIMP_URL.replace('/post?', '/post-json?') +
-              '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
-    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
-    document.body.appendChild(tag);
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){ done(!!res.ok, res.msg || ''); })
+    .catch(function(){ done(false, ''); });
   }
   function mcFail(msg){
     if(msg === '__blocked__') return 'Your browser blocked the signup request \u2014 pause Shields or the ad-blocker for this site and try again.';
