@@ -19,7 +19,7 @@ export async function onRequestPost({ request }) {
     return respond(false, 'That email address doesn’t look right.', 400);
   }
   const qs = new URLSearchParams({
-    u: MC_U, id: MC_LIST, f_id: '00cdcae3f0', EMAIL: email, c: 'cb'
+    u: MC_U, id: MC_LIST, f_id: '00cccae3f0', EMAIL: email, c: 'cb'
   });
   qs.set('b_' + MC_U + '_' + MC_LIST, '');   /* honeypot, empty like the real form */
   try {
