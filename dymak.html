@@ -631,12 +631,17 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email })
     })
-    .then(function(r){ return r.json(); })
-    .then(function(res){ done(!!res.ok, res.msg || ''); })
-    .catch(function(){ done(false, ''); });
+    .then(function(r){
+      return r.json().then(
+        function(res){ done(!!res.ok, res.msg || ''); },
+        function(){ done(false, (r.status === 404 || r.status === 405) ? '__nofn__' : ''); }
+      );
+    })
+    .catch(function(){ done(false, '__blocked__'); });
   }
   function mcFail(msg){
-    if(msg === '__blocked__') return 'Your browser blocked the signup request \u2014 pause Shields or the ad-blocker for this site and try again.';
+    if(msg === '__blocked__') return 'The request didn\u2019t leave the browser \u2014 check your connection or ad-blocker and try again.';
+    if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
     var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
     if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
     return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
