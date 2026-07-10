@@ -11,6 +11,9 @@ const MC_FORM = '00cccae3f0';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/dashboard' || url.pathname === '/dashboard.html') {
+      return Response.redirect(url.origin + '/gherkin', 301);
+    }
     if (url.pathname === '/api/subscribe') {
       if (request.method === 'POST') return subscribe(request);
       if (request.method === 'GET') {
