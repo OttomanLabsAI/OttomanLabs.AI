@@ -197,7 +197,7 @@
     <span class="claim-tags caps-tight">prompt-by-prompt tutorials &middot; Revit integration via pyRevit</span>
   </div>
 
-  <h2 class="section-head">Projects<span class="sh-sub">architecture and structural</span></h2>
+  <h2 class="section-head">Architecture and Structural</h2>
 
     <!-- ════════ PROJECT SELECTOR (the one colour tile) ════════ -->
     <div class="box selector-box">
@@ -948,7 +948,14 @@
     };
     tag.src = MAILCHIMP_URL.replace('/post?', '/post-json?') +
               '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
     document.body.appendChild(tag);
+  }
+  function mcFail(msg){
+    if(msg === '__blocked__') return 'Your browser blocked the signup request \u2014 pause Shields or the ad-blocker for this site and try again.';
+    var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
+    if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
+    return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
   }
 
   /* news coupon in the Studio mosaic */
@@ -957,10 +964,16 @@
     e.preventDefault();
     var email = document.getElementById('newsEmail');
     if (!email.value || !email.checkValidity()){ email.focus(); return; }
-    subscribe(email.value, function(){
-      form.style.display = 'none';
-      document.getElementById('newsOk').style.display = 'block';
-      try{ localStorage.setItem('ol-nl', JSON.stringify({ k:'done' })); }catch(err){}
+    subscribe(email.value, function(ok, msg){
+      var okEl = document.getElementById('newsOk');
+      if(ok){
+        form.style.display = 'none';
+        okEl.textContent = 'NOTED — THANK YOU';
+        try{ localStorage.setItem('ol-nl', JSON.stringify({ k:'done' })); }catch(err){}
+      } else {
+        okEl.textContent = mcFail(msg);
+      }
+      okEl.style.display = 'block';
     });
   });
 
@@ -999,8 +1012,7 @@
         nlNote.textContent = 'Noted — thank you.';
         setTimeout(function(){ closePop(false); }, 1600);
       } else {
-        nlNote.textContent = (msg && String(msg).replace(/<[^>]*>/g, '').slice(0, 120)) ||
-                             'That didn’t go through — try again in a moment.';
+        nlNote.textContent = mcFail(msg);
       }
     });
   });
