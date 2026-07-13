@@ -320,7 +320,7 @@ table.dtable td.num{ font-size:.84rem; }
 
 /* ── site footer ── */
 .site-footer{ border-top:1px solid var(--hair); margin-top:3rem; background:var(--paper); }
-.foot-grid{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:2rem; padding:2.4rem 0 1.8rem; }
+.foot-grid{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:2rem; padding-top:2.4rem; padding-bottom:1.8rem; }
 .foot-brand .brand{ font-size:1.15rem; }
 .foot-tag{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
   font-size:.92rem; line-height:1.55; margin:.7rem 0 0; max-width:26rem; }
@@ -330,7 +330,7 @@ table.dtable td.num{ font-size:.84rem; }
   color:var(--ink); text-decoration:none; padding:.22rem 0; }
 .foot-col a:hover{ color:var(--ink-60); }
 .foot-legal{ display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;
-  border-top:1px solid var(--hair); padding:1rem 0 1.6rem;
+  border-top:1px solid var(--hair); padding-top:1rem; padding-bottom:1.6rem;
   font-family:var(--font-brand); font-size:.64rem; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-60); }
 @media (max-width:760px){
