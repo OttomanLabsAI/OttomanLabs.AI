@@ -256,6 +256,11 @@
 
   <div class="settings-bar">
     <span class="sb-label">Settings</span>
+    <div class="sb-actions" id="unitSeg" role="group" aria-label="Display units">
+      <button class="active" data-u="m">Metric</button>
+      <button data-u="ft">Imperial</button>
+    </div>
+    <span class="sb-div" aria-hidden="true"></span>
     <div class="sb-actions">
       <button id="cfgExport">Export</button>
       <button id="cfgImport">Import</button>
@@ -266,6 +271,13 @@
       <button id="bCsv" title="Surface points X,Y,Z">CSV</button>
       <button id="bObj" title="Triangulated mesh · Z-up">OBJ</button>
       <button id="bDxf" title="3DFACE mesh for CAD / Civil 3D">DXF</button>
+      <label class="sbctl" title="Units written into the exported files">as
+        <select id="expUnits">
+          <option value="m" selected>m</option>
+          <option value="mm">mm</option>
+          <option value="ft">ft</option>
+        </select>
+      </label>
     </div>
     <span class="sb-div" aria-hidden="true"></span>
     <label class="toggle"><input type="checkbox" id="chFill" checked> Fill</label>
@@ -304,8 +316,8 @@
           <div class="vside">
             <div class="vbox">
               <span class="vbox-h">Board</span>
-              <label>W (m) <input type="number" id="iBW" min="20" max="2000" step="10" value="120"></label>
-              <label>D (m) <input type="number" id="iBD" min="20" max="2000" step="10" value="90"></label>
+              <label>W (<span class="uu">m</span>) <input type="number" id="iBW" min="20" max="2000" step="10" value="120"></label>
+              <label>D (<span class="uu">m</span>) <input type="number" id="iBD" min="20" max="2000" step="10" value="90"></label>
             </div>
             <div class="vbox">
               <span class="vbox-h">Shape</span>
@@ -314,7 +326,7 @@
                 <button data-shape="circle">Circle</button>
               </span>
               <label id="degRow">Deg <input type="range" id="splineDegree" min="0" max="5" step="1" value="0"> <b id="splineDegreeVal">0</b></label>
-              <label id="cirRow" style="display:none">R (m) <input type="number" id="iCR" min="1" step="1" value="30"></label>
+              <label id="cirRow" style="display:none">R (<span class="uu">m</span>) <input type="number" id="iCR" min="1" step="1" value="30"></label>
             </div>
             <div class="vbox">
               <span class="vbox-h">Options</span>
@@ -331,7 +343,7 @@
               <button id="splineClear2" type="button">Clear</button>
               <button id="splineSample" type="button">Sample</button>
             </div>
-            <div id="hudExt">CELL <b id="cellOut">6</b> m<span id="statSpline"> · PTS <b id="splinePts">0</b></span><span id="statCircle" style="display:none"> · Ø <b id="cdOut">–</b> m · E <b id="ceOut">–</b> · N <b id="cnOut">–</b></span></div>
+            <div id="hudExt">CELL <b id="cellOut">6</b> <span class="uu">m</span><span id="statSpline"> · PTS <b id="splinePts">0</b></span><span id="statCircle" style="display:none"> · Ø <b id="cdOut">–</b> <span class="uu">m</span> · E <b id="ceOut">–</b> · N <b id="cnOut">–</b></span></div>
             <div class="draw-hint" id="drawHint">
               <div class="draw-hint-inner">
                 <b id="hintB">Draw the site extents</b>
@@ -348,8 +360,8 @@
           <div class="vside">
             <div class="vbox">
               <span class="vbox-h">Terrain</span>
-              <label>TIN (m) <input type="number" id="iSpace" min="0.25" max="25" step="0.25" value="2"></label>
-              <label>Base Z (m) <input type="number" id="iBase" step="0.5" value="0"></label>
+              <label>TIN (<span class="uu">m</span>) <input type="number" id="iSpace" min="0.25" max="25" step="0.25" value="2"></label>
+              <label>Base Z (<span class="uu">m</span>) <input type="number" id="iBase" step="0.5" value="0"></label>
               <button id="bGen" class="solid" title="Re-run after editing the boundary — regenerating resets sculpting">Generate</button>
             </div>
           </div>
@@ -469,7 +481,17 @@ function divT(z){
   return Math.max(-1, Math.min(1, (z - S.baseZ) / m));
 }
 function isDark(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
-function fmtUnit(v){ return (Math.round(v * 1000) / 1000).toString(); }
+/* display units — the model stays metric throughout; imperial converts at
+   the skin (readouts, rulers, inputs). Export units are chosen separately. */
+let IMP = false;
+try{ IMP = localStorage.getItem('tf-units') === 'imperial'; }catch(e){}
+const FT = 3.280839895, FT2 = 10.76391042;
+function uL(v){ return IMP ? v * FT : v; }
+function uLin(v){ return IMP ? v / FT : v; }
+function uA(v){ return IMP ? v * FT2 : v; }
+function uName(){ return IMP ? 'ft' : 'm'; }
+function uA2(){ return IMP ? 'ft²' : 'm²'; }
+function fmtUnit(v){ return (Math.round(uL(v) * 1000) / 1000).toString(); }
 function niceStep(x){
   if(!(x > 0)) return 1;
   const p = Math.pow(10, Math.floor(Math.log10(x)));
@@ -808,7 +830,7 @@ function boardClear(){
 [el('splineUndo'), el('splineUndo2')].filter(Boolean).forEach(b => b.onclick = boardUndo);
 [el('splineClear'), el('splineClear2')].filter(Boolean).forEach(b => b.onclick = boardClear);
 el('iCR').onchange = e => {
-  const r = Math.max(0.5, +e.target.value || 0);
+  const r = Math.max(0.5, uLin(+e.target.value) || 0);
   if(!r) return;
   pushCircleUndo();
   if(!CIR.c) CIR.c = { x: snapX(S.boardW / 2), y: snapY(S.boardD / 2), r: r };
@@ -1227,7 +1249,7 @@ if(THREE_OK){
         ring.position.set(hit.point.x, hit.point.y + 0.15, hit.point.z);
         ring.scale.set(S.radius, S.radius, S.radius);
         const wx = hit.point.x + S.cx, wy = S.cy - hit.point.z;
-        el('hud3d').textContent = `E ${wx.toFixed(2)} · N ${wy.toFixed(2)} · Z ${hit.point.y.toFixed(2)}`;
+        el('hud3d').textContent = `E ${uL(wx).toFixed(2)} · N ${uL(wy).toFixed(2)} · Z ${uL(hit.point.y).toFixed(2)} ${uName()}`;
         if(dragMode === 'sculpt') applyBrush(hit, e);
       } else {
         ring.visible = false;
@@ -1265,7 +1287,7 @@ window.addEventListener('keydown', e => {
   if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); doUndo(); return; }
   if(e.key === '[' || e.key === ']'){
     S.radius = Math.max(1, Math.min(40, S.radius + (e.key === ']' ? 1 : -1)));
-    el('iRad').value = S.radius; el('vRad').textContent = S.radius.toFixed(1) + ' m';
+    el('iRad').value = S.radius; el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName();
     if(ring && ring.visible) ring.scale.set(S.radius, S.radius, S.radius);
   }
 });
@@ -1364,8 +1386,8 @@ function drawWire(){
   }
   ctx.fillStyle = getCSS('--muted');
   ctx.font = '10px "Afacad Flux",sans-serif'; ctx.textAlign = 'left';
-  let leg = `Z ${zmin.toFixed(2)} – ${zmax.toFixed(2)} m`;
-  if(step) leg += `   ·   contours @ ${step} m`;
+  let leg = `Z ${uL(zmin).toFixed(2)} – ${uL(zmax).toFixed(2)} ${uName()}`;
+  if(step) leg += `   ·   contours @ ${fmtUnit(step)} ${uName()}`;
   ctx.fillText(leg, 10, wirH - 10);
 }
 
@@ -1423,23 +1445,35 @@ function dl(name, content, mime){
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }
 function needTerrain(){ if(!S.generated){ alert('Generate terrain first.'); return true; } return false; }
+/* export units — independent of the display toggle */
+const EXP_SC = { m: 1, mm: 1000, ft: FT };
+try{ const u = localStorage.getItem('tf-units-exp'); if(u && EXP_SC[u]) el('expUnits').value = u; }catch(e){}
+el('expUnits').onchange = () => { try{ localStorage.setItem('tf-units-exp', el('expUnits').value); }catch(e){} };
+function expU(){ return el('expUnits').value; }
+function expScale(){ return EXP_SC[expU()] || 1; }
+function expDec(d){ return expU() === 'mm' ? 1 : d; }
 el('bCsv').onclick = () => {
   if(needTerrain()) return;
-  let s = 'X,Y,Z\n';
-  for(let i = 0; i < S.P.length; i++) s += `${S.P[i].x.toFixed(3)},${S.P[i].y.toFixed(3)},${S.h[i].toFixed(3)}\n`;
-  dl('topo_points.csv', s, 'text/csv');
+  const sc = expScale(), u = expU(), d = expDec(3);
+  let s = `X (${u}),Y (${u}),Z (${u})\n`;
+  for(let i = 0; i < S.P.length; i++) s += `${(S.P[i].x * sc).toFixed(d)},${(S.P[i].y * sc).toFixed(d)},${(S.h[i] * sc).toFixed(d)}\n`;
+  dl(`topo_points_${u}.csv`, s, 'text/csv');
 };
 el('bObj').onclick = () => {
   if(needTerrain()) return;
-  let s = '# TopoForge triangulated surface — units metres, Z up\no topo\n';
-  for(let i = 0; i < S.P.length; i++) s += `v ${S.P[i].x.toFixed(4)} ${S.P[i].y.toFixed(4)} ${S.h[i].toFixed(4)}\n`;
+  const sc = expScale(), u = expU(), d = expDec(4);
+  let s = `# TopoForge triangulated surface — units ${u === 'ft' ? 'feet' : (u === 'mm' ? 'millimetres' : 'metres')}, Z up\no topo\n`;
+  for(let i = 0; i < S.P.length; i++) s += `v ${(S.P[i].x * sc).toFixed(d)} ${(S.P[i].y * sc).toFixed(d)} ${(S.h[i] * sc).toFixed(d)}\n`;
   for(const t of S.tris) s += `f ${t[0] + 1} ${t[1] + 1} ${t[2] + 1}\n`;
-  dl('topo_mesh.obj', s, 'text/plain');
+  dl(`topo_mesh_${u}.obj`, s, 'text/plain');
 };
 el('bDxf').onclick = () => {
   if(needTerrain()) return;
-  let s = '0\nSECTION\n2\nENTITIES\n';
-  const c = (i, k) => k === 2 ? S.h[i].toFixed(4) : (k === 0 ? S.P[i].x : S.P[i].y).toFixed(4);
+  const sc = expScale(), u = expU(), d = expDec(4);
+  /* $INSUNITS so CAD reads the units straight off the file: 6 m · 4 mm · 2 ft */
+  const ins = u === 'mm' ? 4 : (u === 'ft' ? 2 : 6);
+  let s = `0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n${ins}\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n`;
+  const c = (i, k) => ((k === 2 ? S.h[i] : (k === 0 ? S.P[i].x : S.P[i].y)) * sc).toFixed(d);
   for(const t of S.tris){
     s += '0\n3DFACE\n8\nTOPO\n';
     s += `10\n${c(t[0],0)}\n20\n${c(t[0],1)}\n30\n${c(t[0],2)}\n`;
@@ -1448,7 +1482,7 @@ el('bDxf').onclick = () => {
     s += `13\n${c(t[2],0)}\n23\n${c(t[2],1)}\n33\n${c(t[2],2)}\n`;
   }
   s += '0\nENDSEC\n0\nEOF\n';
-  dl('topo_mesh.dxf', s, 'application/dxf');
+  dl(`topo_mesh_${u}.dxf`, s, 'application/dxf');
 };
 
 /* whole-model save / restore — same pattern as the gherkin settings bar */
@@ -1463,7 +1497,7 @@ function clearTerrain(){
   if(THREE_OK && grid3){ scene.remove(grid3); grid3 = null; grid3Size = 0; }
   el('hint3d').classList.remove('is-hidden');
   el('stPts').textContent = '—'; el('stTris').textContent = '—';
-  el('stArea').innerHTML = '—<small>m²</small>'; el('stZ').textContent = '—';
+  el('stArea').innerHTML = '—<small>' + uA2() + '</small>'; el('stZ').textContent = '—';
   drawLegend(); planDirty = true;
 }
 function restoreTerrain(t){
@@ -1513,10 +1547,11 @@ function importModel(m){
   if(!m || m.app !== 'topoforge') throw new Error('not a topoforge model');
   S.boardW = Math.max(20, +((m.board || {}).w) || 120);
   S.boardD = Math.max(20, +((m.board || {}).d) || 90);
-  el('iBW').value = S.boardW; el('iBD').value = S.boardD;
+  syncUnitInputs();
   const ts = m.terrainSettings || {};
-  S.spacing = Math.max(0.25, +ts.spacing || 2); el('iSpace').value = S.spacing;
-  S.baseZ = (typeof ts.baseZ === 'number') ? ts.baseZ : 0; el('iBase').value = S.baseZ;
+  S.spacing = Math.max(0.25, +ts.spacing || 2);
+  S.baseZ = (typeof ts.baseZ === 'number') ? ts.baseZ : 0;
+  syncUnitInputs();
   const sp = m.spline || {};
   P.pts = Array.isArray(sp.pts) ? sp.pts.map(q => ({ x: +q.x, y: +q.y })) : [];
   P.degree = Math.max(0, Math.min(5, sp.degree | 0));
@@ -1563,7 +1598,7 @@ el('cfgFile').onchange = function(){
 
 /* ═══════════════ stats ═══════════════ */
 function statsZ(){
-  el('stZ').textContent = S.generated ? `${S.zmin.toFixed(2)} – ${S.zmax.toFixed(2)}` : '—';
+  el('stZ').textContent = S.generated ? `${uL(S.zmin).toFixed(2)} – ${uL(S.zmax).toFixed(2)} ${uName()}` : '—';
   drawLegend();
 }
 const cvL = el('legend3d'), ctxL = cvL.getContext('2d');
@@ -1596,27 +1631,27 @@ function drawLegend(){
   ctxL.font = '10px "Afacad Flux",sans-serif';
   ctxL.textAlign = 'right'; ctxL.textBaseline = 'alphabetic';
   ctxL.fillStyle = getCSS('--c-ink');
-  ctxL.fillText('Z m', W - 2, 12);
+  ctxL.fillText('Z ' + uName(), W - 2, 12);
   ctxL.fillStyle = getCSS('--muted');
   ctxL.textBaseline = 'middle';
   const spanZ = S.zmax - S.zmin;
   const baseIn = spanZ > 1e-9 && S.baseZ >= S.zmin - 1e-9 && S.baseZ <= S.zmax + 1e-9;
   const midY = baseIn ? by + bh * (S.zmax - S.baseZ) / spanZ : by + bh / 2;
   const midV = baseIn ? S.baseZ : (S.zmax + S.zmin) / 2;
-  ctxL.fillText(S.zmax.toFixed(2), bx - 6, by);
-  if(Math.abs(midY - by) > 10 && Math.abs(midY - (by + bh)) > 10) ctxL.fillText(midV.toFixed(2), bx - 6, midY);
-  ctxL.fillText(S.zmin.toFixed(2), bx - 6, by + bh);
+  ctxL.fillText(uL(S.zmax).toFixed(2), bx - 6, by);
+  if(Math.abs(midY - by) > 10 && Math.abs(midY - (by + bh)) > 10) ctxL.fillText(uL(midV).toFixed(2), bx - 6, midY);
+  ctxL.fillText(uL(S.zmin).toFixed(2), bx - 6, by + bh);
   ctxL.strokeStyle = getCSS('--muted');
   for(const yy of [by, midY, by + bh]){
     ctxL.beginPath(); ctxL.moveTo(bx - 3, yy + 0.5); ctxL.lineTo(bx, yy + 0.5); ctxL.stroke();
   }
   ctxL.textBaseline = 'alphabetic';
-  ctxL.fillText('Δ ' + (S.zmax - S.zmin).toFixed(2), W - 2, H - 6);
+  ctxL.fillText('Δ ' + uL(S.zmax - S.zmin).toFixed(2), W - 2, H - 6);
 }
 function statsAll(){
   el('stPts').textContent = S.P.length;
   el('stTris').textContent = S.tris.length;
-  el('stArea').innerHTML = polyArea(S.polyB).toFixed(0) + '<small>m²</small>';
+  el('stArea').innerHTML = uA(polyArea(S.polyB)).toFixed(0) + '<small>' + uA2() + '</small>';
   statsZ();
 }
 
@@ -1627,11 +1662,11 @@ function boardChanged(){
   if(CIR.c){ CIR.c.x = clampX(CIR.c.x); CIR.c.y = clampY(CIR.c.y); }
   drawBoardAll();
 }
-el('iBW').onchange = e => { S.boardW = Math.max(20, +e.target.value || 120); boardChanged(); };
-el('iBD').onchange = e => { S.boardD = Math.max(20, +e.target.value || 90); boardChanged(); };
-el('iSpace').onchange = e => { S.spacing = Math.max(0.25, +e.target.value || 2); };
-el('iBase').onchange = e => { S.baseZ = +e.target.value || 0; if(geo) updateColors(); drawLegend(); planDirty = true; };
-el('iRad').oninput = e => { S.radius = +e.target.value; el('vRad').textContent = S.radius.toFixed(1) + ' m'; if(ring && ring.visible) ring.scale.set(S.radius, S.radius, S.radius); };
+el('iBW').onchange = e => { S.boardW = Math.max(20, uLin(+e.target.value) || 120); boardChanged(); syncUnitInputs(); };
+el('iBD').onchange = e => { S.boardD = Math.max(20, uLin(+e.target.value) || 90); boardChanged(); syncUnitInputs(); };
+el('iSpace').onchange = e => { S.spacing = Math.max(0.25, uLin(+e.target.value) || 2); syncUnitInputs(); };
+el('iBase').onchange = e => { S.baseZ = uLin(+e.target.value) || 0; if(geo) updateColors(); drawLegend(); planDirty = true; syncUnitInputs(); };
+el('iRad').oninput = e => { S.radius = +e.target.value; el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName(); if(ring && ring.visible) ring.scale.set(S.radius, S.radius, S.radius); };
 el('iStr').oninput = e => { S.strength = +e.target.value; el('vStr').textContent = S.strength.toFixed(2); };
 document.querySelectorAll('#modeSeg button').forEach(b => {
   b.onclick = () => {
@@ -1674,6 +1709,35 @@ function setBig(v){
 document.querySelectorAll('.view-sel').forEach(s => { s.onchange = () => setBig(s.value); });
 el('chWire').onchange = e => { S.show.wire = e.target.checked; if(meshW) meshW.visible = S.show.wire; planDirty = true; };
 el('chCont').onchange = e => { S.show.cont = e.target.checked; planDirty = true; };
+
+/* display units toggle — repaint every unit-aware readout */
+function syncUnitInputs(){
+  const f = v => +uL(v).toFixed(2);
+  el('iBW').value = f(S.boardW); el('iBD').value = f(S.boardD);
+  el('iSpace').value = f(S.spacing); el('iBase').value = f(S.baseZ);
+  if(CIR.c) el('iCR').value = fmtUnit(CIR.c.r);
+  [['iBW',20,2000,10],['iBD',20,2000,10]].forEach(q => {
+    el(q[0]).min = Math.round(uL(q[1])); el(q[0]).max = Math.round(uL(q[2])); el(q[0]).step = Math.round(uL(q[3]));
+  });
+  el('iSpace').step = IMP ? 1 : 0.25; el('iSpace').min = IMP ? 1 : 0.25;
+  el('iBase').step = IMP ? 2 : 0.5;
+}
+function applyUnits(){
+  document.querySelectorAll('#unitSeg button').forEach(b => b.classList.toggle('active', (b.dataset.u === 'ft') === IMP));
+  document.querySelectorAll('.uu').forEach(sp => { sp.textContent = uName(); });
+  syncUnitInputs();
+  el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName();
+  el('cellOut').textContent = fmtUnit(cellSize());
+  if(S.generated){ statsAll(); } else { el('stArea').innerHTML = '—<small>' + uA2() + '</small>'; }
+  drawLegend(); drawBoardAll(); planDirty = true;
+}
+document.querySelectorAll('#unitSeg button').forEach(b => b.onclick = () => {
+  if((b.dataset.u === 'ft') === IMP) return;
+  IMP = b.dataset.u === 'ft';
+  try{ localStorage.setItem('tf-units', IMP ? 'imperial' : 'metric'); }catch(e){}
+  applyUnits();
+});
+applyUnits();
 
 /* theme toggle (in the site masthead) — inverts the whole board, canvases
    re-read the tokens; state persists site-wide via ol-theme */
