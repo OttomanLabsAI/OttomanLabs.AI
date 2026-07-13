@@ -80,8 +80,9 @@
   .pyd-lede{ font-family:var(--font-serif); color:var(--ink-60); max-width:44rem;
     font-size:1.02rem; line-height:1.65; margin:0; }
   .pyd-dl{ font-family:var(--font-brand); font-weight:600; font-size:.72rem; letter-spacing:.18em;
-    text-transform:uppercase; color:var(--ink-60); border:1px dashed var(--ink-35);
-    padding:.8rem 1.4rem; cursor:default; }
+    text-transform:uppercase; color:var(--paper); background:var(--ink); border:1px solid var(--ink);
+    padding:.8rem 1.4rem; text-decoration:none; display:inline-block; }
+  .pyd-dl:hover{ background:var(--paper); color:var(--ink); text-decoration:none; }
 </style>
 <style>
 /* ── inlined superstructure model (scoped under #superRoot) ── */
@@ -524,9 +525,9 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
       <p class="pyd-lede">A pyRevit extension that rebuilds Dymak HQ in Revit. Design the roof frame on the
         Superstructure tab, export the model JSON, and pyDymak reconstructs the columns, rim beams and
         connection nodes inside your Revit project &mdash; the same loop as pyGherkin.</p>
-      <span class="pyd-dl">&#8595;&nbsp; Download pyDymak extension &mdash; coming soon</span>
-      <p class="pyd-lede" style="font-size:.85rem">The packaged extension lands here shortly. The Superstructure
-        export already writes the JSON it will read.</p>
+      <a class="pyd-dl" href="assets/pyDymak.extension.zip">&#8595;&nbsp; Download pyDymak extension</a>
+      <p class="pyd-lede" style="font-size:.85rem">Unzip into <code>%APPDATA%\pyRevit\Extensions\</code> and
+        reload pyRevit &mdash; a pyDymak tab appears. Import the JSON the Superstructure tab exports.</p>
     </div>
   </div>
 

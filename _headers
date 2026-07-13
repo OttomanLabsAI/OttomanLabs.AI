@@ -28,6 +28,10 @@
   Content-Disposition: attachment; filename="pyGherkin.extension.zip"
   Cache-Control: public, max-age=0, must-revalidate
 
+/assets/pyDymak.extension.zip
+  Content-Disposition: attachment; filename="pyDymak.extension.zip"
+  Cache-Control: public, max-age=0, must-revalidate
+
 # HTML pages: always revalidate so edits show up immediately on redeploy.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
