@@ -218,11 +218,11 @@
         <canvas id="topoCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="topoPrev" aria-label="Previous tool">&#8249;</button>
         <button class="sel-arrow next" id="topoNext" aria-label="Next tool">&#8250;</button>
-        <a class="sel-opt opt-dash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
-        <a class="sel-opt opt-tut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        <a class="sel-opt opt-dash" id="topoDash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="topoTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" aria-live="polite">
-        <span class="sel-name" id="topoName">ALIGN TO TOPOGRAPHY</span>
+        <span class="sel-name" id="topoName">TOPOFORGE</span>
       </div>
     </div>
 
@@ -233,8 +233,8 @@
         <canvas id="mepCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="mepPrev" aria-label="Previous tool">&#8249;</button>
         <button class="sel-arrow next" id="mepNext" aria-label="Next tool">&#8250;</button>
-        <a class="sel-opt opt-dash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
-        <a class="sel-opt opt-tut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        <a class="sel-opt opt-dash" id="mepDash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="mepTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" aria-live="polite">
         <span class="sel-name" id="mepName">BULK PLACEMENT</span>
@@ -365,6 +365,8 @@
       <h3>Site</h3>
       <a href="index.html">Home</a>
       <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
       <a href="stocks.html">Stock Picks</a>
       <a href="reading.html">Reading Room</a>
       <a href="contact.html">Contact</a>
@@ -1025,6 +1027,59 @@
 
   /* ---- tool models: (ctx, x0, gy, s, yaw), s = height in px ---- */
 
+  // TopoForge — a sculpted TIN tile: soil skirt, undulating green surface,
+  // wireframe mesh and the white spline-extent points
+  var TF_G = 6;
+  var TF_H = [
+    [0.02,0.03,0.05,0.06,0.04,0.02],
+    [0.03,0.08,0.13,0.11,0.06,0.03],
+    [0.04,0.13,0.24,0.19,0.08,0.04],
+    [0.04,0.10,0.17,0.14,0.07,0.03],
+    [0.03,0.05,0.07,0.06,0.10,0.05],
+    [0.02,0.03,0.04,0.04,0.05,0.03]
+  ];
+  function drawTopoForge(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [], i, j;
+    var HS = 0.46, step = HS * 2 / (TF_G - 1);
+    function P(i, j){ return [-HS + i * step, -HS + j * step, 0.05 + TF_H[j][i]]; }
+    // soil skirt around the tile
+    var rim = [];
+    for(i = 0; i < TF_G; i++) rim.push([i, 0]);
+    for(j = 1; j < TF_G; j++) rim.push([TF_G - 1, j]);
+    for(i = TF_G - 2; i >= 0; i--) rim.push([i, TF_G - 1]);
+    for(j = TF_G - 2; j >= 1; j--) rim.push([0, j]);
+    for(i = 0; i < rim.length; i++){
+      var a = P(rim[i][0], rim[i][1]), b = P(rim[(i + 1) % rim.length][0], rim[(i + 1) % rim.length][1]);
+      faces.push({ pts: [[a[0],a[1],0],[b[0],b[1],0],[b[0],b[1],b[2]],[a[0],a[1],a[2]]],
+                   col: '#C9A36A', az: Math.atan2(a[0] + b[0], a[1] + b[1]) });
+    }
+    // undulating surface, shaded by height
+    for(j = 0; j < TF_G - 1; j++) for(i = 0; i < TF_G - 1; i++){
+      var h4 = (TF_H[j][i] + TF_H[j][i+1] + TF_H[j+1][i+1] + TF_H[j+1][i]) / 4;
+      var t = Math.min(1, h4 / 0.22);
+      var hx = function(n){ n = Math.round(n); return (n < 16 ? '0' : '') + n.toString(16); };
+      var col = '#' + hx(94 + t * 88) + hx(165 + t * 61) + hx(90 + t * 53);
+      faces.push({ pts: [P(i,j), P(i+1,j), P(i+1,j+1), P(i,j+1)], col: col, az: null });
+    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(31,63,36,.28)');
+    // TIN wireframe over the surface
+    ctx.strokeStyle = 'rgba(23,58,28,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(j = 0; j < TF_G; j++) for(i = 0; i < TF_G - 1; i++){
+      var pa = prj.apply(null, P(i, j)), pb = prj.apply(null, P(i + 1, j));
+      ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y);
+      pa = prj.apply(null, P(j, i)); pb = prj.apply(null, P(j, i + 1));
+      ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y);
+    }
+    ctx.stroke();
+    // spline extent points on the rim
+    ctx.fillStyle = '#FFF8E7';
+    [[0,0],[TF_G-1,0],[TF_G-1,TF_G-1],[0,TF_G-1],[Math.floor(TF_G/2),0]].forEach(function(q){
+      var p = prj.apply(null, P(q[0], q[1]));
+      ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1.6, s * 0.02), 0, TAU); ctx.fill();
+    });
+  }
+
   // Align to Topography — a fence post standing plumb on a terraced mound
   function drawFencePost(ctx, x0, gy, s, yaw){
     var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
@@ -1239,7 +1294,7 @@
           ctx.fillStyle = 'rgba(0,0,0,.16)';
           ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
           p.draw(ctx, g.x, g.y, s, i * (TAU / cfg.tools.length) - rot);
-          chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h, 'coming soon');
+          chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h, p.dash ? null : 'coming soon');
         }});
       });
       drawables.sort(function(a, b){ return a.d - b.d; });
@@ -1247,7 +1302,25 @@
       plaque(cx, h * 0.058, cfg.plaque, h);
     }
 
-    function syncBanner(){ nameEl.textContent = cfg.tools[idx].chip.toUpperCase(); }
+    var dashBtn = document.getElementById(cfg.dash), tutBtn = document.getElementById(cfg.tut);
+    function setOpt(btn, url, liveNote){
+      if(!btn) return;
+      if(url){
+        btn.setAttribute('href', url);
+        btn.removeAttribute('aria-disabled');
+        btn.querySelector('small').textContent = liveNote;
+      } else {
+        btn.setAttribute('href', '#');
+        btn.setAttribute('aria-disabled', 'true');
+        btn.querySelector('small').textContent = 'coming soon';
+      }
+    }
+    function syncBanner(){
+      var t = cfg.tools[idx];
+      nameEl.textContent = t.chip.toUpperCase();
+      setOpt(dashBtn, t.dash, 'open the tool');
+      setOpt(tutBtn, t.tut, 'start learning');
+    }
     function targetRot(){ return idx * (TAU / cfg.tools.length); }
     function goTo(i){
       idx = (i % cfg.tools.length + cfg.tools.length) % cfg.tools.length;
@@ -1287,8 +1360,9 @@
       });
       if(hit && hit.i !== idx) goTo(hit.i);
     });
-    stage.querySelectorAll('.sel-opt[aria-disabled="true"]').forEach(function(btn){
+    stage.querySelectorAll('.sel-opt').forEach(function(btn){
       btn.addEventListener('click', function(e){
+        if(btn.getAttribute('aria-disabled') !== 'true') return;
         e.preventDefault();
         btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope');
       });
@@ -1309,15 +1383,18 @@
 
   makeToolIsland({
     stage: 'topoStage', canvas: 'topoCanvas', prev: 'topoPrev', next: 'topoNext',
-    name: 'topoName', plaque: 'THE TOPOGRAPHY TOOLKIT', hilly: true,
+    name: 'topoName', dash: 'topoDash', tut: 'topoTut',
+    plaque: 'THE TOPOGRAPHY TOOLKIT', hilly: true,
     tools: [
+      { chip: 'TopoForge',           draw: drawTopoForge, shadow: 0.50, dash: 'topoforge.html' },
       { chip: 'Align to Topography', draw: drawFencePost, shadow: 0.30 },
       { chip: 'Line to Fence',       draw: drawFenceLine, shadow: 0.52 }
     ]
   });
   makeToolIsland({
     stage: 'mepStage', canvas: 'mepCanvas', prev: 'mepPrev', next: 'mepNext',
-    name: 'mepName', plaque: 'THE MEP TOOLKIT', hilly: false,
+    name: 'mepName', dash: 'mepDash', tut: 'mepTut',
+    plaque: 'THE MEP TOOLKIT', hilly: false,
     tools: [
       { chip: 'Bulk Placement',  draw: drawManholes,  shadow: 0.50 },
       { chip: 'Place Downpipes', draw: drawDownpipes, shadow: 0.42 }
