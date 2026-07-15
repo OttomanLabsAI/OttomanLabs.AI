@@ -137,14 +137,14 @@
 
   /* views */
   .views{
-    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1.45fr) minmax(0,1fr);
-    gap:var(--gap); height:min(88vh,900px); min-width:0;
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:var(--gap); min-width:0;
   }
   .view{ border:1px solid var(--hair); background:var(--paper);
     display:flex; flex-direction:column; min-width:0; min-height:0; }
-  .view.slot-big{ grid-column:1 / span 2; grid-row:1; }
-  .view.slot-a{ grid-column:1; grid-row:2; }
-  .view.slot-b{ grid-column:2; grid-row:2; }
+  .view.slot-big{ grid-column:1 / span 2; grid-row:1; height:min(88vh,900px); }
+  .view.slot-a{ grid-column:1; grid-row:2; aspect-ratio:1/1; align-self:start; }
+  .view.slot-b{ grid-column:2; grid-row:2; aspect-ratio:1/1; align-self:start; }
   .view-cap{ display:flex; justify-content:space-between; align-items:baseline; gap:.8rem;
     padding:.6rem .8rem .5rem; border-bottom:1px solid var(--hair); }
   .view-cap b{ font-family:var(--font-brand); font-weight:500; font-size:.68rem;
@@ -188,7 +188,7 @@
   .vbox-h{ font-family:var(--font-brand); font-weight:500; font-size:.55rem; letter-spacing:.22em;
     text-transform:uppercase; color:var(--ink-60); border-bottom:1px solid var(--hair);
     padding-bottom:.35rem; margin-bottom:.1rem; }
-  .vbox label{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.1em;
+  .vbox label{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.1em; white-space:nowrap;
     text-transform:uppercase; color:var(--ink-60); display:flex; align-items:center;
     justify-content:space-between; gap:.4rem; }
   .vbox label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -316,8 +316,10 @@
           <div class="vside">
             <div class="vbox">
               <span class="vbox-h">Board</span>
-              <label>W (<span class="uu">m</span>) <input type="number" id="iBW" min="20" max="2000" step="10" value="120"></label>
-              <label>D (<span class="uu">m</span>) <input type="number" id="iBD" min="20" max="2000" step="10" value="90"></label>
+              <label>W (<span class="uu">m</span>) <input type="number" id="iBW" min="20" max="1000" step="10" value="120"></label>
+              <input type="range" id="iBWs" min="20" max="1000" step="10" value="120" aria-label="Board width">
+              <label>D (<span class="uu">m</span>) <input type="number" id="iBD" min="20" max="1000" step="10" value="90"></label>
+              <input type="range" id="iBDs" min="20" max="1000" step="10" value="90" aria-label="Board depth">
             </div>
             <div class="vbox">
               <span class="vbox-h">Shape</span>
@@ -334,6 +336,12 @@
               <label class="toggle" id="togPoly"><input type="checkbox" id="splinePoly" checked> Polygon</label>
               <label class="toggle"><input type="checkbox" id="splineGrid" checked> Grid</label>
               <label class="toggle"><input type="checkbox" id="splineSnap" checked> Snap</label>
+            </div>
+            <div class="vbox">
+              <span class="vbox-h">Terrain</span>
+              <label>TIN (<span class="uu">m</span>) <input type="number" id="iSpace" min="0.25" max="25" step="0.25" value="2"></label>
+              <label>Base Z (<span class="uu">m</span>) <input type="number" id="iBase" step="0.5" value="0"></label>
+              <button id="bGen" class="solid" title="Re-run after editing the boundary — regenerating resets sculpting">Generate</button>
             </div>
           </div>
           <div class="plot-wrap" id="wrapExt">
@@ -357,14 +365,6 @@
       <div class="view v3d slot-a">
         <div class="view-cap"><b>3D · Sculpt</b><span>pills set the drag mode · push / pull</span><select class="view-sel" title="Choose the main view" aria-label="Main view"><option value="3d">3D · Sculpt</option><option value="ext" selected>Extents</option><option value="wire">Wireframe</option></select></div>
         <div class="vbody">
-          <div class="vside">
-            <div class="vbox">
-              <span class="vbox-h">Terrain</span>
-              <label>TIN (<span class="uu">m</span>) <input type="number" id="iSpace" min="0.25" max="25" step="0.25" value="2"></label>
-              <label>Base Z (<span class="uu">m</span>) <input type="number" id="iBase" step="0.5" value="0"></label>
-              <button id="bGen" class="solid" title="Re-run after editing the boundary — regenerating resets sculpting">Generate</button>
-            </div>
-          </div>
           <div class="plot-wrap" id="wrap3d">
           <div class="draw-hint" id="hint3d">
             <div class="draw-hint-inner">
@@ -373,8 +373,8 @@
             </div>
           </div>
           <div class="board-actions" id="tmode">
-            <button data-t="sculpt">Sculpt</button>
-            <button class="active" data-t="orbit">Orbit</button>
+            <button class="active" data-t="sculpt">Sculpt</button>
+            <button data-t="orbit">Orbit</button>
             <button data-t="pan">Pan</button>
           </div>
           <div id="hud3d">E — · N — · Z —</div>
@@ -1087,7 +1087,7 @@ let THREE_OK = (typeof THREE !== 'undefined');
 let scene = null, cam = null, renderer = null, cv3 = null;
 let grid3 = null, grid3Size = 0, mesh = null, meshW = null, geo = null, ring = null;
 let ray = null, ndc = null;
-let touchMode = 'orbit';
+let touchMode = 'sculpt';
 const ctrl = { theta: -Math.PI / 3, phi: 0.95, dist: 160, tx: 0, ty: 0, tz: 0 };
 let dragMode = 'none', lastPX = 0, lastPY = 0, strokeH = 0;
 const ptrs = new Map(); let pinch = null;
@@ -1234,6 +1234,7 @@ if(THREE_OK){
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(dpr());
     cv3 = renderer.domElement;
+    cv3.style.cursor = 'crosshair';
     el('wrap3d').insertBefore(cv3, el('wrap3d').firstChild);
     cv3.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab';
     scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9a9a, 0.9));
@@ -1735,6 +1736,8 @@ function boardChanged(){
   drawBoardAll();
 }
 el('iBW').onchange = e => { S.boardW = Math.max(20, uLin(+e.target.value) || 120); boardChanged(); syncUnitInputs(); };
+el('iBWs').oninput = e => { S.boardW = Math.max(20, +e.target.value || 120); boardChanged(); syncUnitInputs(); };
+el('iBDs').oninput = e => { S.boardD = Math.max(20, +e.target.value || 90); boardChanged(); syncUnitInputs(); };
 el('iBD').onchange = e => { S.boardD = Math.max(20, uLin(+e.target.value) || 90); boardChanged(); syncUnitInputs(); };
 el('iSpace').onchange = e => { S.spacing = Math.max(0.25, uLin(+e.target.value) || 2); syncUnitInputs(); };
 el('iBase').onchange = e => { S.baseZ = uLin(+e.target.value) || 0; if(geo) updateColors(); drawLegend(); planDirty = true; syncUnitInputs(); };
@@ -1786,9 +1789,10 @@ el('chCont').onchange = e => { S.show.cont = e.target.checked; planDirty = true;
 function syncUnitInputs(){
   const f = v => +uL(v).toFixed(2);
   el('iBW').value = f(S.boardW); el('iBD').value = f(S.boardD);
+  el('iBWs').value = S.boardW; el('iBDs').value = S.boardD;   /* sliders stay metric */
   el('iSpace').value = f(S.spacing); el('iBase').value = f(S.baseZ);
   if(CIR.c) el('iCR').value = fmtUnit(CIR.c.r);
-  [['iBW',20,2000,10],['iBD',20,2000,10]].forEach(q => {
+  [['iBW',20,1000,10],['iBD',20,1000,10]].forEach(q => {
     el(q[0]).min = Math.round(uL(q[1])); el(q[0]).max = Math.round(uL(q[2])); el(q[0]).step = Math.round(uL(q[3]));
   });
   el('iSpace').step = IMP ? 1 : 0.25; el('iSpace').min = IMP ? 1 : 0.25;
