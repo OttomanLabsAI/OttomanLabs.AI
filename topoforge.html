@@ -435,6 +435,7 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/delaunator/5.0.0/delaunator.min.js"></script>
 <script>
 'use strict';
 /* ═══════════════ helpers ═══════════════ */
@@ -956,6 +957,16 @@ function delaunay(pts){
   for(const t of T){ if(t.a < n && t.b < n && t.c < n) out.push([t.a, t.b, t.c]); }
   return out;
 }
+/* Fast path: Delaunator (O(n log n)) when its CDN script loaded — winding
+   is normalised downstream in buildTerrain either way. */
+function triangulate(pts){
+  if(typeof Delaunator === 'undefined') return delaunay(pts);
+  const d = Delaunator.from(pts, p => p.x, p => p.y);
+  const T = d.triangles, out = new Array(T.length / 3);
+  for(let k = 0, o = 0; k < T.length; k += 3, o++) out[o] = [T[k], T[k + 1], T[k + 2]];
+  return out;
+}
+
 function samplePoints(poly){
   const sp = S.spacing, pts = [];
   for(let i = 0; i < poly.length; i++){
@@ -965,17 +976,45 @@ function samplePoints(poly){
     for(let k = 0; k < n; k++){ const t = k / n; pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }); }
   }
   const nB = pts.length, prox2 = (0.45 * sp) ** 2;
+  /* hash the boundary points so only grid points beside the edge pay the
+     proximity test — interior points skip it entirely */
+  const near = new Map();
+  for(let j = 0; j < nB; j++){
+    const q = pts[j], cx = Math.round(q.x / sp), cy = Math.round(q.y / sp);
+    for(let dx = -1; dx <= 1; dx++) for(let dy = -1; dy <= 1; dy++){
+      const key = (cx + dx) + ':' + (cy + dy);
+      let l = near.get(key); if(!l){ l = []; near.set(key, l); }
+      l.push(j);
+    }
+  }
   let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
   for(const p of poly){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
   const x0 = Math.ceil(minx / sp) * sp, y0 = Math.ceil(miny / sp) * sp;
   const nx = Math.floor((maxx - x0) / sp), ny = Math.floor((maxy - y0) / sp);
   const jit = () => (Math.random() - 0.5) * 2e-4;
-  for(let ix = 0; ix <= nx; ix++) for(let iy = 0; iy <= ny; iy++){
-    const x = x0 + ix * sp, y = y0 + iy * sp;
-    if(!inPoly(x, y, poly)) continue;
-    let ok = true;
-    for(let j = 0; j < nB; j++){ const q = pts[j]; if((q.x - x) ** 2 + (q.y - y) ** 2 < prox2){ ok = false; break; } }
-    if(ok) pts.push({ x: x + jit(), y: y + jit() });
+  const m = poly.length;
+  for(let iy = 0; iy <= ny; iy++){
+    const y = y0 + iy * sp;
+    /* scanline: polygon crossings at this row -> inside spans */
+    const xs = [];
+    for(let i = 0; i < m; i++){
+      const a = poly[i], b = poly[(i + 1) % m];
+      if((a.y > y) !== (b.y > y)) xs.push(a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x));
+    }
+    xs.sort((p, q) => p - q);
+    for(let sx = 0; sx + 1 < xs.length; sx += 2){
+      const ix0 = Math.max(0, Math.ceil((xs[sx] - x0) / sp));
+      const ix1 = Math.min(nx, Math.floor((xs[sx + 1] - x0) / sp));
+      for(let ix = ix0; ix <= ix1; ix++){
+        const x = x0 + ix * sp;
+        let ok = true;
+        const bucket = near.get(Math.round(x / sp) + ':' + Math.round(y / sp));
+        if(bucket){
+          for(const j of bucket){ const q = pts[j]; if((q.x - x) ** 2 + (q.y - y) ** 2 < prox2){ ok = false; break; } }
+        }
+        if(ok) pts.push({ x: x + jit(), y: y + jit() });
+      }
+    }
   }
   return pts;
 }
@@ -989,12 +1028,26 @@ function buildTerrain(){
   if(!src){ alert('Draw a boundary first — a closed spline (3+ points) or a circle.'); return; }
   const poly = resampleBoundary(src);
   if(!poly){ alert('Boundary too small for this TIN spacing.'); return; }
-  if(S.sculpted && !confirm('Regenerating rebuilds the grid and resets sculpting. Continue?')) return;
+  const FASTTRI = (typeof Delaunator !== 'undefined');
+  const cap = FASTTRI ? 220000 : 20000;
   const est = polyArea(poly) / (S.spacing * S.spacing);
-  if(est > 20000){ alert(`≈${Math.round(est)} grid points — too fine for this boundary. Increase TIN spacing.`); return; }
+  if(est > cap){
+    /* don't dead-end — offer the coarsest spacing that fits */
+    const need = Math.sqrt(polyArea(poly) / cap);
+    const ladder = [0.25, 0.5, 1, 1.5, 2, 2.5, 5, 10, 15, 20, 25, 50, 100];
+    const fit = ladder.find(v => v >= need) || Math.ceil(need);
+    const fitPts = Math.round(polyArea(poly) / (fit * fit));
+    if(confirm('≈' + Math.round(est).toLocaleString('en') + ' grid points at ' + S.spacing + ' m TIN — more than the browser can sculpt smoothly. Set spacing to ' + fit + ' m (≈' + fitPts.toLocaleString('en') + ' points) and generate?')){
+      S.spacing = fit;
+      syncUnitInputs();
+      buildTerrain();
+    }
+    return;
+  }
+  if(S.sculpted && !confirm('Regenerating rebuilds the grid and resets sculpting. Continue?')) return;
   const pts = samplePoints(poly);
-  if(pts.length > 9000 && !confirm(`${pts.length} points — triangulation may take a few seconds. Continue?`)) return;
-  let tris = delaunay(pts).filter(t => {
+  if(pts.length > (FASTTRI ? 80000 : 9000) && !confirm(pts.length.toLocaleString('en') + ' points — generation may take a few seconds. Continue?')) return;
+  let tris = triangulate(pts).filter(t => {
     const cx = (pts[t[0]].x + pts[t[1]].x + pts[t[2]].x) / 3;
     const cy = (pts[t[0]].y + pts[t[1]].y + pts[t[2]].y) / 3;
     return inPoly(cx, cy, poly);
@@ -1319,25 +1372,43 @@ function drawWire(){
   const PW = S.P, h = S.h;
   const ink = hex2rgb(getCSS('--c-ink'));
   if(S.show.fill){
+    /* batched fills: quantise the ramp into buckets and fill one Path2D per
+       bucket — per-triangle paths made big boards take minutes to paint */
+    const NB = 48, CHUNK = 4000, buckets = new Array(NB);
+    /* chunked: Skia fill time explodes on paths with huge subpath counts,
+       so no Path2D carries more than CHUNK triangles */
     for(const t of S.tris){
       const havg = (h[t[0]] + h[t[1]] + h[t[2]]) / 3;
+      const tt = flat ? 0.3 : (havg - zmin) / rng;
+      const bi = Math.max(0, Math.min(NB - 1, (tt * (NB - 1)) | 0));
+      let arr = buckets[bi]; if(!arr) arr = buckets[bi] = [{ P: new Path2D(), n: 0 }];
+      let cur = arr[arr.length - 1];
+      if(cur.n >= CHUNK){ cur = { P: new Path2D(), n: 0 }; arr.push(cur); }
+      cur.P.moveTo(X(PW[t[0]].x), Y(PW[t[0]].y));
+      cur.P.lineTo(X(PW[t[1]].x), Y(PW[t[1]].y));
+      cur.P.lineTo(X(PW[t[2]].x), Y(PW[t[2]].y));
+      cur.P.closePath();
+      cur.n++;
+    }
+    ctx.lineWidth = 0.6;
+    const seams = S.tris.length <= 12000;   /* stroking is quadratic in Skia */
+    for(let bi = 0; bi < NB; bi++){
+      const arr = buckets[bi]; if(!arr) continue;
+      const tt = bi / (NB - 1);
+      let style;
       if(S.show.colour){
-        const c = divRamp(divT(havg));
-        ctx.fillStyle = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+        const c = divRamp(divT(flat ? zmin : zmin + tt * rng));
+        style = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
       } else {
-        const tt = flat ? 0.3 : (havg - zmin) / rng;
-        const a = 0.05 + 0.38 * tt;
-        ctx.fillStyle = `rgba(${ink[0]},${ink[1]},${ink[2]},${a})`;
+        const a = 0.05 + 0.38 * (flat ? 0.3 : tt);
+        style = `rgba(${ink[0]},${ink[1]},${ink[2]},${a})`;
       }
-      ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 0.6;
-      ctx.beginPath();
-      ctx.moveTo(X(PW[t[0]].x), Y(PW[t[0]].y));
-      ctx.lineTo(X(PW[t[1]].x), Y(PW[t[1]].y));
-      ctx.lineTo(X(PW[t[2]].x), Y(PW[t[2]].y));
-      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = style; ctx.strokeStyle = style;
+      for(const c of arr){ ctx.fill(c.P); if(seams) ctx.stroke(c.P); }
     }
   }
-  if(S.show.wire){
+  const wireOk = S.tris.length <= 12000;
+  if(S.show.wire && wireOk){
     ctx.strokeStyle = inkA(S.show.fill ? 0.32 : 0.45);
     ctx.lineWidth = 0.7; ctx.beginPath();
     for(const t of S.tris){
@@ -1388,6 +1459,7 @@ function drawWire(){
   ctx.font = '10px "Afacad Flux",sans-serif'; ctx.textAlign = 'left';
   let leg = `Z ${uL(zmin).toFixed(2)} – ${uL(zmax).toFixed(2)} ${uName()}`;
   if(step) leg += `   ·   contours @ ${fmtUnit(step)} ${uName()}`;
+  if(S.show.wire && !wireOk) leg += '   ·   wire hidden above 12k triangles';
   ctx.fillText(leg, 10, wirH - 10);
 }
 
@@ -1793,10 +1865,16 @@ new ResizeObserver(resizeAll).observe(el('wrapExt'));
 new ResizeObserver(resizeAll).observe(el('wrapWire'));
 new ResizeObserver(resizeAll).observe(el('wrap3d'));
 
+let wireLast = 0;
 function loop(){
   requestAnimationFrame(loop);
   if(THREE_OK){ applyCam(); renderer.render(scene, cam); }
-  if(planDirty){ planDirty = false; drawWire(); }
+  if(planDirty){
+    /* very large meshes repaint the plan at most 4x/s during sculpting */
+    const heavy = S.generated && S.tris.length > 60000;
+    const now = performance.now();
+    if(!heavy || now - wireLast > 250){ planDirty = false; wireLast = now; drawWire(); }
+  }
 }
 el('cellOut').textContent = fmtUnit(cellSize());
 resizeAll();
