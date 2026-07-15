@@ -422,19 +422,11 @@
 
   // dash / tut: destinations for the two entry options (null = coming soon)
   var PROJECTS = [
-    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34 },
-    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20 },
-    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32 },
-    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48 },
-    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58 }
-  ];
-  // trees are anchored to the WORLD (plan angle + radius), so they swing with
-  // the camera like everything else on the island
-  var TREES = [
-    { p: 1.05, r: 0.88, s: 0.075 },
-    { p: 2.45, r: 0.90, s: 0.065 },
-    { p: 3.65, r: 0.80, s: 0.080 },
-    { p: 5.30, r: 0.85, s: 0.060 }
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london' },
+    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20, theme:'city' },
+    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32, theme:'dubai' },
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48, theme:'regency' },
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58, theme:'odense' }
   ];
   var TAU = Math.PI * 2;
   var idx = 0;                 // selected project
@@ -443,7 +435,7 @@
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---- shared 3D projection: fixed pitch, camera yaw = rot ----
-  var SB = 0.22;                          // sin(pitch) — matches the island ellipse
+  var SB = 0.42;                          // sin(pitch) — raised for the isometric look
   var CB = Math.sqrt(1 - SB * SB);        // cos(pitch) — vertical foreshortening
   var LIGHT = -0.9;                       // light azimuth in view space
   // per-model projector: model meters → screen px (x0,gy = ground anchor)
@@ -468,11 +460,11 @@
   function paintFaces(ctx, faces, prj, yaw, lineCol){
     var out = faces.map(function(f){
       var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
-      var d = 0;
-      for(var i = 0; i < pts.length; i++) d += pts[i].d;
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
       var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
-      return { pts: pts, d: d / pts.length, col: shade(f.col, br) };
-    }).sort(function(a, b){ return b.d - a.d; });
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){ return (b.d - a.d) || (a.z - b.z); });
     out.forEach(function(f){
       ctx.beginPath();
       ctx.moveTo(f.pts[0].x, f.pts[0].y);
@@ -537,20 +529,10 @@
     });
     ctx.setLineDash([]);
 
-    // island: sand ring, grass rim, grass top
-    var cx = w * 0.5, cy = h * 0.68, rx = Math.min(w * 0.36, 460), ry = h * 0.185;
-    ctx.fillStyle = '#E8D6A0';
-    ctx.beginPath(); ctx.ellipse(cx, cy + h * 0.045, rx * 1.08, ry * 1.12, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#4F8F4C';
-    ctx.beginPath(); ctx.ellipse(cx, cy + h * 0.02, rx, ry, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#7CC96F';
-    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.fill();
-    // paths worn into the grass
-    ctx.strokeStyle = 'rgba(255,248,231,.65)'; ctx.lineWidth = Math.max(2, h * 0.012);
-    ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.66, ry * 0.6, 0, 0, TAU); ctx.stroke();
-    // the camera orbits the island: every world feature (trees AND structures)
-    // shares one rigid rotation by the camera yaw. ground() maps a world plan
-    // position (angle, radius) to its screen point; depth 1 = nearest.
+    // floating voxel islands: one per landmark, orbiting the same way.
+    // ground() maps a world plan position (angle, radius) to its screen
+    // point; depth 1 = nearest.
+    var cx = w * 0.5, cy = h * 0.56, rx = Math.min(w * 0.36, 460), ry = h * 0.20;
     function ground(phi, r){
       var a = phi - rot;
       return { x: cx + rx * r * Math.sin(a),
@@ -559,18 +541,18 @@
     }
     var drawables = [];
     hitZones = [];
-    TREES.forEach(function(t){
-      var g = ground(t.p, t.r);
-      drawables.push({ d: g.depth, run: function(){ tree(g.x, g.y, h * t.s); } });
-    });
     PROJECTS.forEach(function(p, i){
       var g = ground(i * (TAU / PROJECTS.length), 0.62);
       var depth01 = (g.depth + 1) / 2;
-      var s = h * (0.15 + 0.19 * depth01);                     // model height in px
+      var s = h * (0.13 + 0.18 * depth01);                     // model height in px
       hitZones.push({ i: i, x: g.x, gy: g.y, s: s, d: g.depth });
       drawables.push({ d: g.depth, run: function(){
+        // soft shadow cast on the sea far below the floating island
+        ctx.fillStyle = 'rgba(10,44,62,.22)';
+        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.85, s * 0.52, s * 0.075, 0, 0, TAU); ctx.fill();
+        voxIsland(ctx, g.x, g.y, s, -rot, THEMES[p.theme] || THEMES.london);
         ctx.fillStyle = 'rgba(0,0,0,.16)';
-        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.012, s * p.shadow, s * 0.05, 0, 0, TAU); ctx.fill();
         p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
         chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h);
       }});
@@ -651,6 +633,101 @@
     ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  /* ---- voxel islands: each landmark floats on a chunky, Minecraft-ish
+     island themed to its own city; drawn with the same projector ---- */
+  function slab(faces, plan, z0, z1, col){
+    var cx0 = 0, cy0 = 0;
+    plan.forEach(function(p){ cx0 += p[0] / plan.length; cy0 += p[1] / plan.length; });
+    for(var i = 0; i < plan.length; i++){
+      var a = plan[i], b = plan[(i + 1) % plan.length];
+      var nx = (b[1] - a[1]), ny = -(b[0] - a[0]);
+      var mx = (a[0] + b[0]) / 2 - cx0, my = (a[1] + b[1]) / 2 - cy0;
+      if(nx * mx + ny * my < 0){ nx = -nx; ny = -ny; }
+      faces.push({ pts: [[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],[a[0],a[1],z1]],
+                   col: col, az: Math.atan2(nx, ny) });
+    }
+    faces.push({ pts: plan.map(function(p){ return [p[0], p[1], z1]; }), col: col, az: null });
+  }
+  function sq(ox, oy, half){ return rectPlan(ox, oy, 1, 0, half, half); }
+  function voxTree(d, x, y, sc){
+    d.push([x, y, 0.030 * sc, 0, 0.10 * sc, '#8B5A3C']);
+    d.push([x, y, 0.085 * sc, 0.10 * sc, 0.22 * sc, '#3E8E56']);
+    d.push([x, y, 0.055 * sc, 0.22 * sc, 0.30 * sc, '#57A96B']);
+  }
+  function voxPalm(d, x, y, sc){
+    d.push([x, y, 0.022 * sc, 0, 0.20 * sc, '#9A6B3F']);
+    d.push([x, y, 0.11 * sc, 0.20 * sc, 0.245 * sc, '#3E8E56']);
+    d.push([x, y, 0.05 * sc, 0.245 * sc, 0.29 * sc, '#57A96B']);
+  }
+  function voxHouse(d, x, y, wall, roof){
+    d.push([x, y, 0.075, 0, 0.10, wall]);
+    d.push([x, y, 0.055, 0.10, 0.16, roof]);
+  }
+  var THEMES = {
+    london:  { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096',
+               deco: function(d){ voxTree(d, -0.50, 0.30, 1); voxTree(d, 0.30, -0.50, 0.8);
+                                  voxHouse(d, 0.52, 0.34, '#C86452', '#6E4A2E'); } },
+    city:    { top:'#74BD68', side:'#569A50', dirt:'#7E7F84', dirt2:'#6A6B70', stone:'#57585D',
+               deco: function(d){ d.push([-0.50, 0.30, 0.07, 0, 0.20, '#AEB4BC']);
+                                  d.push([0.34, -0.48, 0.06, 0, 0.14, '#C6CCD4']);
+                                  voxTree(d, 0.52, 0.34, 0.7); } },
+    dubai:   { top:'#EAD298', side:'#D9B87A', dirt:'#C9A36A', dirt2:'#B08D55', stone:'#96753F',
+               deco: function(d){ voxPalm(d, -0.50, 0.30, 1); voxPalm(d, 0.32, -0.50, 0.8);
+                                  d.push([0.50, 0.34, 0.09, 0, 0.05, '#F2E2B0']); } },
+    regency: { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#9AA0A8',
+               deco: function(d){ voxHouse(d, -0.50, 0.32, '#F2EFE6', '#8C9096');
+                                  voxHouse(d, 0.50, -0.34, '#F2EFE6', '#8C9096');
+                                  voxTree(d, 0.48, 0.40, 0.75); } },
+    odense:  { top:'#86CF78', side:'#63AC5C', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096',
+               deco: function(d){ voxHouse(d, -0.52, 0.30, '#9C3B32', '#4A3527');
+                                  voxHouse(d, 0.30, -0.52, '#B3402F', '#4A3527');
+                                  voxTree(d, 0.52, 0.36, 0.85); } }
+  };
+  /* island painter: stacked slabs differ in depth by noise-level amounts, so
+     near-ties resolve by height (lower faces first) instead of raw depth */
+  function paintVox(ctx, faces, prj, yaw, lineCol){
+    var out = faces.map(function(f){
+      var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
+      var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){
+      var dd = b.d - a.d;
+      if(Math.abs(dd) > 0.06) return dd;
+      return (a.z - b.z) || dd;
+    });
+    out.forEach(function(f){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = f.col; ctx.fill();
+      ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+  function voxIsland(ctx, x0, gy, sc, yaw, th){
+    var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    [ /* half, dx, dy, z0, z1 — the chunky stepped landmass */
+      [0.68,  0.00,  0.00, -0.075, 0,      th.top,  th.side],
+      [0.34,  0.52, -0.34, -0.075, 0,      th.top,  th.side],
+      [0.30, -0.54,  0.34, -0.075, 0,      th.top,  th.side],
+      [0.58,  0.02,  0.02, -0.21, -0.075,  th.dirt, th.dirt],
+      [0.34, -0.28, -0.24, -0.21, -0.075,  th.dirt, th.dirt],
+      [0.44,  0.02, -0.02, -0.34, -0.21,   th.dirt2, th.dirt2],
+      [0.28, -0.02,  0.04, -0.46, -0.34,   th.stone, th.stone],
+      [0.15,  0.04, -0.02, -0.55, -0.46,   th.stone, th.stone]
+    ].forEach(function(q){
+      var f0 = faces.length;
+      slab(faces, sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
+      faces[faces.length - 1].col = q[5];              /* top face keeps the top colour */
+    });
+    var d = [];
+    th.deco(d);
+    d.forEach(function(c){ slab(faces, sq(c[0], c[1], c[2]), c[3], c[4], c[5]); });
+    paintVox(ctx, faces, prj, yaw, 'rgba(0,0,0,.14)');
   }
 
   /* ---- the four structures as true 3D models (yaw = camera orbit) ---- */
@@ -929,7 +1006,7 @@
     var cx = e.clientX - r.left, cy = e.clientY - r.top;
     var hit = null;
     hitZones.forEach(function(z){
-      if(Math.abs(cx - z.x) < z.s * 0.42 && cy > z.gy - z.s * 1.05 && cy < z.gy + z.s * 0.12){
+      if(Math.abs(cx - z.x) < z.s * 0.55 && cy > z.gy - z.s * 1.05 && cy < z.gy + z.s * 0.55){
         if(!hit || z.d > hit.d) hit = z;                       // frontmost wins on overlap
       }
     });
@@ -980,11 +1057,11 @@
   function paintFaces(ctx, faces, prj, yaw, lineCol){
     var out = faces.map(function(f){
       var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
-      var d = 0;
-      for(var i = 0; i < pts.length; i++) d += pts[i].d;
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
       var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
-      return { pts: pts, d: d / pts.length, col: shade(f.col, br) };
-    }).sort(function(a, b){ return b.d - a.d; });
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){ return (b.d - a.d) || (a.z - b.z); });
     out.forEach(function(f){
       ctx.beginPath();
       ctx.moveTo(f.pts[0].x, f.pts[0].y);
