@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computational Asset Playground — OttomanLabs.AI</title>
+<meta name="description" content="The OttomanLabs.AI Computational Asset Playground: draw splines, shapes, lines and arcs live, and soon grab parametric BIM elements — your AI copies the component off the page, or you export the element prompt or the element itself.">
+<link rel="canonical" href="https://ottomanlabs.ai/playground.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="Computational Asset Playground — OttomanLabs.AI">
+<meta property="og:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta property="og:url" content="https://ottomanlabs.ai/playground.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Computational Asset Playground — OttomanLabs.AI">
+<meta name="twitter:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  .hero{ border:1px solid var(--hair); padding:.9rem 1.2rem; margin-bottom:var(--gap);
+    display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  .hero .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.5rem; }
+  .hero .display{ font-family:var(--font-display); font-size:1.9rem; letter-spacing:.04em; }
+  .hero .sub{ font-family:var(--font-brand); font-size:.62rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); }
+
+  .soon-panel{ border:1px solid var(--hair); padding:clamp(3rem,12vh,7rem) 1.5rem;
+    display:flex; flex-direction:column; align-items:center; gap:1.2rem; text-align:center; }
+  .soon-word{ font-family:var(--font-brand); font-weight:600;
+    font-size:clamp(2rem,6vw,3.6rem); letter-spacing:.3em; text-transform:uppercase; color:var(--ink); }
+  .soon-panel p{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
+    font-size:1.02rem; max-width:36rem; margin:0; line-height:1.6; }
+  .soon-form{ display:flex; gap:.5rem; width:min(26rem,100%); }
+  .soon-form input{ flex:1; min-width:0; font-family:var(--font-serif); font-size:.95rem;
+    padding:.65rem .7rem; border:1px solid var(--hair); background:var(--paper); color:var(--ink); border-radius:0; }
+  .soon-form input:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .soon-form button{ font-family:var(--font-brand); font-weight:600; font-size:.68rem;
+    letter-spacing:.16em; text-transform:uppercase; background:var(--ink); color:var(--paper);
+    border:1px solid var(--ink); padding:.65rem 1.1rem; cursor:pointer; }
+  .soon-form button:hover{ background:var(--paper); color:var(--ink); }
+  .soon-note{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); min-height:1em; }
+
+  /* ── the 2D lines drawing board ── */
+  .draw-sec{ border:1px solid var(--hair); margin-bottom:var(--gap); }
+  .draw-cap{ display:flex; justify-content:space-between; align-items:baseline; gap:.8rem;
+    padding:.6rem .9rem .5rem; border-bottom:1px solid var(--hair); flex-wrap:wrap; }
+  .draw-cap b{ font-family:var(--font-brand); font-weight:500; font-size:.68rem;
+    letter-spacing:.28em; text-transform:uppercase; }
+  .draw-cap span{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60); }
+  .pg-tabs{ display:flex; justify-content:center; gap:1.4rem; padding:.55rem .9rem;
+    border-bottom:1px solid var(--hair); flex-wrap:wrap; }
+  .pgtab{ font-family:var(--font-brand); font-weight:500; font-size:.66rem; letter-spacing:.22em;
+    text-transform:uppercase; background:none; border:none; color:var(--ink-60);
+    padding:.2rem 0; cursor:pointer; border-bottom:2px solid transparent; }
+  .pgtab.active{ color:var(--ink); border-bottom-color:var(--ink); }
+  .pg-pills{ display:flex; justify-content:center; gap:.45rem; padding:.6rem .9rem; flex-wrap:wrap;
+    border-bottom:1px solid var(--hair); }
+  .pg-pills button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.3rem .7rem; cursor:pointer; }
+  .pg-pills button.active, .pg-pills button:hover{ background:var(--ink); color:var(--paper); }
+  .pg-boardwrap{ position:relative; }
+  #pgBoard{ display:block; width:100%; height:auto; cursor:crosshair; touch-action:none; }
+  .pg-actions{ position:absolute; top:.5rem; right:.5rem; display:flex; gap:.4rem; }
+  .pg-actions button{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.14em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.28rem .6rem; cursor:pointer; }
+  .pg-actions button:hover{ background:var(--ink); color:var(--paper); }
+  .pg-hint{ position:absolute; left:.7rem; bottom:.55rem; font-family:var(--font-brand);
+    font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60);
+    pointer-events:none; }
+
+  .asset-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:.7rem; width:min(56rem,100%); margin:.4rem 0; }
+  .asset{ border:1px dashed var(--ink-35); padding:1rem .8rem; display:flex;
+    flex-direction:column; gap:.35rem; align-items:center; opacity:.75; }
+  .a-name{ font-family:var(--font-display); font-size:1.05rem; }
+  .a-sub{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); }
+  .ai-note{ border:1px solid var(--hair); padding:1rem 1.2rem; width:min(44rem,100%);
+    text-align:left; }
+  .ai-note-h{ font-family:var(--font-brand); font-weight:600; font-size:.62rem;
+    letter-spacing:.24em; text-transform:uppercase; display:block; margin-bottom:.4rem; }
+  .ai-note p{ font-family:var(--font-serif); font-size:.95rem; color:var(--ink-60);
+    margin:0; line-height:1.6; max-width:none; font-style:normal; }
+  .ai-note b{ color:var(--ink); font-family:var(--font-brand); font-weight:600;
+    letter-spacing:.06em; }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="hero">
+    <span><span class="ital">The Computational</span> <span class="display">ASSET PLAYGROUND</span></span>
+    <span class="sub">parametric elements &middot; copy &middot; prompt &middot; export</span>
+  </div>
+
+  <div class="draw-sec">
+    <div class="draw-cap">
+      <b>2D Lines</b>
+      <span>the first live corner &mdash; draw them and watch; everything else lands soon</span>
+    </div>
+    <div class="pg-tabs" role="tablist" aria-label="Line families">
+      <button class="pgtab active" data-tab="splines" role="tab">Splines</button>
+      <button class="pgtab" data-tab="shapes" role="tab">Shapes</button>
+      <button class="pgtab" data-tab="lines" role="tab">Lines</button>
+      <button class="pgtab" data-tab="arcs" role="tab">Arcs</button>
+    </div>
+    <div class="pg-pills" id="pgPills"></div>
+    <div class="pg-boardwrap">
+      <canvas id="pgBoard" aria-label="Drawing board — tap to add points"></canvas>
+      <div class="pg-actions">
+        <button id="pgUndo" type="button">Undo</button>
+        <button id="pgClear" type="button">Clear</button>
+      </div>
+      <div class="pg-hint" id="pgHint"></div>
+    </div>
+  </div>
+
+  <div class="soon-panel">
+    <div class="soon-word">Coming Soon</div>
+    <p>A shelf of ready-made parametric elements &mdash; fences, manholes, downpipes, diagrid nodes,
+      ring beams, topo pads. Come and grab them three ways: point your AI at this page and let it
+      copy the component straight off the markup, export the element prompt to paste into any model,
+      or download the element itself.</p>
+    <div class="asset-grid" aria-label="Preview of upcoming elements">
+      <div class="asset"><span class="a-name">Fence Run</span><span class="a-sub">line &rarr; fence &middot; coming soon</span></div>
+      <div class="asset"><span class="a-name">Manhole Cluster</span><span class="a-sub">bulk placement &middot; coming soon</span></div>
+      <div class="asset"><span class="a-name">Downpipe Kit</span><span class="a-sub">gutter to shoe &middot; coming soon</span></div>
+      <div class="asset"><span class="a-name">Diagrid Node</span><span class="a-sub">exoskeleton joint &middot; coming soon</span></div>
+      <div class="asset"><span class="a-name">Ring Beam Array</span><span class="a-sub">level ties &middot; coming soon</span></div>
+      <div class="asset"><span class="a-name">Topo Pad</span><span class="a-sub">graded platform &middot; coming soon</span></div>
+    </div>
+    <div class="ai-note">
+      <span class="ai-note-h">For your AI agent</span>
+      <p>Every element will publish in three forms: component markup an agent can read and copy
+        directly from this page, an element prompt for any model, and the element itself as
+        JSON&thinsp;/&thinsp;OBJ&thinsp;/&thinsp;DXF. Tell your agent to visit
+        <b>ottomanlabs.ai/playground</b> and take what it needs.</p>
+    </div>
+    <form class="soon-form" id="soonForm" novalidate>
+      <label class="skip" for="soonEmail">Email address</label>
+      <input type="email" id="soonEmail" placeholder="your@address &mdash; tell me when it opens" required autocomplete="email">
+      <button type="submit">Inform me</button>
+    </form>
+    <span class="soon-note" id="soonNote" role="status" aria-live="polite"></span>
+  </div>
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  /* ── the 2D lines board: tap to add, drag to move, right-click deletes.
+     Each tab keeps its own points; the pills re-read them as a different
+     construction. Draw-and-see only — by design. ── */
+  var canvas = document.getElementById('pgBoard');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var pills = document.getElementById('pgPills');
+  var hintEl = document.getElementById('pgHint');
+  var TAU = Math.PI * 2;
+
+  var TABS = {
+    splines: { hint: 'tap to add control points — the spline re-reads them live',
+      types: [ { id:'bez',  label:'B\u00E9zier' },
+               { id:'bsp',  label:'B-Spline' },
+               { id:'bspc', label:'Closed B-Spline' },
+               { id:'cat',  label:'Catmull-Rom' } ] },
+    shapes:  { hint: 'two taps per shape \u2014 corner to corner, or centre then edge',
+      types: [ { id:'rect', label:'Rectangle' },
+               { id:'circ', label:'Circle' },
+               { id:'ell',  label:'Ellipse' },
+               { id:'hex',  label:'Polygon' } ] },
+    lines:   { hint: 'tap to add points \u2014 pairs become lines, or one running polyline',
+      types: [ { id:'seg',  label:'Lines' },
+               { id:'poly', label:'Polyline' } ] },
+    arcs:    { hint: 'three taps per arc \u2014 or two for a semicircle',
+      types: [ { id:'a3p',  label:'Three-point' },
+               { id:'cse',  label:'Centre-start-end' },
+               { id:'semi', label:'Semicircle' } ] }
+  };
+  var state = { tab:'splines', type:{ splines:'bez', shapes:'rect', lines:'seg', arcs:'a3p' },
+                pts:{ splines:[], shapes:[], lines:[], arcs:[] } };
+
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
+  function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
+  function paper(){ return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff'; }
+
+  function pillsFor(tab){
+    pills.innerHTML = '';
+    TABS[tab].types.forEach(function(t){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = t.label;
+      b.classList.toggle('active', state.type[tab] === t.id);
+      b.addEventListener('click', function(){
+        state.type[tab] = t.id;
+        pillsFor(tab); draw();
+      });
+      pills.appendChild(b);
+    });
+    hintEl.textContent = TABS[tab].hint;
+  }
+
+  /* ---- curve math ---- */
+  function bezierAt(P, t){
+    var q = P.map(function(p){ return { x:p.x, y:p.y }; });
+    for(var k = q.length - 1; k > 0; k--)
+      for(var i = 0; i < k; i++){ q[i].x += (q[i+1].x - q[i].x) * t; q[i].y += (q[i+1].y - q[i].y) * t; }
+    return q[0];
+  }
+  function bsplineSeg(a, b, c, d, t){
+    var t2 = t * t, t3 = t2 * t;
+    var w0 = (1 - 3*t + 3*t2 - t3) / 6, w1 = (4 - 6*t2 + 3*t3) / 6,
+        w2 = (1 + 3*t + 3*t2 - 3*t3) / 6, w3 = t3 / 6;
+    return { x: w0*a.x + w1*b.x + w2*c.x + w3*d.x, y: w0*a.y + w1*b.y + w2*c.y + w3*d.y };
+  }
+  function catmullSeg(p0, p1, p2, p3, t){
+    var t2 = t * t, t3 = t2 * t;
+    return { x: 0.5*((2*p1.x) + (-p0.x + p2.x)*t + (2*p0.x - 5*p1.x + 4*p2.x - p3.x)*t2 + (-p0.x + 3*p1.x - 3*p2.x + p3.x)*t3),
+             y: 0.5*((2*p1.y) + (-p0.y + p2.y)*t + (2*p0.y - 5*p1.y + 4*p2.y - p3.y)*t2 + (-p0.y + 3*p1.y - 3*p2.y + p3.y)*t3) };
+  }
+  function circum(a, b, c){
+    var d = 2 * (a.x*(b.y - c.y) + b.x*(c.y - a.y) + c.x*(a.y - b.y));
+    if(Math.abs(d) < 1e-9) return null;
+    var a2 = a.x*a.x + a.y*a.y, b2 = b.x*b.x + b.y*b.y, c2 = c.x*c.x + c.y*c.y;
+    var ux = (a2*(b.y - c.y) + b2*(c.y - a.y) + c2*(a.y - b.y)) / d;
+    var uy = (a2*(c.x - b.x) + b2*(a.x - c.x) + c2*(b.x - a.x)) / d;
+    return { x: ux, y: uy };
+  }
+
+  function path(list){
+    if(!list.length) return;
+    ctx.beginPath();
+    ctx.moveTo(list[0].x, list[0].y);
+    for(var i = 1; i < list.length; i++) ctx.lineTo(list[i].x, list[i].y);
+    ctx.stroke();
+  }
+  function guide(P, close){
+    if(P.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = muted(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(P[0].x, P[0].y);
+    for(var i = 1; i < P.length; i++) ctx.lineTo(P[i].x, P[i].y);
+    if(close) ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawGeometry(tab, type, P){
+    var S = 48, i, t, list;
+    ctx.strokeStyle = ink(); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if(tab === 'splines'){
+      guide(P, type === 'bspc');
+      if(P.length < 3) return;
+      list = [];
+      if(type === 'bez'){
+        for(i = 0; i <= S * 2; i++) list.push(bezierAt(P, i / (S * 2)));
+      } else if(type === 'bsp'){
+        var E = [P[0], P[0]].concat(P, [P[P.length-1], P[P.length-1]]);
+        for(i = 0; i + 3 < E.length; i++)
+          for(t = 0; t <= S; t++) list.push(bsplineSeg(E[i], E[i+1], E[i+2], E[i+3], t / S));
+      } else if(type === 'bspc'){
+        for(i = 0; i < P.length; i++)
+          for(t = 0; t <= S; t++) list.push(bsplineSeg(P[i], P[(i+1)%P.length], P[(i+2)%P.length], P[(i+3)%P.length], t / S));
+      } else if(type === 'cat'){
+        var C = [P[0]].concat(P, [P[P.length-1]]);
+        for(i = 0; i + 3 < C.length; i++)
+          for(t = 0; t <= S; t++) list.push(catmullSeg(C[i], C[i+1], C[i+2], C[i+3], t / S));
+      }
+      path(list);
+    } else if(tab === 'shapes'){
+      for(i = 0; i + 1 < P.length; i += 2){
+        var a = P[i], b = P[i+1];
+        ctx.beginPath();
+        if(type === 'rect'){
+          ctx.rect(Math.min(a.x,b.x), Math.min(a.y,b.y), Math.abs(b.x-a.x), Math.abs(b.y-a.y));
+        } else if(type === 'circ'){
+          ctx.arc(a.x, a.y, Math.hypot(b.x-a.x, b.y-a.y), 0, TAU);
+        } else if(type === 'ell'){
+          ctx.ellipse((a.x+b.x)/2, (a.y+b.y)/2, Math.abs(b.x-a.x)/2 || 1, Math.abs(b.y-a.y)/2 || 1, 0, 0, TAU);
+        } else if(type === 'hex'){
+          var r = Math.hypot(b.x-a.x, b.y-a.y), ph = Math.atan2(b.y-a.y, b.x-a.x);
+          for(var k = 0; k <= 6; k++){
+            var an = ph + TAU * k / 6;
+            k ? ctx.lineTo(a.x + r*Math.cos(an), a.y + r*Math.sin(an))
+              : ctx.moveTo(a.x + r*Math.cos(an), a.y + r*Math.sin(an));
+          }
+        }
+        ctx.stroke();
+      }
+    } else if(tab === 'lines'){
+      if(type === 'seg'){
+        for(i = 0; i + 1 < P.length; i += 2){
+          ctx.beginPath(); ctx.moveTo(P[i].x, P[i].y); ctx.lineTo(P[i+1].x, P[i+1].y); ctx.stroke();
+        }
+      } else path(P);
+    } else if(tab === 'arcs'){
+      var step = (type === 'semi') ? 2 : 3;
+      for(i = 0; i + step - 1 < P.length; i += step){
+        ctx.beginPath();
+        if(type === 'a3p'){
+          var c = circum(P[i], P[i+1], P[i+2]);
+          if(!c){ ctx.moveTo(P[i].x, P[i].y); ctx.lineTo(P[i+2].x, P[i+2].y); ctx.stroke(); continue; }
+          var r3 = Math.hypot(P[i].x - c.x, P[i].y - c.y);
+          var a1 = Math.atan2(P[i].y - c.y, P[i].x - c.x);
+          var a3 = Math.atan2(P[i+2].y - c.y, P[i+2].x - c.x);
+          var cross = (P[i+1].x - P[i].x) * (P[i+2].y - P[i].y) - (P[i+1].y - P[i].y) * (P[i+2].x - P[i].x);
+          ctx.arc(c.x, c.y, r3, a1, a3, cross < 0);
+        } else if(type === 'cse'){
+          var rC = Math.hypot(P[i+1].x - P[i].x, P[i+1].y - P[i].y);
+          var s1 = Math.atan2(P[i+1].y - P[i].y, P[i+1].x - P[i].x);
+          var s2 = Math.atan2(P[i+2].y - P[i].y, P[i+2].x - P[i].x);
+          ctx.arc(P[i].x, P[i].y, rC, s1, s2);
+          ctx.save(); ctx.strokeStyle = muted(); ctx.setLineDash([4,5]); ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+          ctx.beginPath(); ctx.arc(P[i].x, P[i].y, rC, s1, s2);
+        } else {
+          var mx = (P[i].x + P[i+1].x) / 2, my = (P[i].y + P[i+1].y) / 2;
+          var rS = Math.hypot(P[i+1].x - P[i].x, P[i+1].y - P[i].y) / 2;
+          var aS = Math.atan2(P[i+1].y - P[i].y, P[i+1].x - P[i].x);
+          ctx.arc(mx, my, rS, aS, aS + Math.PI, true);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  function draw(){
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    /* light drafting grid */
+    ctx.strokeStyle = muted(); ctx.globalAlpha = 0.25; ctx.lineWidth = 1;
+    var g = 40;
+    ctx.beginPath();
+    for(var x = g; x < w; x += g){ ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); }
+    for(var y = g; y < h; y += g){ ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    var P = state.pts[state.tab];
+    drawGeometry(state.tab, state.type[state.tab], P);
+    /* control points: hollow while their group is incomplete */
+    var group = state.tab === 'shapes' ? 2 : (state.tab === 'arcs' ? (state.type.arcs === 'semi' ? 2 : 3) : (state.tab === 'lines' && state.type.lines === 'seg' ? 2 : 0));
+    P.forEach(function(p, i){
+      var open = group && (i >= P.length - (P.length % group || group)) && (P.length % group !== 0);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, TAU);
+      ctx.fillStyle = open ? paper() : ink(); ctx.fill();
+      ctx.strokeStyle = ink(); ctx.lineWidth = 1.5; ctx.stroke();
+    });
+  }
+
+  /* ---- interaction ---- */
+  var dragIdx = -1, moved = false;
+  function pos(e){
+    var r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function nearest(p, rad){
+    var P = state.pts[state.tab], best = -1, bd = rad * rad;
+    P.forEach(function(q, i){
+      var d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
+      if(d < bd){ bd = d; best = i; }
+    });
+    return best;
+  }
+  canvas.addEventListener('pointerdown', function(e){
+    if(e.button === 2) return;
+    var p = pos(e);
+    dragIdx = nearest(p, 12); moved = false;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(dragIdx < 0) return;
+    var p = pos(e);
+    moved = true;
+    state.pts[state.tab][dragIdx] = p;
+    draw();
+  });
+  canvas.addEventListener('pointerup', function(e){
+    if(e.button === 2) return;
+    var p = pos(e);
+    if(dragIdx >= 0){ if(moved) draw(); dragIdx = -1; return; }
+    dragIdx = -1;
+    state.pts[state.tab].push(p);
+    draw();
+  });
+  canvas.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    var i = nearest(pos(e), 14);
+    if(i >= 0){ state.pts[state.tab].splice(i, 1); draw(); }
+  });
+  document.getElementById('pgUndo').addEventListener('click', function(){
+    state.pts[state.tab].pop(); draw();
+  });
+  document.getElementById('pgClear').addEventListener('click', function(){
+    state.pts[state.tab] = []; draw();
+  });
+  document.querySelectorAll('.pgtab').forEach(function(b){
+    b.addEventListener('click', function(){
+      state.tab = b.dataset.tab;
+      document.querySelectorAll('.pgtab').forEach(function(x){ x.classList.toggle('active', x === b); });
+      pillsFor(state.tab); draw();
+    });
+  });
+
+  function resize(){
+    var w = canvas.parentNode.clientWidth;
+    var h = Math.max(320, Math.min(560, Math.round(w * 0.5)));
+    var dpr = window.devicePixelRatio || 1;
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+  var mo = new MutationObserver(function(){ draw(); });
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  pillsFor(state.tab);
+  resize();
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+
+  /* Signups prefer /api/subscribe on this domain (a Cloudflare Pages
+     Function that relays to Mailchimp server-side, immune to ad-blockers).
+     If that endpoint isn't deployed, fall back to calling Mailchimp's
+     JSONP endpoint directly — ad-blockers may stop that hop, and the
+     note says so. */
+  var MC_FALLBACK = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-json?u=9a95e7b3013f3d844b00eb3f0&id=d15601aa5d&f_id=00cccae3f0&b_9a95e7b3013f3d844b00eb3f0_d15601aa5d=';
+  function subscribeJsonp(email, done){
+    var cb = 'mc' + Math.floor(Math.random() * 1e9);
+    var tag = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); done(false, ''); }, 8000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(tag.parentNode) tag.parentNode.removeChild(tag); }
+    window[cb] = function(res){ cleanup(); done(res && res.result === 'success', (res && res.msg) || ''); };
+    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
+    tag.src = MC_FALLBACK + '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    document.body.appendChild(tag);
+  }
+  function subscribe(email, done){
+    var called = false;
+    function once(ok, msg){ if(!called){ called = true; done(ok, msg); } }
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r){
+      return r.json().then(
+        function(res){ once(!!res.ok, res.msg || ''); },
+        function(){
+          if(r.status === 404 || r.status === 405) subscribeJsonp(email, once);
+          else once(false, '__http_' + r.status);
+        }
+      );
+    })
+    .catch(function(){ subscribeJsonp(email, once); });
+  }
+  function mcFail(msg){
+    if(msg === '__blocked__') return 'Blocked in this browser \u2014 pause the ad-blocker and retry, or <a href="https://eepurl.com/ieW19L" target="_blank" rel="noopener">sign up on the direct form</a>.';
+    if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
+    if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') \u2014 tell the site owner.';
+    var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
+    if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
+    if(!t && msg) return 'Mailchimp rejected the signup \u2014 no reason given.';
+    return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
+  }
+  var form = document.getElementById('soonForm');
+  var email = document.getElementById('soonEmail');
+  var note = document.getElementById('soonNote');
+  if(form) form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!email.value || !email.checkValidity()){ email.focus(); return; }
+    note.textContent = 'Noting that down…';
+    subscribe(email.value, function(ok, msg){
+      if(ok){ note.textContent = 'Noted — you’ll be first to know.'; form.reset(); }
+      else { note.innerHTML = mcFail(msg); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
