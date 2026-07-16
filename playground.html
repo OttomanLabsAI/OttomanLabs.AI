@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Computational Asset Playground — OttomanLabs.AI</title>
-<meta name="description" content="The OttomanLabs.AI Computational Asset Playground: draw splines, shapes, lines and arcs live, and soon grab parametric BIM elements — your AI copies the component off the page, or you export the element prompt or the element itself.">
+<meta name="description" content="The OttomanLabs.AI Computational Asset Playground: draw every line type from Grasshopper, Revit, Rhino and Illustrator — splines, shapes, circles, lines, arcs, conics — and soon grab parametric BIM elements: your AI copies the component off the page, or you export the element prompt or the element itself.">
 <link rel="canonical" href="https://ottomanlabs.ai/playground.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OttomanLabs.AI">
@@ -66,16 +66,28 @@
     text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
     padding:.3rem .7rem; cursor:pointer; }
   .pg-pills button.active, .pg-pills button:hover{ background:var(--ink); color:var(--paper); }
-  .pg-boardwrap{ position:relative; }
-  #pgBoard{ display:block; width:100%; height:auto; cursor:crosshair; touch-action:none; }
+  .pg-boardwrap{ position:relative; width:min(480px, calc(100% - 1.8rem)); margin:.9rem auto .45rem; }
+  #pgBoard{ display:block; width:100%; height:auto; cursor:crosshair; touch-action:none;
+    border:1px solid var(--hair); }
   .pg-actions{ position:absolute; top:.5rem; right:.5rem; display:flex; gap:.4rem; }
   .pg-actions button{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.14em;
     text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
     padding:.28rem .6rem; cursor:pointer; }
   .pg-actions button:hover{ background:var(--ink); color:var(--paper); }
-  .pg-hint{ position:absolute; left:.7rem; bottom:.55rem; font-family:var(--font-brand);
-    font-size:.56rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60);
-    pointer-events:none; }
+  .pg-hint{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); text-align:center;
+    padding:0 .9rem .85rem; max-width:46rem; margin:0 auto; }
+  .pg-cat{ border-top:1px solid var(--hair); }
+  .pg-cat summary{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); padding:.6rem .9rem; cursor:pointer; }
+  .pg-cat summary:hover{ color:var(--ink); }
+  .pg-catwrap{ overflow-x:auto; }
+  .pg-table{ width:100%; border-collapse:collapse; }
+  .pg-table th, .pg-table td{ border-top:1px solid var(--hair); padding:.32rem .9rem;
+    font-family:var(--font-brand); font-size:.58rem; letter-spacing:.12em;
+    text-transform:uppercase; text-align:left; white-space:nowrap; }
+  .pg-table th{ color:var(--ink-60); font-weight:600; }
+  .pg-table td.c, .pg-table th.c{ text-align:center; }
 
   .asset-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
     gap:.7rem; width:min(56rem,100%); margin:.4rem 0; }
@@ -121,13 +133,15 @@
   <div class="draw-sec">
     <div class="draw-cap">
       <b>2D Lines</b>
-      <span>the first live corner &mdash; draw them and watch; everything else lands soon</span>
+      <span>the first live corner &mdash; every line type Grasshopper, Revit, Rhino &amp; Illustrator draw between them</span>
     </div>
     <div class="pg-tabs" role="tablist" aria-label="Line families">
       <button class="pgtab active" data-tab="splines" role="tab">Splines</button>
       <button class="pgtab" data-tab="shapes" role="tab">Shapes</button>
+      <button class="pgtab" data-tab="circles" role="tab">Circles</button>
       <button class="pgtab" data-tab="lines" role="tab">Lines</button>
       <button class="pgtab" data-tab="arcs" role="tab">Arcs</button>
+      <button class="pgtab" data-tab="conics" role="tab">Conics</button>
     </div>
     <div class="pg-pills" id="pgPills"></div>
     <div class="pg-boardwrap">
@@ -136,8 +150,12 @@
         <button id="pgUndo" type="button">Undo</button>
         <button id="pgClear" type="button">Clear</button>
       </div>
-      <div class="pg-hint" id="pgHint"></div>
     </div>
+    <div class="pg-hint" id="pgHint"></div>
+    <details class="pg-cat">
+      <summary>The full catalogue &mdash; every type and where it comes from</summary>
+      <div id="pgCat"></div>
+    </details>
   </div>
 
   <div class="soon-panel">
@@ -211,9 +229,11 @@
 <script>
 (function(){
   "use strict";
-  /* ── the 2D lines board: tap to add, drag to move, right-click deletes.
-     Each tab keeps its own points; the pills re-read them as a different
-     construction. Draw-and-see only — by design. ── */
+  /* ── the 2D lines board: every line type Grasshopper, Revit, Rhino and
+     Illustrator draw between them, grouped into six families. Tap to add,
+     drag to move, right-click deletes. Each tab keeps its own points; the
+     pills re-read them as a different construction. Draw-and-see only —
+     by design. ── */
   var canvas = document.getElementById('pgBoard');
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
@@ -221,28 +241,65 @@
   var hintEl = document.getElementById('pgHint');
   var TAU = Math.PI * 2;
 
+  /* g = taps per element (0 = one running element, -1 = freehand drag);
+     min = taps before a running element shows; apps = who ships it. */
   var TABS = {
-    splines: { hint: 'tap to add control points — the spline re-reads them live',
-      types: [ { id:'bez',  label:'B\u00E9zier' },
-               { id:'bsp',  label:'B-Spline' },
-               { id:'bspc', label:'Closed B-Spline' },
-               { id:'cat',  label:'Catmull-Rom' } ] },
-    shapes:  { hint: 'two taps per shape \u2014 corner to corner, or centre then edge',
-      types: [ { id:'rect', label:'Rectangle' },
-               { id:'circ', label:'Circle' },
-               { id:'ell',  label:'Ellipse' },
-               { id:'hex',  label:'Polygon' } ] },
-    lines:   { hint: 'tap to add points \u2014 pairs become lines, or one running polyline',
-      types: [ { id:'seg',  label:'Lines' },
-               { id:'poly', label:'Polyline' } ] },
-    arcs:    { hint: 'three taps per arc \u2014 or two for a semicircle',
-      types: [ { id:'a3p',  label:'Three-point' },
-               { id:'cse',  label:'Centre-start-end' },
-               { id:'semi', label:'Semicircle' } ] }
+    splines: { types: [
+      { id:'bez',  label:'Bézier',      g:0, min:3, how:'tap control points — one Bézier span reads them all', apps:['Grasshopper','Illustrator'] },
+      { id:'bsp',  label:'NURBS Curve',      g:0, min:4, how:'tap control points — the curve is pulled toward them', apps:['Rhino','Grasshopper'] },
+      { id:'bspc', label:'Closed NURBS',     g:0, min:4, how:'tap control points — the loop closes itself', apps:['Rhino','Grasshopper'] },
+      { id:'cat',  label:'Interpolated',     g:0, min:3, how:'tap points — the curve passes through every one', apps:['Rhino','Revit','Grasshopper','Illustrator'] },
+      { id:'kink', label:'Kinky Curve',      g:0, min:3, how:'tap points — sharp turns stay sharp, gentle ones smooth out', apps:['Grasshopper'] },
+      { id:'catn', label:'Catenary',         g:2,        how:'two taps — a chain hangs between them', apps:['Rhino','Grasshopper'] },
+      { id:'free', label:'Freehand',         g:-1,       how:'press and drag to sketch', apps:['Rhino','Illustrator'] } ] },
+    shapes: { types: [
+      { id:'rect',  label:'Rectangle',       g:2, how:'two taps — corner to corner', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'rect3', label:'Rotated Rectangle', g:3, how:'three taps — one edge, then the width', apps:['Rhino','Grasshopper'] },
+      { id:'rrect', label:'Rounded Rectangle', g:2, how:'two taps — corner to corner, corners rounded', apps:['Illustrator'] },
+      { id:'pgin',  label:'Polygon · Inscribed', g:2, how:'two taps — centre, then a vertex', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'pgcir', label:'Polygon · Circumscribed', g:2, how:'two taps — centre, then an edge midpoint', apps:['Revit','Rhino'] },
+      { id:'star',  label:'Star',            g:2, how:'two taps — centre, then an outer point', apps:['Rhino','Illustrator'] },
+      { id:'grect', label:'Rectangular Grid', g:2, how:'two taps — corner to corner', apps:['Illustrator'] },
+      { id:'gpol',  label:'Polar Grid',      g:2, how:'two taps — centre, then the rim', apps:['Illustrator'] } ] },
+    circles: { types: [
+      { id:'ccr',  label:'Centre–Radius', g:2, how:'two taps — centre, then the rim', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'c2p',  label:'Two-Point',        g:2, how:'two taps — the ends of a diameter', apps:['Rhino'] },
+      { id:'c3p',  label:'Three-Point',      g:3, how:'three taps — the circle passes through all of them', apps:['Rhino','Grasshopper'] },
+      { id:'cin',  label:'Inscribed',        g:3, how:'three taps make a triangle — the circle fits inside', apps:['Rhino','Grasshopper'] },
+      { id:'ell',  label:'Ellipse',          g:2, how:'two taps — corner to corner', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'epar', label:'Partial Ellipse',  g:3, how:'three taps — axis end, axis end, then the depth', apps:['Revit'] } ] },
+    lines: { types: [
+      { id:'seg',  label:'Line',       g:2,        how:'two taps per line — start, end', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'sdl',  label:'Line SDL',   g:3,        how:'three taps — start, direction, length', apps:['Grasshopper'] },
+      { id:'poly', label:'Polyline',   g:0, min:2, how:'tap points — one running polyline', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
+      { id:'fit',  label:'Fit Line',   g:0, min:2, how:'tap a cloud of points — the best-fit line reads them', apps:['Rhino','Grasshopper'] } ] },
+    arcs: { types: [
+      { id:'a3p',  label:'Three-Point', g:3,       how:'three taps — start, through, end', apps:['Grasshopper','Revit','Rhino'] },
+      { id:'cse',  label:'Centre–Start–End', g:3, how:'three taps — centre, start, end', apps:['Revit','Rhino'] },
+      { id:'sed',  label:'Start–End–Direction', g:3, how:'three taps — start, end, then the launch direction', apps:['Rhino','Grasshopper'] },
+      { id:'ser',  label:'Start–End–Radius', g:3, how:'three taps — start, end, then pull the bulge', apps:['Revit'] },
+      { id:'tan',  label:'Tangent Chain', g:0, min:3, how:'tap along — a line first, then arcs leaving each end tangent', apps:['Revit','Grasshopper'] },
+      { id:'fil',  label:'Fillet Corner', g:3,     how:'three taps — leg, corner, leg; the corner rounds itself', apps:['Revit','Rhino'] },
+      { id:'qua',  label:'Quarter Arc', g:2,       how:'two taps — corner to corner, a quarter ellipse', apps:['Illustrator'] },
+      { id:'semi', label:'Semicircle',  g:2,       how:'two taps — half a circle on the chord', apps:['Rhino'] } ] },
+    conics: { types: [
+      { id:'par', label:'Parabola',    g:3, how:'three taps — it passes through all three', apps:['Rhino'] },
+      { id:'hyp', label:'Hyperbola',   g:3, how:'three taps — centre, vertex, through-point', apps:['Rhino'] },
+      { id:'con', label:'Conic',       g:3, how:'three taps — start, apex, end', apps:['Rhino'] },
+      { id:'spa', label:'Spiral',      g:2, how:'two taps — centre, then the outer end', apps:['Rhino'] },
+      { id:'spl', label:'Log Spiral',  g:2, how:'two taps — centre, then the outer end; each wind decays', apps:['Illustrator'] } ] }
   };
-  var state = { tab:'splines', type:{ splines:'bez', shapes:'rect', lines:'seg', arcs:'a3p' },
-                pts:{ splines:[], shapes:[], lines:[], arcs:[] } };
+  var TABLABEL = { splines:'Splines', shapes:'Shapes', circles:'Circles & Ellipses',
+                   lines:'Lines', arcs:'Arcs', conics:'Conics & Spirals' };
+  var state = { tab:'splines',
+    type:{ splines:'bez', shapes:'rect', circles:'ccr', lines:'seg', arcs:'a3p', conics:'par' },
+    pts:{ splines:[], shapes:[], circles:[], lines:[], arcs:[], conics:[] } };
 
+  function typeMeta(tab){
+    var id = state.type[tab], ts = TABS[tab].types;
+    for(var i = 0; i < ts.length; i++) if(ts[i].id === id) return ts[i];
+    return ts[0];
+  }
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
   function paper(){ return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff'; }
@@ -259,8 +316,14 @@
       });
       pills.appendChild(b);
     });
-    hintEl.textContent = TABS[tab].hint;
+    var m = typeMeta(tab);
+    hintEl.textContent = m.how + '  ·  ' + m.apps.join(' · ');
   }
+
+  /* ---- small vector kit ---- */
+  function N(x, y){ var l = Math.hypot(x, y) || 1; return { x:x/l, y:y/l }; }
+  function dst(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); }
+  function each(P, g, fn){ for(var i = 0; i + g <= P.length; i += g) fn(P[i], P[i+1], P[i+2]); }
 
   /* ---- curve math ---- */
   function bezierAt(P, t){
@@ -289,6 +352,7 @@
     return { x: ux, y: uy };
   }
 
+  /* ---- stroke helpers ---- */
   function path(list){
     if(!list.length) return;
     ctx.beginPath();
@@ -296,95 +360,292 @@
     for(var i = 1; i < list.length; i++) ctx.lineTo(list[i].x, list[i].y);
     ctx.stroke();
   }
-  function guide(P, close){
+  function seg2(a, b){ ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+  function dashed(fn){
+    ctx.save(); ctx.strokeStyle = muted(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1;
+    ctx.beginPath(); fn(); ctx.stroke(); ctx.restore();
+  }
+  function guidePoly(P, close){
     if(P.length < 2) return;
-    ctx.save();
-    ctx.strokeStyle = muted(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1;
+    dashed(function(){
+      ctx.moveTo(P[0].x, P[0].y);
+      for(var i = 1; i < P.length; i++) ctx.lineTo(P[i].x, P[i].y);
+      if(close) ctx.closePath();
+    });
+  }
+  function circle(c, r, dash){
+    if(dash){ dashed(function(){ ctx.arc(c.x, c.y, r, 0, TAU); }); return; }
+    ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, TAU); ctx.stroke();
+  }
+  function ngon(c, r, ph, n){
     ctx.beginPath();
-    ctx.moveTo(P[0].x, P[0].y);
-    for(var i = 1; i < P.length; i++) ctx.lineTo(P[i].x, P[i].y);
-    if(close) ctx.closePath();
+    for(var k = 0; k <= n; k++){
+      var an = ph + TAU * k / n, x = c.x + r*Math.cos(an), y = c.y + r*Math.sin(an);
+      k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
     ctx.stroke();
-    ctx.restore();
+  }
+  function arc3(A, B, C){        /* solid arc through three points */
+    var c = circum(A, B, C);
+    if(!c){ seg2(A, C); return; }
+    var r = dst(A, c), a1 = Math.atan2(A.y - c.y, A.x - c.x), a2 = Math.atan2(C.y - c.y, C.x - c.x);
+    var cr = (B.x - A.x)*(C.y - A.y) - (B.y - A.y)*(C.x - A.x);
+    ctx.beginPath(); ctx.arc(c.x, c.y, r, a1, a2, cr < 0); ctx.stroke();
+  }
+  function tangentArc(S, t, E){  /* arc leaving S along tangent t, ending at E */
+    var ex = E.x - S.x, ey = E.y - S.y;
+    if(Math.abs(t.x*ey - t.y*ex) < 1e-4 * Math.hypot(ex, ey)) return null;
+    var nx = -t.y, ny = t.x, den = 2 * (nx*ex + ny*ey);
+    if(Math.abs(den) < 1e-9) return null;
+    var r = (ex*ex + ey*ey) / den;
+    var c = { x: S.x + nx*r, y: S.y + ny*r }, R = Math.abs(r);
+    var a1 = Math.atan2(S.y - c.y, S.x - c.x), a2 = Math.atan2(E.y - c.y, E.x - c.x);
+    var anti = (-Math.sin(a1)*t.x + Math.cos(a1)*t.y) < 0;
+    var et = anti ? { x: Math.sin(a2), y: -Math.cos(a2) } : { x: -Math.sin(a2), y: Math.cos(a2) };
+    return { c:c, r:R, a1:a1, a2:a2, anti:anti, endTan:et };
+  }
+  function catRun(P){            /* interpolated curve through P */
+    if(P.length === 2){ seg2(P[0], P[1]); return; }
+    var C = [P[0]].concat(P, [P[P.length-1]]), list = [];
+    for(var i = 0; i + 3 < C.length; i++)
+      for(var t = 0; t <= 24; t++) list.push(catmullSeg(C[i], C[i+1], C[i+2], C[i+3], t / 24));
+    path(list);
   }
 
-  function drawGeometry(tab, type, P){
-    var S = 48, i, t, list;
-    ctx.strokeStyle = ink(); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    if(tab === 'splines'){
-      guide(P, type === 'bspc');
-      if(P.length < 3) return;
-      list = [];
-      if(type === 'bez'){
-        for(i = 0; i <= S * 2; i++) list.push(bezierAt(P, i / (S * 2)));
-      } else if(type === 'bsp'){
-        var E = [P[0], P[0]].concat(P, [P[P.length-1], P[P.length-1]]);
-        for(i = 0; i + 3 < E.length; i++)
-          for(t = 0; t <= S; t++) list.push(bsplineSeg(E[i], E[i+1], E[i+2], E[i+3], t / S));
-      } else if(type === 'bspc'){
-        for(i = 0; i < P.length; i++)
-          for(t = 0; t <= S; t++) list.push(bsplineSeg(P[i], P[(i+1)%P.length], P[(i+2)%P.length], P[(i+3)%P.length], t / S));
-      } else if(type === 'cat'){
-        var C = [P[0]].concat(P, [P[P.length-1]]);
-        for(i = 0; i + 3 < C.length; i++)
-          for(t = 0; t <= S; t++) list.push(catmullSeg(C[i], C[i+1], C[i+2], C[i+3], t / S));
+  /* ---- one renderer per type ---- */
+  var DRAW = {
+    /* splines */
+    bez: function(P){ guidePoly(P); if(P.length < 3) return;
+      var list = [];
+      for(var i = 0; i <= 96; i++) list.push(bezierAt(P, i / 96));
+      path(list); },
+    bsp: function(P){ guidePoly(P); if(P.length < 4) return;
+      var E = [P[0], P[0]].concat(P, [P[P.length-1], P[P.length-1]]), list = [];
+      for(var i = 0; i + 3 < E.length; i++)
+        for(var t = 0; t <= 24; t++) list.push(bsplineSeg(E[i], E[i+1], E[i+2], E[i+3], t / 24));
+      path(list); },
+    bspc: function(P){ guidePoly(P, true); if(P.length < 4) return;
+      var list = [];
+      for(var i = 0; i < P.length; i++)
+        for(var t = 0; t <= 24; t++) list.push(bsplineSeg(P[i], P[(i+1)%P.length], P[(i+2)%P.length], P[(i+3)%P.length], t / 24));
+      path(list); },
+    cat: function(P){ if(P.length >= 3) catRun(P); },
+    kink: function(P){ if(P.length < 3) return;
+      var runs = [], cur = [P[0]];
+      for(var i = 1; i < P.length - 1; i++){
+        cur.push(P[i]);
+        var u = N(P[i].x - P[i-1].x, P[i].y - P[i-1].y),
+            v = N(P[i+1].x - P[i].x, P[i+1].y - P[i].y);
+        if(u.x*v.x + u.y*v.y < 0.5){ runs.push(cur); cur = [P[i]]; }  /* > 60° turn = a kink */
       }
-      path(list);
-    } else if(tab === 'shapes'){
-      for(i = 0; i + 1 < P.length; i += 2){
-        var a = P[i], b = P[i+1];
-        ctx.beginPath();
-        if(type === 'rect'){
-          ctx.rect(Math.min(a.x,b.x), Math.min(a.y,b.y), Math.abs(b.x-a.x), Math.abs(b.y-a.y));
-        } else if(type === 'circ'){
-          ctx.arc(a.x, a.y, Math.hypot(b.x-a.x, b.y-a.y), 0, TAU);
-        } else if(type === 'ell'){
-          ctx.ellipse((a.x+b.x)/2, (a.y+b.y)/2, Math.abs(b.x-a.x)/2 || 1, Math.abs(b.y-a.y)/2 || 1, 0, 0, TAU);
-        } else if(type === 'hex'){
-          var r = Math.hypot(b.x-a.x, b.y-a.y), ph = Math.atan2(b.y-a.y, b.x-a.x);
-          for(var k = 0; k <= 6; k++){
-            var an = ph + TAU * k / 6;
-            k ? ctx.lineTo(a.x + r*Math.cos(an), a.y + r*Math.sin(an))
-              : ctx.moveTo(a.x + r*Math.cos(an), a.y + r*Math.sin(an));
-          }
-        }
-        ctx.stroke();
+      cur.push(P[P.length-1]); runs.push(cur);
+      runs.forEach(catRun); },
+    catn: function(P){ each(P, 2, function(a, b){
+      var L = dst(a, b), sag = 0.28 * L, k = 2.6, ch = Math.cosh(k / 2), list = [];
+      for(var i = 0; i <= 60; i++){
+        var u = i / 60, s = (Math.cosh(k * (u - 0.5)) - ch) / (1 - ch);
+        list.push({ x: a.x + (b.x - a.x)*u, y: a.y + (b.y - a.y)*u + sag*s });
       }
-    } else if(tab === 'lines'){
-      if(type === 'seg'){
-        for(i = 0; i + 1 < P.length; i += 2){
-          ctx.beginPath(); ctx.moveTo(P[i].x, P[i].y); ctx.lineTo(P[i+1].x, P[i+1].y); ctx.stroke();
-        }
-      } else path(P);
-    } else if(tab === 'arcs'){
-      var step = (type === 'semi') ? 2 : 3;
-      for(i = 0; i + step - 1 < P.length; i += step){
-        ctx.beginPath();
-        if(type === 'a3p'){
-          var c = circum(P[i], P[i+1], P[i+2]);
-          if(!c){ ctx.moveTo(P[i].x, P[i].y); ctx.lineTo(P[i+2].x, P[i+2].y); ctx.stroke(); continue; }
-          var r3 = Math.hypot(P[i].x - c.x, P[i].y - c.y);
-          var a1 = Math.atan2(P[i].y - c.y, P[i].x - c.x);
-          var a3 = Math.atan2(P[i+2].y - c.y, P[i+2].x - c.x);
-          var cross = (P[i+1].x - P[i].x) * (P[i+2].y - P[i].y) - (P[i+1].y - P[i].y) * (P[i+2].x - P[i].x);
-          ctx.arc(c.x, c.y, r3, a1, a3, cross < 0);
-        } else if(type === 'cse'){
-          var rC = Math.hypot(P[i+1].x - P[i].x, P[i+1].y - P[i].y);
-          var s1 = Math.atan2(P[i+1].y - P[i].y, P[i+1].x - P[i].x);
-          var s2 = Math.atan2(P[i+2].y - P[i].y, P[i+2].x - P[i].x);
-          ctx.arc(P[i].x, P[i].y, rC, s1, s2);
-          ctx.save(); ctx.strokeStyle = muted(); ctx.setLineDash([4,5]); ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
-          ctx.beginPath(); ctx.arc(P[i].x, P[i].y, rC, s1, s2);
-        } else {
-          var mx = (P[i].x + P[i+1].x) / 2, my = (P[i].y + P[i+1].y) / 2;
-          var rS = Math.hypot(P[i+1].x - P[i].x, P[i+1].y - P[i].y) / 2;
-          var aS = Math.atan2(P[i+1].y - P[i].y, P[i+1].x - P[i].x);
-          ctx.arc(mx, my, rS, aS, aS + Math.PI, true);
-        }
-        ctx.stroke();
+      path(list); }); },
+    free: function(P){ if(P.length >= 2) catRun(P); },
+
+    /* shapes */
+    rect: function(P){ each(P, 2, function(a, b){
+      ctx.beginPath(); ctx.rect(Math.min(a.x,b.x), Math.min(a.y,b.y), Math.abs(b.x-a.x), Math.abs(b.y-a.y)); ctx.stroke(); }); },
+    rect3: function(P){ each(P, 3, function(a, b, t){
+      var u = N(b.x - a.x, b.y - a.y), w = (t.x - a.x)*(-u.y) + (t.y - a.y)*u.x;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+      ctx.lineTo(b.x - u.y*w, b.y + u.x*w); ctx.lineTo(a.x - u.y*w, a.y + u.x*w);
+      ctx.closePath(); ctx.stroke(); }); },
+    rrect: function(P){ each(P, 2, function(a, b){
+      var x0 = Math.min(a.x,b.x), y0 = Math.min(a.y,b.y), W = Math.abs(b.x-a.x), H = Math.abs(b.y-a.y);
+      var r = Math.min(W, H) * 0.18;
+      ctx.beginPath();
+      ctx.moveTo(x0 + r, y0);
+      ctx.arcTo(x0 + W, y0,     x0 + W, y0 + H, r);
+      ctx.arcTo(x0 + W, y0 + H, x0,     y0 + H, r);
+      ctx.arcTo(x0,     y0 + H, x0,     y0,     r);
+      ctx.arcTo(x0,     y0,     x0 + W, y0,     r);
+      ctx.closePath(); ctx.stroke(); }); },
+    pgin: function(P){ each(P, 2, function(c, v){
+      ngon(c, dst(c, v), Math.atan2(v.y - c.y, v.x - c.x), 6); }); },
+    pgcir: function(P){ each(P, 2, function(c, m){
+      var ap = dst(c, m), ph = Math.atan2(m.y - c.y, m.x - c.x);
+      circle(c, ap, true);
+      ngon(c, ap / Math.cos(Math.PI / 6), ph + Math.PI / 6, 6); }); },
+    star: function(P){ each(P, 2, function(c, v){
+      var R = dst(c, v), ph = Math.atan2(v.y - c.y, v.x - c.x);
+      ctx.beginPath();
+      for(var k = 0; k <= 10; k++){
+        var r = (k % 2 ? 0.45 * R : R), an = ph + Math.PI * k / 5;
+        var x = c.x + r*Math.cos(an), y = c.y + r*Math.sin(an);
+        k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-    }
-  }
+      ctx.closePath(); ctx.stroke(); }); },
+    grect: function(P){ each(P, 2, function(a, b){
+      var x0 = Math.min(a.x,b.x), y0 = Math.min(a.y,b.y), W = Math.abs(b.x-a.x), H = Math.abs(b.y-a.y);
+      ctx.beginPath(); ctx.rect(x0, y0, W, H);
+      for(var i = 1; i < 4; i++){
+        ctx.moveTo(x0 + W*i/4, y0); ctx.lineTo(x0 + W*i/4, y0 + H);
+        ctx.moveTo(x0, y0 + H*i/4); ctx.lineTo(x0 + W, y0 + H*i/4);
+      }
+      ctx.stroke(); }); },
+    gpol: function(P){ each(P, 2, function(c, e){
+      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x);
+      ctx.beginPath();
+      for(var k = 1; k <= 4; k++){ ctx.moveTo(c.x + R*k/4, c.y); ctx.arc(c.x, c.y, R*k/4, 0, TAU); }
+      for(var s = 0; s < 8; s++){
+        var an = ph + TAU * s / 8;
+        ctx.moveTo(c.x, c.y); ctx.lineTo(c.x + R*Math.cos(an), c.y + R*Math.sin(an));
+      }
+      ctx.stroke(); }); },
+
+    /* circles & ellipses */
+    ccr: function(P){ each(P, 2, function(c, e){ circle(c, dst(c, e)); }); },
+    c2p: function(P){ each(P, 2, function(a, b){
+      circle({ x:(a.x+b.x)/2, y:(a.y+b.y)/2 }, dst(a, b) / 2); }); },
+    c3p: function(P){ each(P, 3, function(a, b, c){
+      var o = circum(a, b, c); if(o) circle(o, dst(o, a)); }); },
+    cin: function(P){ each(P, 3, function(A, B, C){
+      guidePoly([A, B, C], true);
+      var a = dst(B, C), b = dst(C, A), c = dst(A, B), s = a + b + c;
+      if(s < 1e-6) return;
+      var I = { x:(a*A.x + b*B.x + c*C.x)/s, y:(a*A.y + b*B.y + c*C.y)/s };
+      var area = Math.abs((B.x-A.x)*(C.y-A.y) - (B.y-A.y)*(C.x-A.x)) / 2;
+      circle(I, 2 * area / s); }); },
+    ell: function(P){ each(P, 2, function(a, b){
+      ctx.beginPath();
+      ctx.ellipse((a.x+b.x)/2, (a.y+b.y)/2, Math.abs(b.x-a.x)/2 || 1, Math.abs(b.y-a.y)/2 || 1, 0, 0, TAU);
+      ctx.stroke(); }); },
+    epar: function(P){ each(P, 3, function(e1, e2, t){
+      dashed(function(){ ctx.moveTo(e1.x, e1.y); ctx.lineTo(e2.x, e2.y); });
+      var m = { x:(e1.x+e2.x)/2, y:(e1.y+e2.y)/2 }, u = N(e2.x - e1.x, e2.y - e1.y);
+      var a = dst(e1, e2) / 2, side = (t.x - m.x)*(-u.y) + (t.y - m.y)*u.x;
+      var b = Math.abs(side) || 1, sg = side < 0 ? -1 : 1, list = [];
+      for(var i = 0; i <= 60; i++){
+        var th = Math.PI * i / 60, lx = a*Math.cos(th), ly = sg*b*Math.sin(th);
+        list.push({ x: m.x + u.x*lx - u.y*ly, y: m.y + u.y*lx + u.x*ly });
+      }
+      path(list); }); },
+
+    /* lines */
+    seg: function(P){ each(P, 2, seg2); },
+    sdl: function(P){ each(P, 3, function(s, d, l){
+      dashed(function(){ ctx.moveTo(s.x, s.y); ctx.lineTo(d.x, d.y); });
+      var u = N(d.x - s.x, d.y - s.y), L = dst(s, l);
+      seg2(s, { x: s.x + u.x*L, y: s.y + u.y*L }); }); },
+    poly: function(P){ if(P.length >= 2) path(P); },
+    fit: function(P){ if(P.length < 2) return;
+      var n = P.length, mx = 0, my = 0;
+      P.forEach(function(p){ mx += p.x / n; my += p.y / n; });
+      var sxx = 0, sxy = 0, syy = 0;
+      P.forEach(function(p){ var dx = p.x - mx, dy = p.y - my; sxx += dx*dx; sxy += dx*dy; syy += dy*dy; });
+      var th = 0.5 * Math.atan2(2 * sxy, sxx - syy), u = { x: Math.cos(th), y: Math.sin(th) };
+      var lo = 1e9, hi = -1e9;
+      P.forEach(function(p){ var t = (p.x - mx)*u.x + (p.y - my)*u.y; lo = Math.min(lo, t); hi = Math.max(hi, t); });
+      seg2({ x: mx + u.x*lo, y: my + u.y*lo }, { x: mx + u.x*hi, y: my + u.y*hi }); },
+
+    /* arcs */
+    a3p: function(P){ each(P, 3, arc3); },
+    cse: function(P){ each(P, 3, function(c, s, e){
+      dashed(function(){ ctx.moveTo(s.x, s.y); ctx.lineTo(c.x, c.y); ctx.lineTo(e.x, e.y); });
+      var r = dst(c, s), a1 = Math.atan2(s.y - c.y, s.x - c.x), a2 = Math.atan2(e.y - c.y, e.x - c.x);
+      ctx.beginPath(); ctx.arc(c.x, c.y, r, a1, a2); ctx.stroke(); }); },
+    sed: function(P){ each(P, 3, function(s, e, d){
+      dashed(function(){ ctx.moveTo(s.x, s.y); ctx.lineTo(d.x, d.y); });
+      var A = tangentArc(s, N(d.x - s.x, d.y - s.y), e);
+      if(!A){ seg2(s, e); return; }
+      ctx.beginPath(); ctx.arc(A.c.x, A.c.y, A.r, A.a1, A.a2, A.anti); ctx.stroke(); }); },
+    ser: function(P){ each(P, 3, function(s, e, t){
+      dashed(function(){ ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); });
+      var m = { x:(s.x+e.x)/2, y:(s.y+e.y)/2 }, u = N(e.x - s.x, e.y - s.y);
+      var b = (t.x - m.x)*(-u.y) + (t.y - m.y)*u.x;
+      if(Math.abs(b) < 2){ seg2(s, e); return; }
+      arc3(s, { x: m.x - u.y*b, y: m.y + u.x*b }, e); }); },
+    tan: function(P){ if(P.length < 2) return;
+      seg2(P[0], P[1]);
+      var t = N(P[1].x - P[0].x, P[1].y - P[0].y), prev = P[1];
+      for(var i = 2; i < P.length; i++){
+        var A = tangentArc(prev, t, P[i]);
+        if(!A){ seg2(prev, P[i]); t = N(P[i].x - prev.x, P[i].y - prev.y); }
+        else { ctx.beginPath(); ctx.arc(A.c.x, A.c.y, A.r, A.a1, A.a2, A.anti); ctx.stroke(); t = A.endTan; }
+        prev = P[i];
+      } },
+    fil: function(P){ each(P, 3, function(a, b, c){
+      var u = N(a.x - b.x, a.y - b.y), w = N(c.x - b.x, c.y - b.y);
+      var cosT = Math.max(-0.999, Math.min(0.999, u.x*w.x + u.y*w.y)), th = Math.acos(cosT);
+      if(th < 0.05 || th > Math.PI - 0.05){ seg2(a, b); seg2(b, c); return; }
+      var la = dst(a, b), lc = dst(c, b);
+      var r = 0.3 * Math.min(la, lc), d = r / Math.tan(th / 2), dm = 0.85 * Math.min(la, lc);
+      if(d > dm){ d = dm; r = d * Math.tan(th / 2); }
+      var Ta = { x: b.x + u.x*d, y: b.y + u.y*d }, Tc = { x: b.x + w.x*d, y: b.y + w.y*d };
+      var bis = N(u.x + w.x, u.y + w.y), O = { x: b.x + bis.x*r/Math.sin(th/2), y: b.y + bis.y*r/Math.sin(th/2) };
+      seg2(a, Ta); seg2(c, Tc);
+      var aA = Math.atan2(Ta.y - O.y, Ta.x - O.x), aC = Math.atan2(Tc.y - O.y, Tc.x - O.x);
+      var delta = (aC - aA + TAU) % TAU;
+      ctx.beginPath(); ctx.arc(O.x, O.y, r, aA, aC, delta > Math.PI); ctx.stroke(); }); },
+    qua: function(P){ each(P, 2, function(a, b){
+      var cx = a.x, cy = b.y, rx = Math.abs(b.x - a.x) || 1, ry = Math.abs(a.y - b.y) || 1;
+      var t0 = (a.y > b.y) ? Math.PI/2 : -Math.PI/2;
+      var t1 = (b.x > a.x) ? 0 : Math.PI;
+      var delta = (t1 - t0 + TAU) % TAU;
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, t0, t1, delta > Math.PI); ctx.stroke(); }); },
+    semi: function(P){ each(P, 2, function(a, b){
+      var m = { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }, an = Math.atan2(b.y - a.y, b.x - a.x);
+      ctx.beginPath(); ctx.arc(m.x, m.y, dst(a, b) / 2, an, an + Math.PI, true); ctx.stroke(); }); },
+
+    /* conics & spirals */
+    par: function(P){ each(P, 3, function(p0, p1, p2){
+      var u = N(p2.x - p0.x, p2.y - p0.y), L = dst(p0, p2);
+      if(L < 1) return;
+      var nx = -u.y, ny = u.x;
+      var x1 = (p1.x - p0.x)*u.x + (p1.y - p0.y)*u.y, y1 = (p1.x - p0.x)*nx + (p1.y - p0.y)*ny;
+      var den = x1 * (x1 - L);
+      if(Math.abs(den) < 1e-6){ seg2(p0, p2); return; }
+      var a = y1 / den, list = [];
+      for(var i = 0; i <= 60; i++){
+        var x = L * i / 60, y = a * x * (x - L);
+        list.push({ x: p0.x + u.x*x + nx*y, y: p0.y + u.y*x + ny*y });
+      }
+      path(list); }); },
+    hyp: function(P){ each(P, 3, function(c, v, t){
+      var a = dst(c, v); if(a < 2) return;
+      dashed(function(){ ctx.moveTo(c.x, c.y); ctx.lineTo(v.x, v.y); });
+      var u = N(v.x - c.x, v.y - c.y), nx = -u.y, ny = u.x;
+      var tx = (t.x - c.x)*u.x + (t.y - c.y)*u.y, ty = (t.x - c.x)*nx + (t.y - c.y)*ny;
+      var q = tx*tx/(a*a) - 1;
+      if(q < 0.05) q = 0.05;
+      var b = Math.max(Math.abs(ty) / Math.sqrt(q), 2);
+      var xm = Math.max(Math.abs(tx) * 1.15, a * 2.2), list = [];
+      for(var i = -40; i <= 40; i++){
+        var x = a + (xm - a) * Math.abs(i) / 40, y = b * Math.sqrt(x*x/(a*a) - 1) * (i < 0 ? -1 : 1);
+        list.push({ x: c.x + u.x*x + nx*y, y: c.y + u.y*x + ny*y });
+      }
+      path(list); }); },
+    con: function(P){ each(P, 3, function(s, ap, e){
+      guidePoly([s, ap, e]);
+      var w = 1.6, list = [];
+      for(var i = 0; i <= 60; i++){
+        var t = i / 60, b0 = (1-t)*(1-t), b1 = 2*w*t*(1-t), b2 = t*t, dn = b0 + b1 + b2;
+        list.push({ x:(b0*s.x + b1*ap.x + b2*e.x)/dn, y:(b0*s.y + b1*ap.y + b2*e.y)/dn });
+      }
+      path(list); }); },
+    spa: function(P){ each(P, 2, function(c, e){
+      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = 3 * TAU, list = [];
+      for(var i = 0; i <= 240; i++){
+        var th = T * i / 240, r = R * th / T, an = ph - (T - th);
+        list.push({ x: c.x + r*Math.cos(an), y: c.y + r*Math.sin(an) });
+      }
+      path(list); }); },
+    spl: function(P){ each(P, 2, function(c, e){
+      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = 4 * TAU, list = [];
+      for(var i = 0; i <= 280; i++){
+        var th = T * i / 280, an = ph - (T - th), r = R * Math.pow(0.6, (T - th) / TAU);
+        list.push({ x: c.x + r*Math.cos(an), y: c.y + r*Math.sin(an) });
+      }
+      path(list); }); }
+  };
 
   function draw(){
     var w = canvas.clientWidth, h = canvas.clientHeight;
@@ -397,20 +658,24 @@
     for(var y = g; y < h; y += g){ ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); }
     ctx.stroke();
     ctx.globalAlpha = 1;
-    var P = state.pts[state.tab];
-    drawGeometry(state.tab, state.type[state.tab], P);
-    /* control points: hollow while their group is incomplete */
-    var group = state.tab === 'shapes' ? 2 : (state.tab === 'arcs' ? (state.type.arcs === 'semi' ? 2 : 3) : (state.tab === 'lines' && state.type.lines === 'seg' ? 2 : 0));
-    P.forEach(function(p, i){
-      var open = group && (i >= P.length - (P.length % group || group)) && (P.length % group !== 0);
-      ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, TAU);
-      ctx.fillStyle = open ? paper() : ink(); ctx.fill();
-      ctx.strokeStyle = ink(); ctx.lineWidth = 1.5; ctx.stroke();
-    });
+    var m = typeMeta(state.tab), P = state.pts[state.tab];
+    ctx.strokeStyle = ink(); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if(P.length) DRAW[m.id](P);
+    /* control points: hollow while their group is incomplete; none for freehand */
+    if(m.id !== 'free'){
+      var rem = m.g > 0 ? P.length % m.g : 0;
+      P.forEach(function(p, i){
+        var open = (m.g > 0 && rem !== 0 && i >= P.length - rem) ||
+                   (m.g === 0 && P.length < (m.min || 2));
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, TAU);
+        ctx.fillStyle = open ? paper() : ink(); ctx.fill();
+        ctx.strokeStyle = ink(); ctx.lineWidth = 1.5; ctx.stroke();
+      });
+    }
   }
 
   /* ---- interaction ---- */
-  var dragIdx = -1, moved = false;
+  var dragIdx = -1, moved = false, sketching = false;
   function pos(e){
     var r = canvas.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -426,18 +691,30 @@
   canvas.addEventListener('pointerdown', function(e){
     if(e.button === 2) return;
     var p = pos(e);
-    dragIdx = nearest(p, 12); moved = false;
     canvas.setPointerCapture(e.pointerId);
+    if(typeMeta(state.tab).id === 'free'){
+      sketching = true;
+      state.pts[state.tab].push(p);
+      draw();
+      return;
+    }
+    dragIdx = nearest(p, 12); moved = false;
   });
   canvas.addEventListener('pointermove', function(e){
-    if(dragIdx < 0) return;
     var p = pos(e);
+    if(sketching){
+      var P = state.pts[state.tab], q = P[P.length - 1];
+      if(!q || dst(p, q) > 4){ P.push(p); draw(); }
+      return;
+    }
+    if(dragIdx < 0) return;
     moved = true;
     state.pts[state.tab][dragIdx] = p;
     draw();
   });
   canvas.addEventListener('pointerup', function(e){
     if(e.button === 2) return;
+    if(sketching){ sketching = false; return; }
     var p = pos(e);
     if(dragIdx >= 0){ if(moved) draw(); dragIdx = -1; return; }
     dragIdx = -1;
@@ -463,12 +740,31 @@
     });
   });
 
+  /* ---- the catalogue table: every type, categorised by source app ---- */
+  (function(){
+    var host = document.getElementById('pgCat');
+    if(!host) return;
+    var APPS = ['Grasshopper', 'Revit', 'Rhino', 'Illustrator'];
+    var html = '<div class="pg-catwrap"><table class="pg-table"><thead><tr><th>Type</th><th>Family</th>';
+    APPS.forEach(function(a){ html += '<th class="c">' + a + '</th>'; });
+    html += '</tr></thead><tbody>';
+    Object.keys(TABS).forEach(function(tab){
+      TABS[tab].types.forEach(function(t){
+        html += '<tr><td>' + t.label + '</td><td>' + TABLABEL[tab] + '</td>';
+        APPS.forEach(function(a){
+          html += '<td class="c">' + (t.apps.indexOf(a) >= 0 ? '✓' : '·') + '</td>';
+        });
+        html += '</tr>';
+      });
+    });
+    host.innerHTML = html + '</tbody></table></div>';
+  })();
+
   function resize(){
-    var w = canvas.parentNode.clientWidth;
-    var h = Math.max(320, Math.min(560, Math.round(w * 0.5)));
+    var s = canvas.parentNode.clientWidth;
     var dpr = window.devicePixelRatio || 1;
-    canvas.style.height = h + 'px';
-    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    canvas.style.height = s + 'px';
+    canvas.width = Math.round(s * dpr); canvas.height = Math.round(s * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     draw();
   }
