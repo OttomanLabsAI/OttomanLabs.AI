@@ -47,16 +47,46 @@
   .soon-note{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
     text-transform:uppercase; color:var(--ink-60); min-height:1em; }
 
-  /* ── the 2D lines drawing board ── */
-  .draw-sec{ border:1px solid var(--hair); margin-bottom:var(--gap); }
+  /* ── playground cards row ── */
+  .play-row{ display:flex; gap:var(--gap); justify-content:center; align-items:stretch;
+    flex-wrap:wrap; margin-bottom:var(--gap); }
+  .t3d{ display:flex; flex-direction:column; }
+  .t3d-body{ flex:1; min-height:480px; display:flex; align-items:center; justify-content:center; }
+  .t3d-word{ font-family:var(--font-display); font-size:2.2rem; color:var(--ink-35); }
+
+  .asset-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:.7rem; width:min(56rem,100%); margin:.4rem 0; }
+  .asset{ border:1px dashed var(--ink-35); padding:1rem .8rem; display:flex;
+    flex-direction:column; gap:.35rem; align-items:center; opacity:.75; }
+  .a-name{ font-family:var(--font-display); font-size:1.05rem; }
+  .a-sub{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); }
+  .ai-note{ border:1px solid var(--hair); padding:1rem 1.2rem; width:min(44rem,100%);
+    text-align:left; }
+  .ai-note-h{ font-family:var(--font-brand); font-weight:600; font-size:.62rem;
+    letter-spacing:.24em; text-transform:uppercase; display:block; margin-bottom:.4rem; }
+  .ai-note p{ font-family:var(--font-serif); font-size:.95rem; color:var(--ink-60);
+    margin:0; line-height:1.6; max-width:none; font-style:normal; }
+  .ai-note b{ color:var(--ink); font-family:var(--font-brand); font-weight:600;
+    letter-spacing:.06em; }
+</style>
+<style id="pgCss">
+  /* ── the 2D lines board (this whole block ships with the HTML export) ── */
+  .draw-sec{ border:1px solid var(--hair); width:min(560px,100%); }
   .draw-cap{ display:flex; justify-content:space-between; align-items:baseline; gap:.8rem;
     padding:.6rem .9rem .5rem; border-bottom:1px solid var(--hair); flex-wrap:wrap; }
   .draw-cap b{ font-family:var(--font-brand); font-weight:500; font-size:.68rem;
     letter-spacing:.28em; text-transform:uppercase; }
   .draw-cap span{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60); }
-  .pg-tabs{ display:flex; justify-content:center; gap:1.4rem; padding:.55rem .9rem;
+  .pg-modes{ display:flex; justify-content:center; gap:1.3rem; padding:.55rem .9rem;
     border-bottom:1px solid var(--hair); flex-wrap:wrap; }
-  .pgtab{ font-family:var(--font-brand); font-weight:500; font-size:.66rem; letter-spacing:.22em;
+  .pgmode{ font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.22em;
+    text-transform:uppercase; background:none; border:none; color:var(--ink-60);
+    padding:.2rem 0; cursor:pointer; border-bottom:2px solid transparent; }
+  .pgmode.active{ color:var(--ink); border-bottom-color:var(--ink); }
+  .pg-tabs{ display:flex; justify-content:center; gap:1.05rem; padding:.55rem .9rem;
+    border-bottom:1px solid var(--hair); flex-wrap:wrap; }
+  .pgtab{ font-family:var(--font-brand); font-weight:500; font-size:.64rem; letter-spacing:.2em;
     text-transform:uppercase; background:none; border:none; color:var(--ink-60);
     padding:.2rem 0; cursor:pointer; border-bottom:2px solid transparent; }
   .pgtab.active{ color:var(--ink); border-bottom-color:var(--ink); }
@@ -76,7 +106,40 @@
   .pg-actions button:hover{ background:var(--ink); color:var(--paper); }
   .pg-hint{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.16em;
     text-transform:uppercase; color:var(--ink-60); text-align:center;
-    padding:0 .9rem .85rem; max-width:46rem; margin:0 auto; }
+    padding:0 .9rem .7rem; max-width:46rem; margin:0 auto; }
+  .pg-set{ display:flex; flex-direction:column; gap:.5rem; padding:0 1.4rem .95rem; }
+  .pg-set .row{ display:flex; align-items:center; gap:.8rem; }
+  .pg-set label{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); flex:0 0 8.5rem; }
+  .pg-set input[type="range"]{ flex:1; min-width:0; accent-color:var(--ink); }
+  .pg-set input[type="number"]{ flex:0 0 4.4rem; font-family:var(--font-brand); font-size:.72rem;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
+  .pg-panel{ display:flex; flex-direction:column; gap:.65rem; padding:.9rem 1.1rem 1.1rem; }
+  .pg-panel[hidden], #pgDraw[hidden]{ display:none; }
+  .pg-panel-note{ font-family:var(--font-serif); font-style:italic; font-size:.85rem;
+    color:var(--ink-60); margin:0; max-width:none; }
+  .pg-panel textarea{ width:100%; min-height:300px; box-sizing:border-box;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.72rem; line-height:1.55;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.65rem .7rem; resize:vertical; }
+  .pg-panel-row{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+  .pg-panel-row button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.4rem .8rem; cursor:pointer; }
+  .pg-panel-row button:hover{ background:var(--ink); color:var(--paper); }
+  .pg-note{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-60); }
+  #pgSearch{ width:100%; box-sizing:border-box; font-family:var(--font-brand); font-size:.72rem;
+    letter-spacing:.06em; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.5rem .6rem; }
+  .pg-checks{ max-height:300px; overflow:auto; border:1px solid var(--hair);
+    padding:.55rem .75rem; display:flex; flex-direction:column; gap:.28rem; }
+  .pg-checks .grp{ font-family:var(--font-brand); font-weight:600; font-size:.54rem;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--ink-60); margin:.45rem 0 .1rem; }
+  .pg-checks .grp:first-child{ margin-top:0; }
+  .pg-checks label{ display:flex; align-items:center; gap:.55rem; font-family:var(--font-brand);
+    font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; }
+  .pg-checks input{ accent-color:var(--ink); margin:0; }
   .pg-cat{ border-top:1px solid var(--hair); }
   .pg-cat summary{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.2em;
     text-transform:uppercase; color:var(--ink-60); padding:.6rem .9rem; cursor:pointer; }
@@ -88,22 +151,6 @@
     text-transform:uppercase; text-align:left; white-space:nowrap; }
   .pg-table th{ color:var(--ink-60); font-weight:600; }
   .pg-table td.c, .pg-table th.c{ text-align:center; }
-
-  .asset-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-    gap:.7rem; width:min(56rem,100%); margin:.4rem 0; }
-  .asset{ border:1px dashed var(--ink-35); padding:1rem .8rem; display:flex;
-    flex-direction:column; gap:.35rem; align-items:center; opacity:.75; }
-  .a-name{ font-family:var(--font-display); font-size:1.05rem; }
-  .a-sub{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.18em;
-    text-transform:uppercase; color:var(--ink-60); }
-  .ai-note{ border:1px solid var(--hair); padding:1rem 1.2rem; width:min(44rem,100%);
-    text-align:left; }
-  .ai-note-h{ font-family:var(--font-brand); font-weight:600; font-size:.62rem;
-    letter-spacing:.24em; text-transform:uppercase; display:block; margin-bottom:.4rem; }
-  .ai-note p{ font-family:var(--font-serif); font-size:.95rem; color:var(--ink-60);
-    margin:0; line-height:1.6; max-width:none; font-style:normal; }
-  .ai-note b{ color:var(--ink); font-family:var(--font-brand); font-weight:600;
-    letter-spacing:.06em; }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
@@ -130,32 +177,68 @@
     <span class="sub">parametric elements &middot; copy &middot; prompt &middot; export</span>
   </div>
 
-  <div class="draw-sec">
-    <div class="draw-cap">
-      <b>2D Lines</b>
-      <span>the first live corner &mdash; every line type Grasshopper, Revit, Rhino &amp; Illustrator draw between them</span>
-    </div>
-    <div class="pg-tabs" role="tablist" aria-label="Line families">
-      <button class="pgtab active" data-tab="splines" role="tab">Splines</button>
-      <button class="pgtab" data-tab="shapes" role="tab">Shapes</button>
-      <button class="pgtab" data-tab="circles" role="tab">Circles</button>
-      <button class="pgtab" data-tab="lines" role="tab">Lines</button>
-      <button class="pgtab" data-tab="arcs" role="tab">Arcs</button>
-      <button class="pgtab" data-tab="conics" role="tab">Conics</button>
-    </div>
-    <div class="pg-pills" id="pgPills"></div>
-    <div class="pg-boardwrap">
-      <canvas id="pgBoard" aria-label="Drawing board — tap to add points"></canvas>
-      <div class="pg-actions">
-        <button id="pgUndo" type="button">Undo</button>
-        <button id="pgClear" type="button">Clear</button>
+  <div class="play-row">
+    <div class="draw-sec">
+      <div class="draw-cap">
+        <b>2D Lines</b>
+        <span>every line type Grasshopper, Revit, Rhino &amp; Illustrator draw between them</span>
       </div>
+      <div class="pg-modes" role="tablist" aria-label="Board modes">
+        <button class="pgmode active" data-mode="draw">Draw</button>
+        <button class="pgmode" data-mode="prompt">Export Prompt</button>
+        <button class="pgmode" data-mode="html">Export HTML</button>
+      </div>
+      <div id="pgDraw">
+        <div class="pg-tabs" role="tablist" aria-label="Line families">
+          <button class="pgtab active" data-tab="splines" role="tab">Splines</button>
+          <button class="pgtab" data-tab="shapes" role="tab">Shapes</button>
+          <button class="pgtab" data-tab="circles" role="tab">Circles</button>
+          <button class="pgtab" data-tab="lines" role="tab">Lines</button>
+          <button class="pgtab" data-tab="arcs" role="tab">Arcs</button>
+          <button class="pgtab" data-tab="conics" role="tab">Conics</button>
+        </div>
+        <div class="pg-pills" id="pgPills"></div>
+        <div class="pg-boardwrap">
+          <canvas id="pgBoard" aria-label="Drawing board — tap to add points"></canvas>
+          <div class="pg-actions">
+            <button id="pgUndo" type="button">Undo</button>
+            <button id="pgClear" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="pg-hint" id="pgHint"></div>
+        <div class="pg-set" id="pgSet"></div>
+      </div>
+      <div id="pgPrompt" class="pg-panel" hidden>
+        <p class="pg-panel-note">the prompt below rebuilds the selected type &mdash; <b id="pgPromptName"></b> &mdash; hand it to any AI</p>
+        <textarea id="pgPromptText" readonly spellcheck="false"></textarea>
+        <div class="pg-panel-row">
+          <button id="pgCopy" type="button">Copy prompt</button>
+          <span class="pg-note" id="pgCopyNote"></span>
+        </div>
+      </div>
+      <div id="pgHtml" class="pg-panel" hidden>
+        <p class="pg-panel-note">pick the line types you want and download this box as a single HTML file</p>
+        <input id="pgSearch" type="search" placeholder="Search types&hellip;" aria-label="Search line types">
+        <div class="pg-checks" id="pgChecks"></div>
+        <div class="pg-panel-row">
+          <button id="pgAll" type="button">All</button>
+          <button id="pgNone" type="button">None</button>
+          <button id="pgDl" type="button">Download HTML</button>
+          <span class="pg-note" id="pgDlNote"></span>
+        </div>
+      </div>
+      <details class="pg-cat">
+        <summary>The full catalogue &mdash; every type and where it comes from</summary>
+        <div id="pgCat"></div>
+      </details>
     </div>
-    <div class="pg-hint" id="pgHint"></div>
-    <details class="pg-cat">
-      <summary>The full catalogue &mdash; every type and where it comes from</summary>
-      <div id="pgCat"></div>
-    </details>
+    <div class="draw-sec t3d">
+      <div class="draw-cap">
+        <b>3D Techniques</b>
+        <span>coming soon</span>
+      </div>
+      <div class="t3d-body"><span class="t3d-word">Coming Soon</span></div>
+    </div>
   </div>
 
   <div class="soon-panel">
@@ -226,41 +309,55 @@
   </div>
 </footer>
 
-<script>
+<script id="pgEngine">
 (function(){
   "use strict";
   /* ── the 2D lines board: every line type Grasshopper, Revit, Rhino and
      Illustrator draw between them, grouped into six families. Tap to add,
-     drag to move, right-click deletes. Each tab keeps its own points; the
-     pills re-read them as a different construction. Draw-and-see only —
-     by design. ── */
+     drag to move, right-click deletes; picking another type wipes the board.
+     Types with parameters get slider + number settings under the square.
+     window.PG_ONLY (set by the HTML export) trims the catalogue down to a
+     chosen set of types — this same script runs the exported file. ── */
   var canvas = document.getElementById('pgBoard');
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
   var pills = document.getElementById('pgPills');
   var hintEl = document.getElementById('pgHint');
+  var setEl = document.getElementById('pgSet');
   var TAU = Math.PI * 2;
 
   /* g = taps per element (0 = one running element, -1 = freehand drag);
-     min = taps before a running element shows; apps = who ships it. */
+     min = taps before a running element shows; apps = who ships it;
+     opts = adjustable settings (slider + number input under the board). */
   var TABS = {
     splines: { types: [
       { id:'bez',  label:'Bézier',      g:0, min:3, how:'tap control points — one Bézier span reads them all', apps:['Grasshopper','Illustrator'] },
       { id:'bsp',  label:'NURBS Curve',      g:0, min:4, how:'tap control points — the curve is pulled toward them', apps:['Rhino','Grasshopper'] },
       { id:'bspc', label:'Closed NURBS',     g:0, min:4, how:'tap control points — the loop closes itself', apps:['Rhino','Grasshopper'] },
       { id:'cat',  label:'Interpolated',     g:0, min:3, how:'tap points — the curve passes through every one', apps:['Rhino','Revit','Grasshopper','Illustrator'] },
-      { id:'kink', label:'Kinky Curve',      g:0, min:3, how:'tap points — sharp turns stay sharp, gentle ones smooth out', apps:['Grasshopper'] },
-      { id:'catn', label:'Catenary',         g:2,        how:'two taps — a chain hangs between them', apps:['Rhino','Grasshopper'] },
+      { id:'kink', label:'Kinky Curve',      g:0, min:3, how:'tap points — sharp turns stay sharp, gentle ones smooth out', apps:['Grasshopper'],
+        opts:[ { key:'ang', label:'Kink angle', unit:'°', min:15, max:120, step:1, val:60 } ] },
+      { id:'catn', label:'Catenary',         g:2,        how:'two taps — a chain hangs between them', apps:['Rhino','Grasshopper'],
+        opts:[ { key:'sag', label:'Sag', unit:'%', min:5, max:60, step:1, val:28 } ] },
       { id:'free', label:'Freehand',         g:-1,       how:'press and drag to sketch', apps:['Rhino','Illustrator'] } ] },
     shapes: { types: [
       { id:'rect',  label:'Rectangle',       g:2, how:'two taps — corner to corner', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
       { id:'rect3', label:'Rotated Rectangle', g:3, how:'three taps — one edge, then the width', apps:['Rhino','Grasshopper'] },
-      { id:'rrect', label:'Rounded Rectangle', g:2, how:'two taps — corner to corner, corners rounded', apps:['Illustrator'] },
-      { id:'pgin',  label:'Polygon · Inscribed', g:2, how:'two taps — centre, then a vertex', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
-      { id:'pgcir', label:'Polygon · Circumscribed', g:2, how:'two taps — centre, then an edge midpoint', apps:['Revit','Rhino'] },
-      { id:'star',  label:'Star',            g:2, how:'two taps — centre, then an outer point', apps:['Rhino','Illustrator'] },
-      { id:'grect', label:'Rectangular Grid', g:2, how:'two taps — corner to corner', apps:['Illustrator'] },
-      { id:'gpol',  label:'Polar Grid',      g:2, how:'two taps — centre, then the rim', apps:['Illustrator'] } ] },
+      { id:'rrect', label:'Rounded Rectangle', g:2, how:'two taps — corner to corner, corners rounded', apps:['Illustrator'],
+        opts:[ { key:'r', label:'Corner radius', unit:'%', min:2, max:50, step:1, val:18 } ] },
+      { id:'pgin',  label:'Polygon · Inscribed', g:2, how:'two taps — centre, then a vertex', apps:['Grasshopper','Revit','Rhino','Illustrator'],
+        opts:[ { key:'n', label:'Sides', min:3, max:12, step:1, val:6 } ] },
+      { id:'pgcir', label:'Polygon · Circumscribed', g:2, how:'two taps — centre, then an edge midpoint', apps:['Revit','Rhino'],
+        opts:[ { key:'n', label:'Sides', min:3, max:12, step:1, val:6 } ] },
+      { id:'star',  label:'Star',            g:2, how:'two taps — centre, then an outer point', apps:['Rhino','Illustrator'],
+        opts:[ { key:'n', label:'Points', min:4, max:12, step:1, val:5 },
+               { key:'inner', label:'Inner radius', unit:'%', min:10, max:90, step:1, val:45 } ] },
+      { id:'grect', label:'Rectangular Grid', g:2, how:'two taps — corner to corner', apps:['Illustrator'],
+        opts:[ { key:'cols', label:'Columns', min:2, max:12, step:1, val:4 },
+               { key:'rows', label:'Rows', min:2, max:12, step:1, val:4 } ] },
+      { id:'gpol',  label:'Polar Grid',      g:2, how:'two taps — centre, then the rim', apps:['Illustrator'],
+        opts:[ { key:'rings', label:'Rings', min:1, max:10, step:1, val:4 },
+               { key:'spokes', label:'Spokes', min:3, max:16, step:1, val:8 } ] } ] },
     circles: { types: [
       { id:'ccr',  label:'Centre–Radius', g:2, how:'two taps — centre, then the rim', apps:['Grasshopper','Revit','Rhino','Illustrator'] },
       { id:'c2p',  label:'Two-Point',        g:2, how:'two taps — the ends of a diameter', apps:['Rhino'] },
@@ -279,22 +376,47 @@
       { id:'sed',  label:'Start–End–Direction', g:3, how:'three taps — start, end, then the launch direction', apps:['Rhino','Grasshopper'] },
       { id:'ser',  label:'Start–End–Radius', g:3, how:'three taps — start, end, then pull the bulge', apps:['Revit'] },
       { id:'tan',  label:'Tangent Chain', g:0, min:3, how:'tap along — a line first, then arcs leaving each end tangent', apps:['Revit','Grasshopper'] },
-      { id:'fil',  label:'Fillet Corner', g:3,     how:'three taps — leg, corner, leg; the corner rounds itself', apps:['Revit','Rhino'] },
+      { id:'fil',  label:'Fillet Corner', g:3,     how:'three taps — leg, corner, leg; the corner rounds itself', apps:['Revit','Rhino'],
+        opts:[ { key:'r', label:'Fillet radius', unit:'px', min:5, max:120, step:1, val:40 } ] },
       { id:'qua',  label:'Quarter Arc', g:2,       how:'two taps — corner to corner, a quarter ellipse', apps:['Illustrator'] },
       { id:'semi', label:'Semicircle',  g:2,       how:'two taps — half a circle on the chord', apps:['Rhino'] } ] },
     conics: { types: [
       { id:'par', label:'Parabola',    g:3, how:'three taps — it passes through all three', apps:['Rhino'] },
       { id:'hyp', label:'Hyperbola',   g:3, how:'three taps — centre, vertex, through-point', apps:['Rhino'] },
-      { id:'con', label:'Conic',       g:3, how:'three taps — start, apex, end', apps:['Rhino'] },
-      { id:'spa', label:'Spiral',      g:2, how:'two taps — centre, then the outer end', apps:['Rhino'] },
-      { id:'spl', label:'Log Spiral',  g:2, how:'two taps — centre, then the outer end; each wind decays', apps:['Illustrator'] } ] }
+      { id:'con', label:'Conic',       g:3, how:'three taps — start, apex, end', apps:['Rhino'],
+        opts:[ { key:'rho', label:'Rho', min:0.05, max:0.95, step:0.01, val:0.62 } ] },
+      { id:'spa', label:'Spiral',      g:2, how:'two taps — centre, then the outer end', apps:['Rhino'],
+        opts:[ { key:'turns', label:'Turns', min:1, max:8, step:1, val:3 } ] },
+      { id:'spl', label:'Log Spiral',  g:2, how:'two taps — centre, then the outer end; each wind decays', apps:['Illustrator'],
+        opts:[ { key:'winds', label:'Winds', min:1, max:8, step:1, val:4 },
+               { key:'decay', label:'Decay', unit:'%', min:30, max:90, step:1, val:60 } ] } ] }
   };
   var TABLABEL = { splines:'Splines', shapes:'Shapes', circles:'Circles & Ellipses',
                    lines:'Lines', arcs:'Arcs', conics:'Conics & Spirals' };
-  var state = { tab:'splines',
-    type:{ splines:'bez', shapes:'rect', circles:'ccr', lines:'seg', arcs:'a3p', conics:'par' },
-    pts:{ splines:[], shapes:[], circles:[], lines:[], arcs:[], conics:[] } };
 
+  /* the HTML export sets PG_ONLY to the checked type ids */
+  var ONLY = (typeof window !== 'undefined' && window.PG_ONLY) || null;
+  if(ONLY){
+    Object.keys(TABS).forEach(function(t){
+      TABS[t].types = TABS[t].types.filter(function(x){ return ONLY.indexOf(x.id) >= 0; });
+    });
+  }
+  var firstTab = null;
+  Object.keys(TABS).forEach(function(t){ if(!firstTab && TABS[t].types.length) firstTab = t; });
+  if(!firstTab) return;
+  var state = { tab: firstTab, type: {}, pts: {} };
+  Object.keys(TABS).forEach(function(t){
+    state.type[t] = TABS[t].types.length ? TABS[t].types[0].id : null;
+    state.pts[t] = [];
+  });
+  var OPTS = {};
+  Object.keys(TABS).forEach(function(t){
+    TABS[t].types.forEach(function(ty){
+      OPTS[ty.id] = {};
+      (ty.opts || []).forEach(function(o){ OPTS[ty.id][o.key] = o.val; });
+    });
+  });
+  function op(id, k){ return OPTS[id][k]; }
   function typeMeta(tab){
     var id = state.type[tab], ts = TABS[tab].types;
     for(var i = 0; i < ts.length; i++) if(ts[i].id === id) return ts[i];
@@ -312,12 +434,47 @@
       b.classList.toggle('active', state.type[tab] === t.id);
       b.addEventListener('click', function(){
         state.type[tab] = t.id;
+        state.pts[tab] = [];          /* changing line type wipes the board */
         pillsFor(tab); draw();
       });
       pills.appendChild(b);
     });
     var m = typeMeta(tab);
-    hintEl.textContent = m.how + '  ·  ' + m.apps.join(' · ');
+    if(hintEl) hintEl.textContent = m.how + '  ·  ' + m.apps.join(' · ');
+    settingsFor();
+  }
+
+  /* ---- settings: one slider + synced number input per option ---- */
+  function settingsFor(){
+    if(!setEl) return;
+    var m = typeMeta(state.tab);
+    setEl.innerHTML = '';
+    if(!m.opts || !m.opts.length){ setEl.style.display = 'none'; return; }
+    setEl.style.display = '';
+    m.opts.forEach(function(o){
+      var row = document.createElement('div'); row.className = 'row';
+      var lab = document.createElement('label');
+      lab.textContent = o.label + (o.unit ? ' (' + o.unit + ')' : '');
+      var rng = document.createElement('input'); rng.type = 'range';
+      var num = document.createElement('input'); num.type = 'number';
+      [rng, num].forEach(function(inp){
+        inp.min = o.min; inp.max = o.max; inp.step = o.step;
+        inp.value = OPTS[m.id][o.key];
+        inp.setAttribute('aria-label', o.label);
+      });
+      function setVal(v){
+        v = Math.max(o.min, Math.min(o.max, +v || o.min));
+        OPTS[m.id][o.key] = v; rng.value = v; num.value = v; draw();
+      }
+      rng.addEventListener('input', function(){ setVal(rng.value); });
+      num.addEventListener('input', function(){
+        var v = +num.value;
+        if(!isNaN(v) && v >= o.min && v <= o.max){ OPTS[m.id][o.key] = v; rng.value = v; draw(); }
+      });
+      num.addEventListener('change', function(){ setVal(num.value); });
+      row.appendChild(lab); row.appendChild(rng); row.appendChild(num);
+      setEl.appendChild(row);
+    });
   }
 
   /* ---- small vector kit ---- */
@@ -431,17 +588,18 @@
       path(list); },
     cat: function(P){ if(P.length >= 3) catRun(P); },
     kink: function(P){ if(P.length < 3) return;
+      var thr = Math.cos(op('kink','ang') * Math.PI / 180);
       var runs = [], cur = [P[0]];
       for(var i = 1; i < P.length - 1; i++){
         cur.push(P[i]);
         var u = N(P[i].x - P[i-1].x, P[i].y - P[i-1].y),
             v = N(P[i+1].x - P[i].x, P[i+1].y - P[i].y);
-        if(u.x*v.x + u.y*v.y < 0.5){ runs.push(cur); cur = [P[i]]; }  /* > 60° turn = a kink */
+        if(u.x*v.x + u.y*v.y < thr){ runs.push(cur); cur = [P[i]]; }
       }
       cur.push(P[P.length-1]); runs.push(cur);
       runs.forEach(catRun); },
     catn: function(P){ each(P, 2, function(a, b){
-      var L = dst(a, b), sag = 0.28 * L, k = 2.6, ch = Math.cosh(k / 2), list = [];
+      var L = dst(a, b), sag = op('catn','sag') / 100 * L, k = 2.6, ch = Math.cosh(k / 2), list = [];
       for(var i = 0; i <= 60; i++){
         var u = i / 60, s = (Math.cosh(k * (u - 0.5)) - ch) / (1 - ch);
         list.push({ x: a.x + (b.x - a.x)*u, y: a.y + (b.y - a.y)*u + sag*s });
@@ -460,7 +618,7 @@
       ctx.closePath(); ctx.stroke(); }); },
     rrect: function(P){ each(P, 2, function(a, b){
       var x0 = Math.min(a.x,b.x), y0 = Math.min(a.y,b.y), W = Math.abs(b.x-a.x), H = Math.abs(b.y-a.y);
-      var r = Math.min(W, H) * 0.18;
+      var r = Math.min(Math.min(W, H) * op('rrect','r') / 100, Math.min(W, H) / 2);
       ctx.beginPath();
       ctx.moveTo(x0 + r, y0);
       ctx.arcTo(x0 + W, y0,     x0 + W, y0 + H, r);
@@ -469,34 +627,35 @@
       ctx.arcTo(x0,     y0,     x0 + W, y0,     r);
       ctx.closePath(); ctx.stroke(); }); },
     pgin: function(P){ each(P, 2, function(c, v){
-      ngon(c, dst(c, v), Math.atan2(v.y - c.y, v.x - c.x), 6); }); },
+      ngon(c, dst(c, v), Math.atan2(v.y - c.y, v.x - c.x), op('pgin','n')); }); },
     pgcir: function(P){ each(P, 2, function(c, m){
-      var ap = dst(c, m), ph = Math.atan2(m.y - c.y, m.x - c.x);
+      var n = op('pgcir','n'), ap = dst(c, m), ph = Math.atan2(m.y - c.y, m.x - c.x);
       circle(c, ap, true);
-      ngon(c, ap / Math.cos(Math.PI / 6), ph + Math.PI / 6, 6); }); },
+      ngon(c, ap / Math.cos(Math.PI / n), ph + Math.PI / n, n); }); },
     star: function(P){ each(P, 2, function(c, v){
+      var n = op('star','n'), q = op('star','inner') / 100;
       var R = dst(c, v), ph = Math.atan2(v.y - c.y, v.x - c.x);
       ctx.beginPath();
-      for(var k = 0; k <= 10; k++){
-        var r = (k % 2 ? 0.45 * R : R), an = ph + Math.PI * k / 5;
+      for(var k = 0; k <= 2 * n; k++){
+        var r = (k % 2 ? q * R : R), an = ph + Math.PI * k / n;
         var x = c.x + r*Math.cos(an), y = c.y + r*Math.sin(an);
         k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
       ctx.closePath(); ctx.stroke(); }); },
     grect: function(P){ each(P, 2, function(a, b){
+      var cols = op('grect','cols'), rows = op('grect','rows');
       var x0 = Math.min(a.x,b.x), y0 = Math.min(a.y,b.y), W = Math.abs(b.x-a.x), H = Math.abs(b.y-a.y);
       ctx.beginPath(); ctx.rect(x0, y0, W, H);
-      for(var i = 1; i < 4; i++){
-        ctx.moveTo(x0 + W*i/4, y0); ctx.lineTo(x0 + W*i/4, y0 + H);
-        ctx.moveTo(x0, y0 + H*i/4); ctx.lineTo(x0 + W, y0 + H*i/4);
-      }
+      for(var i = 1; i < cols; i++){ ctx.moveTo(x0 + W*i/cols, y0); ctx.lineTo(x0 + W*i/cols, y0 + H); }
+      for(var j = 1; j < rows; j++){ ctx.moveTo(x0, y0 + H*j/rows); ctx.lineTo(x0 + W, y0 + H*j/rows); }
       ctx.stroke(); }); },
     gpol: function(P){ each(P, 2, function(c, e){
+      var rings = op('gpol','rings'), spokes = op('gpol','spokes');
       var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x);
       ctx.beginPath();
-      for(var k = 1; k <= 4; k++){ ctx.moveTo(c.x + R*k/4, c.y); ctx.arc(c.x, c.y, R*k/4, 0, TAU); }
-      for(var s = 0; s < 8; s++){
-        var an = ph + TAU * s / 8;
+      for(var k = 1; k <= rings; k++){ ctx.moveTo(c.x + R*k/rings, c.y); ctx.arc(c.x, c.y, R*k/rings, 0, TAU); }
+      for(var s = 0; s < spokes; s++){
+        var an = ph + TAU * s / spokes;
         ctx.moveTo(c.x, c.y); ctx.lineTo(c.x + R*Math.cos(an), c.y + R*Math.sin(an));
       }
       ctx.stroke(); }); },
@@ -577,7 +736,7 @@
       var cosT = Math.max(-0.999, Math.min(0.999, u.x*w.x + u.y*w.y)), th = Math.acos(cosT);
       if(th < 0.05 || th > Math.PI - 0.05){ seg2(a, b); seg2(b, c); return; }
       var la = dst(a, b), lc = dst(c, b);
-      var r = 0.3 * Math.min(la, lc), d = r / Math.tan(th / 2), dm = 0.85 * Math.min(la, lc);
+      var r = op('fil','r'), d = r / Math.tan(th / 2), dm = 0.85 * Math.min(la, lc);
       if(d > dm){ d = dm; r = d * Math.tan(th / 2); }
       var Ta = { x: b.x + u.x*d, y: b.y + u.y*d }, Tc = { x: b.x + w.x*d, y: b.y + w.y*d };
       var bis = N(u.x + w.x, u.y + w.y), O = { x: b.x + bis.x*r/Math.sin(th/2), y: b.y + bis.y*r/Math.sin(th/2) };
@@ -625,23 +784,27 @@
       path(list); }); },
     con: function(P){ each(P, 3, function(s, ap, e){
       guidePoly([s, ap, e]);
-      var w = 1.6, list = [];
+      var rho = op('con','rho'), w = rho / (1 - rho), list = [];
       for(var i = 0; i <= 60; i++){
         var t = i / 60, b0 = (1-t)*(1-t), b1 = 2*w*t*(1-t), b2 = t*t, dn = b0 + b1 + b2;
         list.push({ x:(b0*s.x + b1*ap.x + b2*e.x)/dn, y:(b0*s.y + b1*ap.y + b2*e.y)/dn });
       }
       path(list); }); },
     spa: function(P){ each(P, 2, function(c, e){
-      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = 3 * TAU, list = [];
-      for(var i = 0; i <= 240; i++){
-        var th = T * i / 240, r = R * th / T, an = ph - (T - th);
+      var turns = op('spa','turns');
+      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = turns * TAU;
+      var S = Math.max(160, turns * 80), list = [];
+      for(var i = 0; i <= S; i++){
+        var th = T * i / S, r = R * th / T, an = ph - (T - th);
         list.push({ x: c.x + r*Math.cos(an), y: c.y + r*Math.sin(an) });
       }
       path(list); }); },
     spl: function(P){ each(P, 2, function(c, e){
-      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = 4 * TAU, list = [];
-      for(var i = 0; i <= 280; i++){
-        var th = T * i / 280, an = ph - (T - th), r = R * Math.pow(0.6, (T - th) / TAU);
+      var winds = op('spl','winds'), k = op('spl','decay') / 100;
+      var R = dst(c, e), ph = Math.atan2(e.y - c.y, e.x - c.x), T = winds * TAU;
+      var S = Math.max(160, winds * 70), list = [];
+      for(var i = 0; i <= S; i++){
+        var th = T * i / S, an = ph - (T - th), r = R * Math.pow(k, (T - th) / TAU);
         list.push({ x: c.x + r*Math.cos(an), y: c.y + r*Math.sin(an) });
       }
       path(list); }); }
@@ -733,12 +896,200 @@
     state.pts[state.tab] = []; draw();
   });
   document.querySelectorAll('.pgtab').forEach(function(b){
+    var t = b.dataset.tab;
+    if(!TABS[t] || !TABS[t].types.length){ b.style.display = 'none'; return; }
+    b.classList.toggle('active', t === state.tab);
     b.addEventListener('click', function(){
-      state.tab = b.dataset.tab;
+      state.tab = t;
+      state.pts[t] = [];              /* changing family wipes the board too */
       document.querySelectorAll('.pgtab').forEach(function(x){ x.classList.toggle('active', x === b); });
-      pillsFor(state.tab); draw();
+      pillsFor(t); draw();
     });
   });
+
+  /* ---- mode tabs: draw / export prompt / export html ---- */
+  var modeBtns = document.querySelectorAll('.pgmode');
+  var views = { draw: document.getElementById('pgDraw'),
+                prompt: document.getElementById('pgPrompt'),
+                html: document.getElementById('pgHtml') };
+  modeBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      modeBtns.forEach(function(x){ x.classList.toggle('active', x === b); });
+      Object.keys(views).forEach(function(k){ if(views[k]) views[k].hidden = (k !== b.dataset.mode); });
+      if(b.dataset.mode === 'prompt') buildPrompt();
+      if(b.dataset.mode === 'html') buildChecks();
+      if(b.dataset.mode === 'draw') resize();
+    });
+  });
+
+  /* ---- export prompt: a ready-to-paste brief for the selected type ---- */
+  var MATH = {
+    bez:  'evaluate the whole point list as one Bézier span with de Casteljau’s algorithm, sampling t from 0 to 1.',
+    bsp:  'uniform cubic B-spline; clamp the ends by repeating the first and last control points twice, then blend each window of four points with the cubic basis (1−3t+3t²−t³, 4−6t²+3t³, 1+3t+3t²−3t³, t³)/6.',
+    bspc: 'the same cubic B-spline basis but the control-point windows wrap around modulo the point count, closing the loop.',
+    cat:  'Catmull-Rom spline through every point, end points duplicated so the curve reaches them.',
+    kink: 'Catmull-Rom interpolation, but split the point list wherever the turn angle exceeds the kink angle and interpolate each run separately so corners stay sharp.',
+    catn: 'catenary profile s(u) = (cosh(k(u−½)) − cosh(k/2)) / (1 − cosh(k/2)) with k ≈ 2.6, added below the straight chord; the midspan dip is the sag percentage of the span.',
+    free: 'record pointer positions during the drag (skip moves under 4px), then draw a Catmull-Rom curve through the samples.',
+    rect: 'axis-aligned rectangle spanning the two tapped corners.',
+    rect3:'the first two taps set one edge; project the third tap onto that edge’s normal to get the signed width, then offset both edge ends by it.',
+    rrect:'rectangle from two corners with each corner replaced by an arcTo fillet; radius = the setting’s percentage of the shorter side.',
+    pgin: 'regular N-gon: vertices every 2π/N around the centre, first vertex at the second tap.',
+    pgcir:'regular N-gon circumscribing the circle through the second tap: apothem = that distance, vertex radius = apothem / cos(π/N), rotated half a step so the tapped point is an edge midpoint.',
+    star: 'alternate between the outer radius (second tap) and the inner percentage of it every π/N to get 2N vertices.',
+    grect:'rectangle from two corners plus evenly spaced internal dividers: columns−1 verticals and rows−1 horizontals.',
+    gpol: 'concentric circles at k/rings of the radius plus evenly spaced radial spokes from the centre.',
+    ccr:  'circle centred at the first tap passing through the second.',
+    c2p:  'the two taps are a diameter: centre at their midpoint, radius half their distance.',
+    c3p:  'circumcircle: solve the circumcentre from the three points (perpendicular-bisector intersection), radius to any of them.',
+    cin:  'incircle of the tapped triangle: incentre = (a·A + b·B + c·C)/(a+b+c) with opposite side lengths as weights, inradius = 2·area/perimeter.',
+    ell:  'axis-aligned ellipse inscribed in the bounding box of the two taps.',
+    epar: 'the first two taps are the major-axis ends; the third tap’s perpendicular distance from that axis is the semi-minor radius; draw the half on the tap’s side.',
+    seg:  'a straight segment per pair of taps.',
+    sdl:  'start at the first tap, direction toward the second, length = distance from the start to the third tap.',
+    poly: 'straight segments joining consecutive taps.',
+    fit:  'least-squares line: direction θ = ½·atan2(2Σxy, Σx²−Σy²) on centred coordinates, drawn across the points’ projected extent through the centroid.',
+    a3p:  'circumcircle through the three taps; sweep direction from the cross product of (through−start) and (end−start).',
+    cse:  'circle at the first tap with radius to the second; arc from the start angle to the end tap’s angle.',
+    sed:  'the centre lies on the normal of the start direction: r = |E−S|² / (2·n·(E−S)); pick the sweep whose start tangent matches the tapped direction.',
+    ser:  'offset the chord midpoint perpendicular by the third tap’s distance to get the arc apex, then solve the three-point arc through start, apex, end.',
+    tan:  'the first two taps make a line; each further tap gets the unique arc that leaves the previous end along its tangent and lands on the tap; the tangent updates from the arc’s exit angle.',
+    fil:  'trim distance d = r/tan(θ/2) back from the corner along both legs; arc centre sits at r/sin(θ/2) along the angle bisector; draw the trimmed legs plus the connecting arc.',
+    qua:  'quarter ellipse from corner to corner: centre at (first tap x, second tap y), radii = the coordinate differences.',
+    semi: 'half a circle on the chord: centre at the midpoint, sweep π from the chord angle.',
+    par:  'work in chord coordinates (x along first→third tap): fit y = a·x(x−L) so it passes through the middle tap, then map back.',
+    hyp:  'centre-vertex frame: a = |vertex−centre|; solve b by forcing x²/a² − y²/b² = 1 through the third tap; sample one branch on the vertex side.',
+    con:  'rational quadratic Bézier over start, apex, end with weight w = rho/(1−rho); rho 0.5 is a parabola, higher bulges toward the apex, lower flattens.',
+    spa:  'Archimedean spiral r = R·θ/θmax over the set number of turns, ending exactly at the second tap.',
+    spl:  'logarithmic spiral r = R·decay^((θmax−θ)/2π): each full wind inward multiplies the radius by the decay.'
+  };
+  function buildPrompt(){
+    var txt = document.getElementById('pgPromptText');
+    if(!txt) return;
+    var m = typeMeta(state.tab), P = state.pts[state.tab];
+    var nameEl = document.getElementById('pgPromptName');
+    if(nameEl) nameEl.textContent = m.label;
+    var L = [];
+    L.push('Build a small interactive HTML canvas widget that draws a ' + m.label +
+           ' the way ' + m.apps.join(' and ') + ' construct it.');
+    L.push('');
+    L.push('Construction: ' + m.how + '.');
+    L.push('Math: ' + (MATH[m.id] || 'standard construction.'));
+    if(m.opts && m.opts.length){
+      L.push('');
+      L.push('Settings (render each as a slider plus a synced number input under the board):');
+      m.opts.forEach(function(o){
+        L.push('- ' + o.label + ': default ' + OPTS[m.id][o.key] + (o.unit ? ' ' + o.unit : '') +
+               ', range ' + o.min + ' to ' + o.max + '.');
+      });
+    }
+    if(P.length){
+      L.push('');
+      L.push('Preload these example points: ' + JSON.stringify(P.map(function(p){
+        return [Math.round(p.x), Math.round(p.y)];
+      })));
+    }
+    L.push('');
+    L.push('Interaction: a click adds a point; dragging an existing point moves it and the geometry re-solves live; right-click deletes a point; points of an incomplete group render hollow. Add Undo and Clear buttons, and wipe the points when the type changes.');
+    L.push('Style: white square board with a thin grey 40px grid, 2px black ink lines with round caps, dashed 1px grey construction guides, small black point discs.');
+    L.push('Deliver one self-contained HTML file with no external libraries.');
+    txt.value = L.join('\n');
+  }
+  var cp = document.getElementById('pgCopy');
+  if(cp) cp.addEventListener('click', function(){
+    var txt = document.getElementById('pgPromptText'), note = document.getElementById('pgCopyNote');
+    var done = function(ok){ if(note) note.textContent = ok ? 'copied' : 'select the text and copy manually'; };
+    txt.focus(); txt.select();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt.value).then(function(){ done(true); },
+        function(){ done(document.execCommand && document.execCommand('copy')); });
+    } else done(document.execCommand && document.execCommand('copy'));
+  });
+
+  /* ---- export html: checkbox + search picker, packs this box into a file ---- */
+  var checksBuilt = false;
+  function buildChecks(){
+    var host = document.getElementById('pgChecks');
+    if(!host || checksBuilt) return;
+    checksBuilt = true;
+    Object.keys(TABS).forEach(function(tab){
+      if(!TABS[tab].types.length) return;
+      var g = document.createElement('div');
+      g.className = 'grp'; g.textContent = TABLABEL[tab];
+      host.appendChild(g);
+      TABS[tab].types.forEach(function(t){
+        var lab = document.createElement('label');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = true; cb.value = t.id;
+        lab.appendChild(cb);
+        lab.appendChild(document.createTextNode(t.label));
+        lab.dataset.name = (t.label + ' ' + TABLABEL[tab] + ' ' + t.apps.join(' ')).toLowerCase();
+        host.appendChild(lab);
+      });
+    });
+    var search = document.getElementById('pgSearch');
+    if(search) search.addEventListener('input', function(){
+      var q = search.value.trim().toLowerCase();
+      host.querySelectorAll('label').forEach(function(l){
+        l.style.display = (!q || l.dataset.name.indexOf(q) >= 0) ? '' : 'none';
+      });
+    });
+    var allB = document.getElementById('pgAll'), noneB = document.getElementById('pgNone');
+    if(allB) allB.addEventListener('click', function(){
+      host.querySelectorAll('input').forEach(function(c){ c.checked = true; });
+    });
+    if(noneB) noneB.addEventListener('click', function(){
+      host.querySelectorAll('input').forEach(function(c){ c.checked = false; });
+    });
+    var dl = document.getElementById('pgDl');
+    if(dl) dl.addEventListener('click', function(){
+      var ids = [];
+      host.querySelectorAll('input:checked').forEach(function(c){ ids.push(c.value); });
+      var note = document.getElementById('pgDlNote');
+      if(!ids.length){ if(note) note.textContent = 'pick at least one type'; return; }
+      var blob = new Blob([exportDoc(ids)], { type: 'text/html' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '2d-lines.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      if(note) note.textContent = ids.length + ' type' + (ids.length > 1 ? 's' : '') + ' packed';
+    });
+  }
+  function exportDoc(ids){
+    var css = (document.getElementById('pgCss') || {}).textContent || '';
+    var eng = (document.getElementById('pgEngine') || {}).textContent || '';
+    var tabsHtml = '';
+    Object.keys(TABS).forEach(function(tab){
+      tabsHtml += '<button class="pgtab" data-tab="' + tab + '" role="tab">' +
+                  TABLABEL[tab].split(' ')[0] + '</button>';
+    });
+    return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>2D Lines — OttomanLabs.AI</title><style>' +
+      ':root{--paper:#FFFFFF;--ink:#111111;--ink-60:#5A5A5A;--ink-35:#A9A9A9;--hair:#E3E3E3;' +
+      '--font-brand:"Avenir Next","Helvetica Neue",Arial,sans-serif;' +
+      '--font-serif:Georgia,"Times New Roman",serif;--font-display:Georgia,serif;}' +
+      'body{margin:0;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;}' +
+      '.pg-credit{font-family:var(--font-brand);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-60);margin-top:1.1rem;}' +
+      '.pg-credit a{color:inherit;}' +
+      css + '</style></head><body>' +
+      '<div class="draw-sec">' +
+      '<div class="draw-cap"><b>2D Lines</b><span>drawn at ottomanlabs.ai</span></div>' +
+      '<div class="pg-tabs" role="tablist">' + tabsHtml + '</div>' +
+      '<div class="pg-pills" id="pgPills"></div>' +
+      '<div class="pg-boardwrap"><canvas id="pgBoard"></canvas>' +
+      '<div class="pg-actions"><button id="pgUndo" type="button">Undo</button>' +
+      '<button id="pgClear" type="button">Clear</button></div></div>' +
+      '<div class="pg-hint" id="pgHint"></div>' +
+      '<div class="pg-set" id="pgSet"></div>' +
+      '</div>' +
+      '<p class="pg-credit">the computational asset playground · ' +
+      '<a href="https://ottomanlabs.ai/playground.html">ottomanlabs.ai</a></p>' +
+      '<scr' + 'ipt>window.PG_ONLY=' + JSON.stringify(ids) + ';</scr' + 'ipt>' +
+      '<scr' + 'ipt>' + eng + '</scr' + 'ipt>' +
+      '</body></html>';
+  }
 
   /* ---- the catalogue table: every type, categorised by source app ---- */
   (function(){
@@ -762,6 +1113,7 @@
 
   function resize(){
     var s = canvas.parentNode.clientWidth;
+    if(!s) return;
     var dpr = window.devicePixelRatio || 1;
     canvas.style.height = s + 'px';
     canvas.width = Math.round(s * dpr); canvas.height = Math.round(s * dpr);
