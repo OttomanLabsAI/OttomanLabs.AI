@@ -146,6 +146,12 @@
   .gr-row input[type="number"]{ width:5rem; font-family:var(--font-brand); font-size:.72rem;
     border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
   .gr-turnwrap{ display:flex; align-items:center; gap:.6rem; }
+  .gr-turnwrap[hidden]{ display:none; }
+  .gr-ex{ display:flex; flex-wrap:wrap; gap:.35rem; padding:.55rem 1.1rem 0; }
+  .gr-ex button{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.66rem;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.22rem .5rem; cursor:pointer; }
+  .gr-ex button:hover{ background:var(--ink); color:var(--paper); }
   .gr-boardwrap{ margin:.7rem .9rem .35rem; }
   #grBoard{ display:block; width:100%; height:auto; border:1px solid var(--hair); }
 
@@ -481,6 +487,7 @@
           <input type="number" id="grTurns" min="1" max="12" step="1" value="1">
         </span>
       </div>
+      <div class="gr-ex" id="grEx" aria-label="Example equations"></div>
       <div class="gr-boardwrap">
         <canvas id="grBoard" aria-label="Graph plot"></canvas>
       </div>
@@ -2187,10 +2194,29 @@
   var HELP = 'sin cos tan sqrt ln log exp abs · ^ · pi e';
 
   var GTAB = {
-    xy:   { lab:'f(x) =', fx:'sin(x) * x',          from:-10,  to:10 },
-    pol:  { lab:'r(t) =', fx:'1 + 0.5 * sin(6*t)',  turns:1 },
-    slog: { lab:'f(x) =', fx:'exp(x)',              from:0,    to:10 },
-    llog: { lab:'f(x) =', fx:'x^2',                 from:0.1,  to:100 }
+    xy:   { lab:'f(x) =', fx:'sin(x) * x', from:-10, to:10,
+      ex: [ { fx:'sin(x) * x' },
+            { fx:'x^2 / 10 - 4' },
+            { fx:'sin(x) + sin(3*x) / 3' },
+            { fx:'exp(-(x^2) / 10) * 8' },
+            { fx:'tan(x)', from:-6, to:6 } ] },
+    pol:  { lab:'r(t) =', fx:'1 + 0.5 * sin(6*t)', turns:1,
+      ex: [ { fx:'4', turns:1 },
+            { fx:'2 + 2 * cos(t)', turns:1 },
+            { fx:'3 * sin(2*t)', turns:1 },
+            { fx:'1 + 0.5 * sin(6*t)', turns:1 },
+            { fx:'3 * sqrt(cos(2*t))', turns:1 },
+            { fx:'t / 6', turns:4 } ] },
+    slog: { lab:'f(x) =', fx:'exp(x)', from:0, to:10,
+      ex: [ { fx:'exp(x)' },
+            { fx:'exp(x/2) * 5' },
+            { fx:'100 * exp(-x/3)' },
+            { fx:'x^3 + 1' } ] },
+    llog: { lab:'f(x) =', fx:'x^2', from:0.1, to:100,
+      ex: [ { fx:'x^2' },
+            { fx:'sqrt(x) * 10' },
+            { fx:'1 / x' },
+            { fx:'x^1.5 / 2' } ] }
   };
   var cur = 'xy';
 
@@ -2371,8 +2397,10 @@
   }
   function linGrid(mn, mx, isX, S, x0, x1, y0, y1){
     var step = niceStep(mx - mn, isX ? 7 : 6);
-    for(var v = Math.ceil(mn / step) * step; v <= mx + 1e-9; v += step){
-      var p = S(v);
+    var k0 = Math.ceil(mn / step - 1e-9), k1 = Math.floor(mx / step + 1e-9);
+    for(var k = k0; k <= k1; k++){
+      var v = k * step;
+      var p = Math.round(S(v)) + 0.5;
       g2.strokeStyle = muted(); g2.globalAlpha = 0.3; g2.lineWidth = 1;
       g2.beginPath();
       if(isX){ g2.moveTo(p, y0); g2.lineTo(p, y1); } else { g2.moveTo(x0, p); g2.lineTo(x1, p); }
@@ -2387,7 +2415,7 @@
       for(var m = 1; m < 10; m++){
         var v = k + Math.log(m) / Math.LN10;
         if(v < mn || v > mx) continue;
-        var p = S(v);
+        var p = Math.round(S(v)) + 0.5;
         g2.strokeStyle = muted(); g2.globalAlpha = m === 1 ? 0.45 : 0.15; g2.lineWidth = 1;
         g2.beginPath();
         if(isX){ g2.moveTo(p, y0); g2.lineTo(p, y1); } else { g2.moveTo(x0, p); g2.lineTo(x1, p); }
@@ -2403,12 +2431,12 @@
   function axisLine(px, py, x0, x1, y0, y1){
     g2.strokeStyle = dim(); g2.lineWidth = 1;
     g2.beginPath();
-    if(px !== null){ g2.moveTo(px, y0); g2.lineTo(px, y1); }
-    else { g2.moveTo(x0, py); g2.lineTo(x1, py); }
+    if(px !== null){ px = Math.round(px) + 0.5; g2.moveTo(px, y0); g2.lineTo(px, y1); }
+    else { py = Math.round(py) + 0.5; g2.moveTo(x0, py); g2.lineTo(x1, py); }
     g2.stroke();
   }
   function polar(f, w, h){
-    var cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 26;
+    var cx = Math.round(w / 2), cy = Math.round(h / 2), R = Math.min(w, h) / 2 - 26;
     var turns = Math.max(1, Math.min(12, Math.round(+turnsI.value || 1)));
     var N = 720 * turns, i, rs = [];
     for(i = 0; i <= N; i++){
@@ -2456,10 +2484,31 @@
   function st_to(){ return toI.value === '' ? GTAB[cur].to : toI.value; }
 
   /* ---- wiring ---- */
+  var exHost = document.getElementById('grEx');
+  function buildExamples(){
+    if(!exHost) return;
+    exHost.innerHTML = '';
+    (GTAB[cur].ex || []).forEach(function(ex){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = ex.fx;
+      b.addEventListener('click', function(){
+        var st = GTAB[cur];
+        st.fx = ex.fx;
+        if(ex.from !== undefined) st.from = ex.from;
+        if(ex.to !== undefined) st.to = ex.to;
+        fx.value = st.fx;
+        if(cur !== 'pol'){ fromI.value = st.from; toI.value = st.to; }
+        if(ex.turns !== undefined && turnsI) turnsI.value = ex.turns;
+        draw();
+      });
+      exHost.appendChild(b);
+    });
+  }
   function loadTab(){
     var st = GTAB[cur];
     if(lab) lab.textContent = st.lab;
     fx.value = st.fx;
+    buildExamples();
     var isPol = cur === 'pol';
     if(turnsWrap) turnsWrap.hidden = !isPol;
     fromI.hidden = toI.hidden = isPol;
