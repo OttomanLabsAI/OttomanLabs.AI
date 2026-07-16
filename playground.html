@@ -1436,7 +1436,7 @@
            set:[ { key:'twist', label:'Twist', unit:'°', min:0, max:360, step:1 } ] }
   };
   var state = { tech:'ext', plane:'xy', shape:'A', A:[], B:[], path:[],
-                angle:360, twist:0, yaw:-0.7, pitch:-0.45 };
+                angle:360, twist:0, yaw:-0.7, pitch:0.48 };
   var SNAP = { on:true, g:30 };
   function snap(p){
     if(!SNAP.on) return p;
@@ -1728,30 +1728,95 @@
         vcx.stroke();
       }
       if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+      drawCube();
       return;
     }
-    var P = hex2rgb(paper()), I = hex2rgb(ink());
-    var L = norm3(v3(0.45, -0.55, 0.72));
     var out = [];
     MESH.faces.forEach(function(f){
       var q = f.map(tv), d = 0;
       q.forEach(function(p){ d += p.d / q.length; });
-      var u = { x: q[1].x - q[0].x, y: q[1].d - q[0].d, z: q[1].z - q[0].z };
-      var vv = { x: q[2].x - q[0].x, y: q[2].d - q[0].d, z: q[2].z - q[0].z };
-      var nn = norm3(cross3(u, vv));
-      var lam = 0.3 + 0.7 * Math.abs(dot3(nn, L));
-      out.push({ q: q, d: d, col: mixc(P, I, 0.78 - 0.5 * lam) });
+      out.push({ q: q, d: d });
     });
     out.sort(function(a, b){ return b.d - a.d; });
+    /* hidden-line: paper faces occlude, ink wireframe on top of each */
+    var fc = paper(), ec = ink();
     out.forEach(function(f){
       vcx.beginPath();
       vcx.moveTo(w/2 + f.q[0].x*S, h/2 - f.q[0].z*S);
       for(var k = 1; k < f.q.length; k++) vcx.lineTo(w/2 + f.q[k].x*S, h/2 - f.q[k].z*S);
       vcx.closePath();
-      vcx.fillStyle = f.col; vcx.strokeStyle = f.col; vcx.lineWidth = 1;
+      vcx.fillStyle = fc; vcx.strokeStyle = ec; vcx.lineWidth = 0.75;
       vcx.fill(); vcx.stroke();
     });
     if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+    drawCube();
+  }
+  /* ---- view cube: rotates with the view; click a face to snap to it ---- */
+  var CUBE = { cx: 52, cy: 52, s: 17 };
+  var CUBE_POLYS = [];
+  var CUBE_FACES = [
+    { n: v3(0, 0, 1),  lbl: 'TOP',   yaw: null,        pitch:  Math.PI / 2 },
+    { n: v3(0, 0, -1), lbl: 'BOT',   yaw: null,        pitch: -Math.PI / 2 },
+    { n: v3(0, -1, 0), lbl: 'FRONT', yaw: 0,           pitch: 0 },
+    { n: v3(0, 1, 0),  lbl: 'BACK',  yaw: Math.PI,     pitch: 0 },
+    { n: v3(1, 0, 0),  lbl: 'RIGHT', yaw: -Math.PI/2,  pitch: 0 },
+    { n: v3(-1, 0, 0), lbl: 'LEFT',  yaw: Math.PI/2,   pitch: 0 }
+  ];
+  function cubeQuad(n){
+    var u = Math.abs(n.x) > 0.5 ? v3(0, 1, 0) : v3(1, 0, 0);
+    var w2 = cross3(n, u);
+    return [ add3(add3(n, u), w2), add3(sub3(n, u), w2), sub3(sub3(n, u), w2), sub3(add3(n, u), w2) ];
+  }
+  function drawCube(){
+    var cy = Math.cos(state.yaw), sy = Math.sin(state.yaw);
+    var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
+    function tvc(p){
+      var x1 = p.x*cy - p.y*sy, y1 = p.x*sy + p.y*cy;
+      return { x: x1, d: y1*cp - p.z*sp, z: y1*sp + p.z*cp };
+    }
+    var polys = CUBE_FACES.map(function(f){
+      var q = cubeQuad(f.n).map(tvc);
+      return { f: f, q: q, d: (q[0].d + q[1].d + q[2].d + q[3].d) / 4, nd: tvc(f.n).d };
+    });
+    polys.sort(function(a, b){ return b.d - a.d; });
+    CUBE_POLYS = [];
+    polys.forEach(function(pl){
+      var pts = pl.q.map(function(p){ return [CUBE.cx + p.x*CUBE.s, CUBE.cy - p.z*CUBE.s]; });
+      vcx.beginPath();
+      pts.forEach(function(p, i){ i ? vcx.lineTo(p[0], p[1]) : vcx.moveTo(p[0], p[1]); });
+      vcx.closePath();
+      vcx.fillStyle = paper(); vcx.strokeStyle = ink(); vcx.lineWidth = 1;
+      vcx.fill(); vcx.stroke();
+      if(pl.nd < -0.2){
+        var cxx = (pts[0][0] + pts[1][0] + pts[2][0] + pts[3][0]) / 4;
+        var cyy = (pts[0][1] + pts[1][1] + pts[2][1] + pts[3][1]) / 4;
+        vcx.font = '6px sans-serif';
+        vcx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink-60').trim() || '#5A5A5A';
+        vcx.textAlign = 'center'; vcx.textBaseline = 'middle';
+        vcx.fillText(pl.f.lbl, cxx, cyy);
+        CUBE_POLYS.push({ pts: pts, f: pl.f });
+      }
+    });
+  }
+  function pointInPoly(x, y, pts){
+    var inside = false;
+    for(var i = 0, j = pts.length - 1; i < pts.length; j = i++){
+      if((pts[i][1] > y) !== (pts[j][1] > y) &&
+         x < (pts[j][0] - pts[i][0]) * (y - pts[i][1]) / (pts[j][1] - pts[i][1]) + pts[i][0]) inside = !inside;
+    }
+    return inside;
+  }
+  function cubeSnap(px, py){
+    for(var i = 0; i < CUBE_POLYS.length; i++){
+      if(pointInPoly(px, py, CUBE_POLYS[i].pts)){
+        var f = CUBE_POLYS[i].f;
+        if(f.yaw !== null) state.yaw = f.yaw;
+        state.pitch = f.pitch;
+        drawView();
+        return true;
+      }
+    }
+    return false;
   }
   function axisLabels(AXD, axLen, S, w, h, tv){
     vcx.font = '10px sans-serif';
@@ -1974,20 +2039,27 @@
   });
 
   /* ---- orbit ---- */
-  var orbiting = false, lx = 0, ly = 0;
+  var orbiting = false, lx = 0, ly = 0, orbMoved = false;
   view.addEventListener('pointerdown', function(e){
-    orbiting = true; lx = e.clientX; ly = e.clientY;
+    orbiting = true; lx = e.clientX; ly = e.clientY; orbMoved = false;
     view.setPointerCapture(e.pointerId);
     view.style.cursor = 'grabbing';
   });
   view.addEventListener('pointermove', function(e){
     if(!orbiting) return;
+    if(Math.abs(e.clientX - lx) + Math.abs(e.clientY - ly) > 2) orbMoved = true;
     state.yaw += (e.clientX - lx) * 0.008;
     state.pitch = Math.max(-1.4, Math.min(1.4, state.pitch + (e.clientY - ly) * 0.008));
     lx = e.clientX; ly = e.clientY;
     drawView();
   });
-  view.addEventListener('pointerup', function(){ orbiting = false; view.style.cursor = 'grab'; });
+  view.addEventListener('pointerup', function(e){
+    orbiting = false; view.style.cursor = 'grab';
+    if(!orbMoved){
+      var r = view.getBoundingClientRect();
+      cubeSnap(e.clientX - r.left, e.clientY - r.top);
+    }
+  });
 
   /* ---- snap controls ---- */
   var sOn = document.getElementById('t3SnapOn');
