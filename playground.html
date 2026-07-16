@@ -1804,7 +1804,7 @@
         var key = a._i < b._i ? a._i + '_' + b._i : b._i + '_' + a._i;
         var fs = emap[key].fs, cr = fs.length === 1;
         for(var q = 0; q < fs.length && !cr; q++)
-          if(fs[q] !== fi && dot3(fnorm[fi], fnorm[fs[q]]) < 0.985) cr = true;
+          if(fs[q] !== fi && dot3(fnorm[fi], fnorm[fs[q]]) < 0.9999) cr = true;
         crease.push(cr);
       }
       return { pts: f, crease: crease };
@@ -1913,7 +1913,7 @@
       vcx.closePath();
       vcx.fillStyle = fc; vcx.strokeStyle = fc; vcx.lineWidth = 1;
       vcx.fill(); vcx.stroke();
-      vcx.strokeStyle = ec; vcx.lineWidth = 1;
+      vcx.strokeStyle = ec; vcx.lineWidth = 0.8;
       vcx.beginPath();
       for(var e = 0; e < f.q.length; e++){
         if(!f.crease[e]) continue;
