@@ -48,8 +48,9 @@
     text-transform:uppercase; color:var(--ink-60); min-height:1em; }
 
   /* ── playground cards row ── */
-  .play-row{ display:flex; gap:var(--gap); justify-content:center; align-items:flex-start;
-    flex-wrap:wrap; margin-bottom:var(--gap); }
+  .play-row{ columns:560px; column-gap:var(--gap); margin-bottom:var(--gap); }
+  .play-row > .draw-sec{ width:100%; margin:0 0 var(--gap); break-inside:avoid;
+    page-break-inside:avoid; display:block; }
 
   /* ── 3d techniques card ── */
   .t3tab{ font-family:var(--font-brand); font-weight:500; font-size:.64rem; letter-spacing:.2em;
@@ -83,6 +84,10 @@
   .t3-vnote{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:0 1.5rem; font-family:var(--font-serif); font-style:italic;
     font-size:.95rem; color:var(--ink-35); pointer-events:none; }
+  .t3-axeschk{ position:absolute; top:.45rem; right:.45rem; display:flex; align-items:center;
+    gap:.35rem; font-family:var(--font-brand); font-size:.54rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); cursor:pointer; }
+  .t3-axeschk input{ accent-color:var(--ink); margin:0; }
 
   /* ── input tools card ── */
   .it-body{ display:flex; flex-direction:column; gap:.85rem; padding:1rem 1.1rem 1.1rem; }
@@ -206,6 +211,7 @@
   .pg-snap input[type="range"]{ flex:1; min-width:0; accent-color:var(--ink); }
   .pg-snap input[type="number"]{ flex:0 0 4.4rem; font-family:var(--font-brand); font-size:.72rem;
     border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
+  .pg-sub{ color:var(--ink-35); padding-bottom:.75rem; }
   .pg-set{ display:flex; flex-direction:column; gap:.5rem; padding:0 1.4rem .95rem; }
   .pg-set .row{ display:flex; align-items:center; gap:.8rem; }
   .pg-set label{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.16em;
@@ -305,12 +311,13 @@
           </div>
         </div>
         <div class="pg-snap">
-          <label class="pg-check"><input type="checkbox" id="pgSnapOn">Snap</label>
+          <label class="pg-check"><input type="checkbox" id="pgSnapOn" checked>Snap</label>
           <label>Grid</label>
           <input type="range" id="pgSnapG" min="10" max="80" step="5" value="40">
           <input type="number" id="pgSnapGN" min="10" max="80" step="5" value="40">
         </div>
         <div class="pg-hint" id="pgHint"></div>
+        <div class="pg-hint pg-sub">tap to add a point &middot; drag to move it &middot; right-click deletes</div>
         <div class="pg-set" id="pgSet"></div>
       </div>
       <div id="pgPrompt" class="pg-panel" hidden>
@@ -375,7 +382,7 @@
         </div>
       </div>
       <div class="pg-snap">
-        <label class="pg-check"><input type="checkbox" id="t3SnapOn">Snap</label>
+        <label class="pg-check"><input type="checkbox" id="t3SnapOn" checked>Snap</label>
         <label>Grid</label>
         <input type="range" id="t3SnapG" min="10" max="80" step="5" value="30">
         <input type="number" id="t3SnapGN" min="10" max="80" step="5" value="30">
@@ -383,9 +390,10 @@
       <div class="pg-set" id="t3Set"></div>
       <div class="t3-viewwrap">
         <canvas id="t3View" aria-label="3D output — drag to orbit"></canvas>
+        <label class="t3-axeschk"><input type="checkbox" id="t3Axes" checked>Axes</label>
         <div class="t3-vnote" id="t3Note"></div>
       </div>
-      <div class="pg-hint">drag the 3d view to orbit &middot; right-click a sketch point to delete it</div>
+      <div class="pg-hint">tap to add a point &middot; drag to move it &middot; right-click deletes &middot; drag the 3d view to orbit</div>
     </div>
     <div class="draw-sec itools">
       <div class="draw-cap">
@@ -562,7 +570,7 @@
   var pills = document.getElementById('pgPills');
   var hintEl = document.getElementById('pgHint');
   var setEl = document.getElementById('pgSet');
-  var SNAP = { on:false, g:40 };
+  var SNAP = { on:true, g:40 };
   function snapP(p){
     if(!SNAP.on) return p;
     return { x: Math.round(p.x / SNAP.g) * SNAP.g, y: Math.round(p.y / SNAP.g) * SNAP.g };
@@ -1337,10 +1345,11 @@
       '<div class="pg-boardwrap"><canvas id="pgBoard"></canvas>' +
       '<div class="pg-actions"><button id="pgUndo" type="button">Undo</button>' +
       '<button id="pgClear" type="button">Clear</button></div></div>' +
-      '<div class="pg-snap"><label class="pg-check"><input type="checkbox" id="pgSnapOn">Snap</label>' +
+      '<div class="pg-snap"><label class="pg-check"><input type="checkbox" id="pgSnapOn" checked>Snap</label>' +
       '<label>Grid</label><input type="range" id="pgSnapG" min="10" max="80" step="5" value="40">' +
       '<input type="number" id="pgSnapGN" min="10" max="80" step="5" value="40"></div>' +
       '<div class="pg-hint" id="pgHint"></div>' +
+      '<div class="pg-hint pg-sub">tap to add a point \u00b7 drag to move it \u00b7 right-click deletes</div>' +
       '<div class="pg-set" id="pgSet"></div>' +
       '</div>' +
       '<p class="pg-credit">the computational asset playground · ' +
@@ -1420,7 +1429,7 @@
   };
   var state = { tech:'ext', plane:'xz', shape:'A', A:[], B:[], path:[],
                 angle:360, twist:0, yaw:-0.7, pitch:-0.45 };
-  var SNAP = { on:false, g:30 };
+  var SNAP = { on:true, g:30 };
   function snap(p){
     if(!SNAP.on) return p;
     return { x: Math.round(p.x / SNAP.g) * SNAP.g, y: Math.round(p.y / SNAP.g) * SNAP.g };
@@ -1595,24 +1604,57 @@
     C = mul3(C, 1/n);
     var rad = 1;
     rings.forEach(function(r){ r.forEach(function(p){ rad = Math.max(rad, len3(sub3(p, C))); }); });
+    rad = Math.max(rad, len3(C) * 1.05 + 20);
     MESH = { faces: faces, C: C, R: rad };
   }
 
-  /* ---- 3d view: orbit + slow spin, painter-sorted flat shading ---- */
+  var _computeMesh = buildMesh;
+  buildMesh = function(){ _computeMesh(); drawView(); };
+  var AXES = true;
+  var axChk = document.getElementById('t3Axes');
+  if(axChk) axChk.addEventListener('change', function(){ AXES = axChk.checked; drawView(); });
+
+  /* ---- 3d view: manual orbit, painter-sorted flat shading ---- */
   function drawView(){
     var w = view.clientWidth, h = view.clientHeight;
     vcx.clearRect(0, 0, w, h);
-    if(!MESH){ if(noteEl) noteEl.textContent = NOTE; return; }
-    if(noteEl) noteEl.textContent = '';
-    var S = 0.42 * Math.min(w, h) / MESH.R;
+    var hasMesh = !!MESH;
+    if(noteEl) noteEl.textContent = hasMesh ? '' : NOTE;
+    var C = hasMesh ? MESH.C : v3(0, 0, 0);
+    var R = hasMesh ? MESH.R : 120;
+    var S = 0.42 * Math.min(w, h) / R;
     var cy = Math.cos(state.yaw), sy = Math.sin(state.yaw);
     var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
-    var C = MESH.C;
     function tv(p){
       var x = p.x - C.x, y = p.y - C.y, z = p.z - C.z;
       var x1 = x*cy - y*sy, y1 = x*sy + y*cy;
       var y2 = y1*cp - z*sp, z2 = y1*sp + z*cp;
       return { x: x1, d: y2, z: z2 };
+    }
+    var AXD = [[v3(1,0,0), 'X'], [v3(0,1,0), 'Y'], [v3(0,0,1), 'Z']];
+    var axLen = R * 1.15, axO = tv(v3(0, 0, 0));
+    if(AXES){
+      AXD.forEach(function(ax){
+        var tp = tv(mul3(ax[0], axLen)), tn = tv(mul3(ax[0], -axLen));
+        vcx.strokeStyle = muted(); vcx.lineWidth = 1;
+        vcx.globalAlpha = 0.75;
+        vcx.beginPath();
+        vcx.moveTo(w/2 + axO.x*S, h/2 - axO.z*S);
+        vcx.lineTo(w/2 + tp.x*S, h/2 - tp.z*S);
+        vcx.stroke();
+        vcx.globalAlpha = 0.3;
+        vcx.setLineDash([4, 4]);
+        vcx.beginPath();
+        vcx.moveTo(w/2 + axO.x*S, h/2 - axO.z*S);
+        vcx.lineTo(w/2 + tn.x*S, h/2 - tn.z*S);
+        vcx.stroke();
+        vcx.setLineDash([]);
+        vcx.globalAlpha = 1;
+      });
+    }
+    if(!hasMesh){
+      if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+      return;
     }
     var P = hex2rgb(paper()), I = hex2rgb(ink());
     var L = norm3(v3(0.45, -0.55, 0.72));
@@ -1634,6 +1676,16 @@
       vcx.closePath();
       vcx.fillStyle = f.col; vcx.strokeStyle = f.col; vcx.lineWidth = 1;
       vcx.fill(); vcx.stroke();
+    });
+    if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+  }
+  function axisLabels(AXD, axLen, S, w, h, tv){
+    vcx.font = '10px sans-serif';
+    vcx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink-60').trim() || '#5A5A5A';
+    vcx.textAlign = 'center'; vcx.textBaseline = 'middle';
+    AXD.forEach(function(ax){
+      var tp = tv(mul3(ax[0], axLen * 1.07));
+      vcx.fillText(ax[1], w/2 + tp.x*S, h/2 - tp.z*S);
     });
   }
 
@@ -1838,6 +1890,7 @@
     state.yaw += (e.clientX - lx) * 0.008;
     state.pitch = Math.max(-1.4, Math.min(1.4, state.pitch + (e.clientY - ly) * 0.008));
     lx = e.clientX; ly = e.clientY;
+    drawView();
   });
   view.addEventListener('pointerup', function(){ orbiting = false; view.style.cursor = 'grab'; });
 
@@ -1872,17 +1925,14 @@
       vcx.setTransform(dpr2, 0, 0, dpr2, 0, 0);
     }
     drawBoards();
+    drawView();
   }
   window.addEventListener('resize', sizeAll);
-  var mo = new MutationObserver(function(){ drawBoards(); });
+  var mo = new MutationObserver(function(){ drawBoards(); drawView(); });
   mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   sizeAll();
   applyTech();
-  (function loop(){
-    if(!orbiting) state.yaw += 0.0032;
-    drawView();
-    requestAnimationFrame(loop);
-  })();
+  drawView();
 })();
 </script>
 <script id="uiToolsEngine">
