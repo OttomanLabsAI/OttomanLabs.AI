@@ -63,6 +63,7 @@
     font-size:.54rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60);
     padding-bottom:.35rem; }
   .t3-chips{ display:flex; }
+  .t3-chips[hidden]{ display:none; }
   .t3-chips button{ font-family:var(--font-brand); font-size:.54rem; letter-spacing:.1em;
     text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
     padding:.16rem .42rem; cursor:pointer; margin-left:-1px; }
@@ -371,8 +372,8 @@
         <div class="t3-b">
           <div class="t3-blab">Line of Action
             <span class="t3-chips" id="t3Planes">
-              <button data-plane="xy" type="button">XY</button>
-              <button class="active" data-plane="xz" type="button">XZ</button>
+              <button class="active" data-plane="xy" type="button">XY</button>
+              <button data-plane="xz" type="button">XZ</button>
               <button data-plane="yz" type="button">YZ</button>
             </span>
             <button class="t3-clear" id="t3PathClear" type="button">Clear</button>
@@ -390,7 +391,7 @@
       <div class="pg-set" id="t3Set"></div>
       <div class="t3-viewwrap">
         <canvas id="t3View" aria-label="3D output — drag to orbit"></canvas>
-        <label class="t3-axeschk"><input type="checkbox" id="t3Axes" checked>Axes</label>
+        <label class="t3-axeschk"><input type="checkbox" id="t3Axes" checked>Axes + grid</label>
         <div class="t3-vnote" id="t3Note"></div>
       </div>
       <div class="pg-hint">tap to add a point &middot; drag to move it &middot; right-click deletes &middot; drag the 3d view to orbit</div>
@@ -1415,7 +1416,7 @@
            pathHint:'the extrusion line — straight, first tap to last',
            set:[ { key:'twist', label:'Twist', unit:'°', min:0, max:360, step:1 } ] },
     rev: { profHint:'tap a profile beside the centre axis',
-           pathHint:'the revolve axis — empty means the vertical centre axis',
+           pathHint:'draw the revolve axis — straight, first tap to last',
            set:[ { key:'angle', label:'Revolve angle', unit:'°', min:30, max:360, step:1 } ] },
     swp: { profHint:'tap a closed profile around the centre',
            pathHint:'the sweep path — smooths through your taps',
@@ -1427,7 +1428,7 @@
            pathHint:'the sweep path — A starts it, B ends it',
            set:[ { key:'twist', label:'Twist', unit:'°', min:0, max:360, step:1 } ] }
   };
-  var state = { tech:'ext', plane:'xz', shape:'A', A:[], B:[], path:[],
+  var state = { tech:'ext', plane:'xy', shape:'A', A:[], B:[], path:[],
                 angle:360, twist:0, yaw:-0.7, pitch:-0.45 };
   var SNAP = { on:true, g:30 };
   function snap(p){
@@ -1508,7 +1509,41 @@
   }
 
   /* ---- mesh ---- */
-  var MESH = null, NOTE = 'sketch a profile to see the solid';
+  var MESH = null, PREVIEW = null, NOTE = 'sketch a profile and its line of action';
+  var PROMPT_LINE = { ext:'now draw the extrusion line', rev:'now draw the revolve axis',
+                      swp:'now draw the sweep path', bln:'now draw the blend line',
+                      swb:'now draw the sweep path' };
+  function perpFrame(F){          /* profile plane: perpendicular to the path plane */
+    var b = cross3(F.n, F.e2);
+    return { b: len3(b) < 1e-4 ? F.e1 : norm3(b) };
+  }
+  function profilePreview(F){
+    var src = (isBlend() && state.shape === 'B') ? state.B : state.A;
+    var pp = rel(src, prof);
+    if(pp.length < 2) return null;
+    var b = perpFrame(F).b;
+    return { pts: pp.map(function(p){ return add3(mul3(b, p.x), mul3(F.n, p.y)); }),
+             closed: pp.length >= 3,
+             accent: isBlend() && state.shape === 'B' };
+  }
+  function pathPreview(F){
+    var pp = rel(state.path, pathC);
+    if(pp.length < 2) return null;
+    var pts2;
+    if((state.tech === 'swp' || state.tech === 'swb') && pp.length >= 3){
+      var C = [pp[0]].concat(pp, [pp[pp.length-1]]);
+      pts2 = [];
+      for(var i = 0; i <= 48; i++){
+        var u = i / 48 * (pp.length - 1), s = Math.min(Math.floor(u), pp.length - 2);
+        pts2.push(catmull2(C[s], C[s+1], C[s+2], C[s+3], u - s));
+      }
+    } else if(state.tech === 'swp' || state.tech === 'swb'){
+      pts2 = pp;
+    } else {
+      pts2 = [pp[0], pp[pp.length - 1]];
+    }
+    return { pts: pts2.map(function(p){ return map2(p, F); }), closed: false, accent: false };
+  }
   function spine(F){
     var pp = rel(state.path, pathC), pts = [], M, i;
     if(state.tech === 'swp' || state.tech === 'swb'){
@@ -1548,14 +1583,19 @@
       faces.push([c, ring[j], ring[(j+1)%ring.length]]);
   }
   function buildMesh(){
-    MESH = null;
+    MESH = null; PREVIEW = null;
     var K = 36, F = frame();
     var A2 = resampleClosed(rel(state.A, prof), K);
-    if(!A2){ NOTE = 'sketch a closed profile (3+ points) to see the solid'; return; }
-    var B2 = null;
-    if(isBlend()){
-      B2 = resampleClosed(rel(state.B, prof), K);
-      if(!B2){ NOTE = 'blend needs shape B — hit the B chip and sketch it'; return; }
+    var pathOk = state.path.length >= 2;
+    var B2 = isBlend() ? resampleClosed(rel(state.B, prof), K) : null;
+    if(!A2 || !pathOk || (isBlend() && !B2)){
+      /* no solid yet — show what exists, flat, in the 3d view */
+      PREVIEW = profilePreview(F) || (pathOk ? pathPreview(F) : null);
+      if(!A2 && !pathOk) NOTE = 'sketch a profile and its line of action';
+      else if(!A2) NOTE = 'sketch a closed profile (3+ points) around the centre';
+      else if(isBlend() && !B2) NOTE = 'blend needs shape B — hit the B chip and sketch it';
+      else NOTE = PROMPT_LINE[state.tech];
+      return;
     }
     var rings = [], faces = [], closed = false, i, j, m;
     if(state.tech === 'rev'){
@@ -1622,6 +1662,9 @@
     if(noteEl) noteEl.textContent = hasMesh ? '' : NOTE;
     var C = hasMesh ? MESH.C : v3(0, 0, 0);
     var R = hasMesh ? MESH.R : 120;
+    if(!hasMesh && PREVIEW){
+      PREVIEW.pts.forEach(function(p){ R = Math.max(R, len3(p) * 1.2); });
+    }
     var S = 0.42 * Math.min(w, h) / R;
     var cy = Math.cos(state.yaw), sy = Math.sin(state.yaw);
     var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
@@ -1634,6 +1677,19 @@
     var AXD = [[v3(1,0,0), 'X'], [v3(0,1,0), 'Y'], [v3(0,0,1), 'Z']];
     var axLen = R * 1.15, axO = tv(v3(0, 0, 0));
     if(AXES){
+      /* the xy ground grid */
+      var G = R * 1.05, DIV = 8;
+      vcx.strokeStyle = muted(); vcx.globalAlpha = 0.18; vcx.lineWidth = 1;
+      vcx.beginPath();
+      for(var gi = 0; gi <= DIV; gi++){
+        var go = -G + 2 * G * gi / DIV;
+        var a1 = tv(v3(go, -G, 0)), a2 = tv(v3(go, G, 0));
+        var b1 = tv(v3(-G, go, 0)), b2 = tv(v3(G, go, 0));
+        vcx.moveTo(w/2 + a1.x*S, h/2 - a1.z*S); vcx.lineTo(w/2 + a2.x*S, h/2 - a2.z*S);
+        vcx.moveTo(w/2 + b1.x*S, h/2 - b1.z*S); vcx.lineTo(w/2 + b2.x*S, h/2 - b2.z*S);
+      }
+      vcx.stroke();
+      vcx.globalAlpha = 1;
       AXD.forEach(function(ax){
         var tp = tv(mul3(ax[0], axLen)), tn = tv(mul3(ax[0], -axLen));
         vcx.strokeStyle = muted(); vcx.lineWidth = 1;
@@ -1653,6 +1709,17 @@
       });
     }
     if(!hasMesh){
+      if(PREVIEW && PREVIEW.pts.length >= 2){
+        vcx.strokeStyle = PREVIEW.accent ? accent() : ink();
+        vcx.lineWidth = 2; vcx.lineJoin = 'round'; vcx.lineCap = 'round';
+        vcx.beginPath();
+        PREVIEW.pts.forEach(function(p, i){
+          var q = tv(p);
+          i ? vcx.lineTo(w/2 + q.x*S, h/2 - q.z*S) : vcx.moveTo(w/2 + q.x*S, h/2 - q.z*S);
+        });
+        if(PREVIEW.closed) vcx.closePath();
+        vcx.stroke();
+      }
       if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
       return;
     }
@@ -1725,6 +1792,27 @@
   }
   function drawProf(){
     boardBase(pcx, prof);
+    var w = prof.clientWidth, h = prof.clientHeight;
+    if(state.tech !== 'rev'){
+      /* the centre X: this is the point the line of action runs through */
+      pcx.strokeStyle = ink(); pcx.lineWidth = 2; pcx.lineCap = 'round';
+      pcx.beginPath();
+      pcx.moveTo(w/2 - 6, h/2 - 6); pcx.lineTo(w/2 + 6, h/2 + 6);
+      pcx.moveTo(w/2 + 6, h/2 - 6); pcx.lineTo(w/2 - 6, h/2 + 6);
+      pcx.stroke();
+    }
+    /* twist ghost: the end profile, rotated, greyed */
+    if(state.tech !== 'rev' && state.twist){
+      var src = isBlend() ? state.B : state.A;
+      if(src.length >= 2){
+        var th = state.twist * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+        var ghost = src.map(function(p){
+          var px = p.x - w/2, py = h/2 - p.y;
+          return { x: w/2 + (px*c - py*s), y: h/2 - (px*s + py*c) };
+        });
+        poly2(pcx, ghost, muted(), true, false);
+      }
+    }
     poly2(pcx, state.A, ink(), true, !isBlend() || state.shape === 'A');
     if(isBlend()) poly2(pcx, state.B, accent(), true, state.shape === 'B');
   }
@@ -1849,12 +1937,12 @@
       });
       function setVal(v){
         v = Math.max(o.min, Math.min(o.max, +v || o.min));
-        state[o.key] = v; rng.value = v; num.value = v; buildMesh();
+        state[o.key] = v; rng.value = v; num.value = v; refresh();
       }
       rng.addEventListener('input', function(){ setVal(rng.value); });
       num.addEventListener('input', function(){
         var v = +num.value;
-        if(!isNaN(v) && v >= o.min && v <= o.max){ state[o.key] = v; rng.value = v; buildMesh(); }
+        if(!isNaN(v) && v >= o.min && v <= o.max){ state[o.key] = v; rng.value = v; refresh(); }
       });
       num.addEventListener('change', function(){ setVal(num.value); });
       row.appendChild(lab); row.appendChild(rng); row.appendChild(num);
