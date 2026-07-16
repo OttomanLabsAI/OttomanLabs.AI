@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Computational Asset Playground — OttomanLabs.AI</title>
-<meta name="description" content="The OttomanLabs.AI Computational Asset Playground: draw every line type from Grasshopper, Revit, Rhino and Illustrator — splines, shapes, circles, lines, arcs, conics — run live 3D techniques (extrude, revolve, sweep, blend), and soon grab parametric BIM elements: your AI copies the component off the page, or you export the element prompt or the element itself.">
+<title>The Computational AI Playground — OttomanLabs.AI</title>
+<meta name="description" content="The OttomanLabs.AI Computational AI Playground: draw every line type from Grasshopper, Revit, Rhino and Illustrator — splines, shapes, circles, lines, arcs, conics — run live 3D techniques (extrude, revolve, sweep, blend), and soon grab parametric BIM elements: your AI copies the component off the page, or you export the element prompt or the element itself.">
 <link rel="canonical" href="https://ottomanlabs.ai/playground.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OttomanLabs.AI">
@@ -47,6 +47,29 @@
   .soon-note{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
     text-transform:uppercase; color:var(--ink-60); min-height:1em; }
 
+  /* ── intro strip + popup ── */
+  .intro-strip{ border:1px solid var(--hair); padding:.9rem 1.2rem; margin-bottom:var(--gap); }
+  .intro-strip p{ font-family:var(--font-serif); font-size:.95rem; color:var(--ink-60);
+    margin:0; line-height:1.6; max-width:none; }
+  .intro-strip b{ color:var(--ink); font-family:var(--font-brand); font-weight:600;
+    letter-spacing:.06em; font-size:.85em; }
+  .intro-pop{ position:fixed; inset:0; z-index:90; display:flex; align-items:center;
+    justify-content:center; padding:1.2rem; background:rgba(17,17,17,.48); }
+  .intro-pop[hidden]{ display:none; }
+  .ip-card{ background:var(--paper); border:1px solid var(--ink); max-width:34rem;
+    padding:2.2rem 2.4rem; display:flex; flex-direction:column; gap:1rem; align-items:flex-start; }
+  .ip-kicker{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.28em; text-transform:uppercase; color:var(--ink-60); }
+  .ip-title{ font-family:var(--font-display); font-size:1.9rem; line-height:1.15; }
+  .ip-title em{ font-family:var(--font-serif); }
+  .ip-card p{ font-family:var(--font-serif); font-size:.98rem; line-height:1.65;
+    color:var(--ink-60); margin:0; max-width:none; }
+  .ip-card button{ font-family:var(--font-brand); font-weight:600; font-size:.68rem;
+    letter-spacing:.2em; text-transform:uppercase; background:var(--ink); color:var(--paper);
+    border:1px solid var(--ink); padding:.7rem 1.6rem; cursor:pointer; }
+  .ip-card button:hover{ background:var(--paper); color:var(--ink); }
+  .draw-sec > [hidden]{ display:none !important; }
+
   /* ── playground cards row ── */
   .play-row{ columns:560px; column-gap:var(--gap); margin-bottom:var(--gap); }
   .play-row > .draw-sec{ width:100%; margin:0 0 var(--gap); break-inside:avoid;
@@ -77,6 +100,9 @@
   .t3-clear:hover{ background:var(--ink); color:var(--paper); }
   #t3Prof, #t3Path{ display:block; width:100%; height:auto; border:1px solid var(--hair);
     cursor:crosshair; touch-action:none; }
+  .t3-blab2{ min-height:1.55rem; }
+  .t3-note{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60);
+    text-align:center; padding:0 1rem .9rem; }
   .t3-bhint{ font-family:var(--font-brand); font-size:.5rem; letter-spacing:.12em;
     text-transform:uppercase; color:var(--ink-60); padding-top:.3rem; min-height:1.6em; }
   .t3-viewwrap{ position:relative; margin:.3rem .9rem .35rem; }
@@ -98,8 +124,8 @@
   .it-row input[type="range"]{ flex:1; min-width:0; accent-color:var(--ink); }
   .it-row input[type="number"]{ width:4.4rem; font-family:var(--font-brand); font-size:.72rem;
     border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
-  .it-step{ display:flex; align-items:center; gap:.3rem; }
-  .it-step button{ width:1.8rem; height:1.8rem; border:1px solid var(--hair); background:var(--paper);
+  .it-step{ display:flex; align-items:stretch; gap:.25rem; }
+  .it-step button{ width:1.9rem; border:1px solid var(--hair); background:var(--paper);
     color:var(--ink); cursor:pointer; font-size:.9rem; line-height:1; }
   .it-step button:hover{ background:var(--ink); color:var(--paper); }
   #itDial{ width:64px; height:64px; border:1px solid var(--hair); cursor:grab; touch-action:none; }
@@ -118,6 +144,19 @@
   .it-out, .it-unit{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.16em;
     text-transform:uppercase; }
   .it-xy{ display:flex; gap:.3rem; }
+  .it-pool{ display:flex; gap:.55rem; align-items:flex-end; }
+  .it-pool input{ writing-mode:vertical-lr; direction:rtl; appearance:slider-vertical;
+    -webkit-appearance:slider-vertical; width:1.1rem; height:64px; padding:0; accent-color:var(--ink); }
+  #itMap{ width:96px; height:96px; border:1px solid var(--hair); cursor:crosshair; touch-action:none; }
+  #itDom{ width:150px; height:26px; border:1px solid var(--hair); cursor:ew-resize; touch-action:none; }
+  #itList{ font-family:var(--font-brand); font-size:.72rem; letter-spacing:.06em;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.35rem .5rem; }
+  .it-bang{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink); padding:.4rem .9rem; cursor:pointer; }
+  .it-bang:active{ background:var(--ink); color:var(--paper); }
+  #itPanel{ flex:1; min-width:0; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:.72rem; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.35rem .5rem; }
 
   /* ── data input card ── */
   .di-body{ display:flex; flex-direction:column; gap:.8rem; padding:1rem 1.1rem 1.1rem; }
@@ -244,6 +283,9 @@
   #pgSearch{ width:100%; box-sizing:border-box; font-family:var(--font-brand); font-size:.72rem;
     letter-spacing:.06em; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
     padding:.5rem .6rem; }
+  .pgx-search{ width:100%; box-sizing:border-box; font-family:var(--font-brand); font-size:.72rem;
+    letter-spacing:.06em; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.5rem .6rem; }
   .pg-checks{ max-height:300px; overflow:auto; border:1px solid var(--hair);
     padding:.55rem .75rem; display:flex; flex-direction:column; gap:.28rem; }
   .pg-checks .grp{ font-family:var(--font-brand); font-weight:600; font-size:.54rem;
@@ -285,8 +327,15 @@
 <main id="main" class="wrap">
 
   <div class="hero">
-    <span><span class="ital">The Computational</span> <span class="display">ASSET PLAYGROUND</span></span>
+    <span><span class="ital">The Computational</span> <span class="display">AI PLAYGROUND</span></span>
     <span class="sub">parametric elements &middot; copy &middot; prompt &middot; export</span>
+  </div>
+
+  <div class="intro-strip">
+    <p><b>For your AI agent</b> &mdash; every element here publishes in three forms: component markup an
+      agent can copy straight off the page, an element prompt for any model, and the element itself.
+      Tell your agent to visit <b>ottomanlabs.ai/playground</b> and take what it needs &mdash; the
+      parametric shelf (fences, manholes, downpipes, diagrid nodes, ring beams, topo pads) is on its way.</p>
   </div>
 
   <div class="play-row">
@@ -372,6 +421,15 @@
             </span>
             <button class="t3-clear" id="t3ProfClear" type="button">Clear</button>
           </div>
+          <div class="t3-blab t3-blab2">
+            <span class="t3-chips" id="t3PrType">
+              <button class="active" data-pr="shape" type="button">Shape</button>
+              <button data-pr="line" type="button">Line</button>
+              <button data-pr="poly" type="button">Poly</button>
+              <button data-pr="arc" type="button">Arc</button>
+              <button data-pr="curve" type="button">Curve</button>
+            </span>
+          </div>
           <canvas id="t3Prof" aria-label="Profile sketchboard — the centre is the line of action"></canvas>
           <div class="t3-bhint" id="t3ProfHint"></div>
         </div>
@@ -383,6 +441,14 @@
               <button data-plane="yz" type="button">YZ</button>
             </span>
             <button class="t3-clear" id="t3PathClear" type="button">Clear</button>
+          </div>
+          <div class="t3-blab t3-blab2">
+            <span class="t3-chips" id="t3PType">
+              <button class="active" data-pt="line" type="button">Line</button>
+              <button data-pt="poly" type="button">Poly</button>
+              <button data-pt="arc" type="button">Arc</button>
+              <button data-pt="curve" type="button">Curve</button>
+            </span>
           </div>
           <canvas id="t3Path" aria-label="Line of action sketchboard"></canvas>
           <div class="t3-bhint" id="t3PathHint"></div>
@@ -400,7 +466,8 @@
         <label class="t3-axeschk"><input type="checkbox" id="t3Axes" checked>Axes + grid</label>
         <div class="t3-vnote" id="t3Note"></div>
       </div>
-      <div class="pg-hint">tap to add a point &middot; drag to move it &middot; right-click deletes &middot; drag the 3d view to orbit</div>
+      <div class="pg-hint">tap to add a point &middot; drag a point to move it, or grab the line to carry the whole thing &middot; right-click deletes &middot; drag the 3d view to orbit, click the cube&rsquo;s faces or corners</div>
+      <div class="t3-note">get creative &mdash; and ask your AI to rebuild this box with new line styles; the markup is all here for it to read</div>
     </div>
     <div class="draw-sec itools">
       <div class="draw-cap">
@@ -408,31 +475,31 @@
         <span>the controls every asset will ship with</span>
       </div>
       <div class="it-body">
-        <div class="it-row">
+        <div class="it-row" data-it="slider">
           <label for="itR">Number slider</label>
           <input type="range" id="itR" min="0" max="100" value="35">
           <input type="number" id="itN" min="0" max="100" value="35" aria-label="Number slider value">
         </div>
-        <div class="it-row">
+        <div class="it-row" data-it="stepper">
           <label for="itVal">Number entry</label>
           <div class="it-step">
-            <button id="itMinus" type="button" aria-label="Decrease">&minus;</button>
             <input type="number" id="itVal" value="12" step="1">
+            <button id="itMinus" type="button" aria-label="Decrease">&minus;</button>
             <button id="itPlus" type="button" aria-label="Increase">+</button>
           </div>
         </div>
-        <div class="it-row">
+        <div class="it-row" data-it="dial">
           <label for="itDeg">Dial</label>
           <canvas id="itDial" aria-label="Dial — drag to rotate"></canvas>
           <input type="number" id="itDeg" min="0" max="360" value="45">
           <span class="it-unit">&deg;</span>
         </div>
-        <div class="it-row">
+        <div class="it-row" data-it="toggle">
           <label>Toggle</label>
           <button id="itTog" class="it-toggle" type="button" aria-pressed="true"><span></span></button>
           <span class="it-out" id="itTogOut">on</span>
         </div>
-        <div class="it-row">
+        <div class="it-row" data-it="seg">
           <label>Segmented</label>
           <div class="it-seg" id="itSeg">
             <button type="button" class="active">Low</button>
@@ -440,13 +507,50 @@
             <button type="button">High</button>
           </div>
         </div>
-        <div class="it-row">
+        <div class="it-row" data-it="pad">
           <label for="itPX">XY pad</label>
           <canvas id="itPad" aria-label="XY pad — drag the dot"></canvas>
           <div class="it-xy">
             <input type="number" id="itPX" min="0" max="100" value="50" aria-label="Pad X">
             <input type="number" id="itPY" min="0" max="100" value="50" aria-label="Pad Y">
           </div>
+        </div>
+        <div class="it-row" data-it="pool">
+          <label>Gene pool</label>
+          <div class="it-pool" id="itPool">
+            <input type="range" orient="vertical" min="0" max="100" value="30" aria-label="Gene 1">
+            <input type="range" orient="vertical" min="0" max="100" value="70" aria-label="Gene 2">
+            <input type="range" orient="vertical" min="0" max="100" value="45" aria-label="Gene 3">
+            <input type="range" orient="vertical" min="0" max="100" value="85" aria-label="Gene 4">
+            <input type="range" orient="vertical" min="0" max="100" value="20" aria-label="Gene 5">
+          </div>
+        </div>
+        <div class="it-row" data-it="mapper">
+          <label for="itMap">Graph mapper</label>
+          <canvas id="itMap" aria-label="Graph mapper — drag the handles"></canvas>
+        </div>
+        <div class="it-row" data-it="domain">
+          <label>Domain</label>
+          <canvas id="itDom" aria-label="Domain — drag the ends"></canvas>
+          <div class="it-xy">
+            <input type="number" id="itDomA" min="0" max="100" value="25" aria-label="Domain start">
+            <input type="number" id="itDomB" min="0" max="100" value="70" aria-label="Domain end">
+          </div>
+        </div>
+        <div class="it-row" data-it="list">
+          <label for="itList">Value list</label>
+          <select id="itList">
+            <option>Extrude</option><option>Revolve</option><option>Sweep</option><option>Blend</option>
+          </select>
+        </div>
+        <div class="it-row" data-it="button">
+          <label>Button</label>
+          <button id="itBang" class="it-bang" type="button">Bang</button>
+          <span class="it-out" id="itBangOut">false</span>
+        </div>
+        <div class="it-row" data-it="panel">
+          <label for="itPanel">Panel</label>
+          <input type="text" id="itPanel" placeholder="type anything&hellip;" spellcheck="false">
         </div>
       </div>
     </div>
@@ -495,36 +599,19 @@
     </div>
   </div>
 
-  <div class="soon-panel">
-    <div class="soon-word">Coming Soon</div>
-    <p>A shelf of ready-made parametric elements &mdash; fences, manholes, downpipes, diagrid nodes,
-      ring beams, topo pads. Come and grab them three ways: point your AI at this page and let it
-      copy the component straight off the markup, export the element prompt to paste into any model,
-      or download the element itself.</p>
-    <div class="asset-grid" aria-label="Preview of upcoming elements">
-      <div class="asset"><span class="a-name">Fence Run</span><span class="a-sub">line &rarr; fence &middot; coming soon</span></div>
-      <div class="asset"><span class="a-name">Manhole Cluster</span><span class="a-sub">bulk placement &middot; coming soon</span></div>
-      <div class="asset"><span class="a-name">Downpipe Kit</span><span class="a-sub">gutter to shoe &middot; coming soon</span></div>
-      <div class="asset"><span class="a-name">Diagrid Node</span><span class="a-sub">exoskeleton joint &middot; coming soon</span></div>
-      <div class="asset"><span class="a-name">Ring Beam Array</span><span class="a-sub">level ties &middot; coming soon</span></div>
-      <div class="asset"><span class="a-name">Topo Pad</span><span class="a-sub">graded platform &middot; coming soon</span></div>
-    </div>
-    <div class="ai-note">
-      <span class="ai-note-h">For your AI agent</span>
-      <p>Every element will publish in three forms: component markup an agent can read and copy
-        directly from this page, an element prompt for any model, and the element itself as
-        JSON&thinsp;/&thinsp;OBJ&thinsp;/&thinsp;DXF. Tell your agent to visit
-        <b>ottomanlabs.ai/playground</b> and take what it needs.</p>
-    </div>
-    <form class="soon-form" id="soonForm" novalidate>
-      <label class="skip" for="soonEmail">Email address</label>
-      <input type="email" id="soonEmail" placeholder="your@address &mdash; tell me when it opens" required autocomplete="email">
-      <button type="submit">Inform me</button>
-    </form>
-    <span class="soon-note" id="soonNote" role="status" aria-live="polite"></span>
-  </div>
-
 </main>
+
+<div class="intro-pop" id="introPop" role="dialog" aria-modal="true" aria-labelledby="ipTitle" hidden>
+  <div class="ip-card">
+    <b class="ip-kicker">OttomanLabs.AI</b>
+    <span id="ipTitle" class="ip-title">The Computational <em>AI Playground</em></span>
+    <p>Draw every line type Grasshopper, Revit, Rhino and Illustrator know. Extrude, revolve, sweep and
+      blend live solids. Plot graphs, play the input kit, bring your files. And for your AI agent:
+      every element here publishes as component markup it can copy straight off the page, an element
+      prompt, or the element itself.</p>
+    <button id="ipEnter" type="button">Enter</button>
+  </div>
+</div>
 
 <!-- ════════ FOOTER ════════ -->
 <footer class="site-footer">
@@ -1435,12 +1522,13 @@
            pathHint:'the sweep path — A starts it, B ends it',
            set:[ { key:'twist', label:'Twist', unit:'°', min:0, max:360, step:1 } ] }
   };
-  var state = { tech:'ext', plane:'xy', shape:'A', A:[], B:[], path:[],
+  var state = { tech:'ext', plane:'xy', shape:'A', ptype:'line', prtype:'shape', A:[], B:[], path:[],
                 angle:360, twist:0, yaw:-0.7, pitch:0.48 };
   var SNAP = { on:true, g:30 };
-  function snap(p){
+  function snap(p, cv){
     if(!SNAP.on) return p;
-    return { x: Math.round(p.x / SNAP.g) * SNAP.g, y: Math.round(p.y / SNAP.g) * SNAP.g };
+    var cx = cv.clientWidth / 2, cy = cv.clientHeight / 2, g = SNAP.g;
+    return { x: cx + Math.round((p.x - cx) / g) * g, y: cy + Math.round((p.y - cy) / g) * g };
   }
   function isBlend(){ return state.tech === 'bln' || state.tech === 'swb'; }
 
@@ -1515,11 +1603,88 @@
     return out;
   }
 
+  function resampleOpen(P, K){
+    if(P.length < 2) return null;
+    var per = 0, L = [], i;
+    for(i = 0; i + 1 < P.length; i++){
+      L.push(Math.hypot(P[i+1].x - P[i].x, P[i+1].y - P[i].y));
+      per += L[i];
+    }
+    if(per < 10) return null;
+    var out = [], j = 0, acc = 0;
+    for(var k = 0; k < K; k++){
+      var target = per * k / (K - 1);
+      while(j < L.length - 1 && acc + L[j] < target){ acc += L[j]; j++; }
+      var t = L[j] ? Math.min(1, (target - acc) / L[j]) : 0;
+      out.push({ x: P[j].x + (P[j+1].x - P[j].x)*t, y: P[j].y + (P[j+1].y - P[j].y)*t });
+    }
+    return out;
+  }
+  function profRing(src, K){
+    var pp = rel(src, prof);
+    if(state.prtype === 'shape') return resampleClosed(pp, K);
+    if(pp.length < 2) return null;
+    return resampleOpen(samplePath2(pp, state.prtype), K);
+  }
+
   /* ---- mesh ---- */
   var MESH = null, PREVIEW = null, NOTE = 'sketch a profile and its line of action';
   var PROMPT_LINE = { ext:'now draw the extrusion line', rev:'now draw the revolve axis',
                       swp:'now draw the sweep path', bln:'now draw the blend line',
                       swb:'now draw the sweep path' };
+  function circ2(a, b, c){
+    var d = 2 * (a.x*(b.y - c.y) + b.x*(c.y - a.y) + c.x*(a.y - b.y));
+    if(Math.abs(d) < 1e-9) return null;
+    var a2 = a.x*a.x + a.y*a.y, b2 = b.x*b.x + b.y*b.y, c2 = c.x*c.x + c.y*c.y;
+    return { x: (a2*(b.y - c.y) + b2*(c.y - a.y) + c2*(a.y - b.y)) / d,
+             y: (a2*(c.x - b.x) + b2*(a.x - c.x) + c2*(b.x - a.x)) / d };
+  }
+  function samplePath2(pp, t){
+    var pts = [], i;
+    if(t === 'curve' && pp.length >= 3){
+      var C = [pp[0]].concat(pp, [pp[pp.length-1]]);
+      for(i = 0; i <= 44; i++){
+        var u = i / 44 * (pp.length - 1), s = Math.min(Math.floor(u), pp.length - 2);
+        pts.push(catmull2(C[s], C[s+1], C[s+2], C[s+3], u - s));
+      }
+      return pts;
+    }
+    if(t === 'poly' && pp.length >= 3){
+      var per = 0, L = [];
+      for(i = 0; i + 1 < pp.length; i++){
+        L.push(Math.hypot(pp[i+1].x - pp[i].x, pp[i+1].y - pp[i].y));
+        per += L[i];
+      }
+      pts.push({ x: pp[0].x, y: pp[0].y });
+      for(i = 0; i + 1 < pp.length; i++){
+        var n2 = Math.max(2, Math.round(30 * (L[i] / (per || 1))));
+        for(var k = 1; k <= n2; k++)
+          pts.push({ x: pp[i].x + (pp[i+1].x - pp[i].x) * k / n2,
+                     y: pp[i].y + (pp[i+1].y - pp[i].y) * k / n2 });
+      }
+      return pts;
+    }
+    if(t === 'arc' && pp.length >= 3){
+      var A = pp[0], B = pp[1], E = pp[pp.length - 1], cc = circ2(A, B, E);
+      if(cc){
+        var a1 = Math.atan2(A.y - cc.y, A.x - cc.x), a2 = Math.atan2(E.y - cc.y, E.x - cc.x);
+        var cr = (B.x - A.x)*(E.y - A.y) - (B.y - A.y)*(E.x - A.x);
+        var sweep = a2 - a1;
+        if(cr < 0){ while(sweep > 0) sweep -= TAU; while(sweep <= -TAU) sweep += TAU; }
+        else { while(sweep < 0) sweep += TAU; while(sweep >= TAU) sweep -= TAU; }
+        var r2 = Math.hypot(A.x - cc.x, A.y - cc.y);
+        for(i = 0; i <= 40; i++){
+          var an = a1 + sweep * i / 40;
+          pts.push({ x: cc.x + r2 * Math.cos(an), y: cc.y + r2 * Math.sin(an) });
+        }
+        return pts;
+      }
+    }
+    for(i = 0; i <= 12; i++)
+      pts.push({ x: pp[0].x + (pp[pp.length-1].x - pp[0].x) * i / 12,
+                 y: pp[0].y + (pp[pp.length-1].y - pp[0].y) * i / 12 });
+    return pts;
+  }
   function perpFrame(F){          /* profile plane: perpendicular to the path plane */
     var b = cross3(F.n, F.e2);
     return { b: len3(b) < 1e-4 ? F.e1 : norm3(b) };
@@ -1528,53 +1693,25 @@
     var src = (isBlend() && state.shape === 'B') ? state.B : state.A;
     var pp = rel(src, prof);
     if(pp.length < 2) return null;
+    var shaped = state.prtype === 'shape' ? pp : samplePath2(pp, state.prtype);
     var b = perpFrame(F).b;
-    return { pts: pp.map(function(p){ return add3(mul3(b, p.x), mul3(F.n, p.y)); }),
-             closed: pp.length >= 3,
+    return { pts: shaped.map(function(p){ return add3(mul3(b, p.x), mul3(F.n, p.y)); }),
+             closed: state.prtype === 'shape' && pp.length >= 3,
              accent: isBlend() && state.shape === 'B' };
   }
   function pathPreview(F){
     var pp = rel(state.path, pathC);
     if(pp.length < 2) return null;
-    var pts2;
-    if((state.tech === 'swp' || state.tech === 'swb') && pp.length >= 3){
-      var C = [pp[0]].concat(pp, [pp[pp.length-1]]);
-      pts2 = [];
-      for(var i = 0; i <= 48; i++){
-        var u = i / 48 * (pp.length - 1), s = Math.min(Math.floor(u), pp.length - 2);
-        pts2.push(catmull2(C[s], C[s+1], C[s+2], C[s+3], u - s));
-      }
-    } else if(state.tech === 'swp' || state.tech === 'swb'){
-      pts2 = pp;
-    } else {
-      pts2 = [pp[0], pp[pp.length - 1]];
-    }
+    var pts2 = state.tech === 'rev' ? [pp[0], pp[pp.length - 1]] : samplePath2(pp, state.ptype);
     return { pts: pts2.map(function(p){ return map2(p, F); }), closed: false, accent: false };
   }
   function spine(F){
-    var pp = rel(state.path, pathC), pts = [], M, i;
-    if(state.tech === 'swp' || state.tech === 'swb'){
-      if(pp.length >= 3){
-        var C = [pp[0]].concat(pp, [pp[pp.length-1]]);
-        M = 44;
-        for(i = 0; i <= M; i++){
-          var u = i / M * (pp.length - 1), s = Math.min(Math.floor(u), pp.length - 2), t = u - s;
-          pts.push(catmull2(C[s], C[s+1], C[s+2], C[s+3], t));
-        }
-        pts = pts.map(function(p){ return map2(p, F); });
-      }
-    }
-    if(!pts.length){                 /* extrude, blend, or fallback straight */
-      var S, E;
-      if(pp.length >= 2){ S = map2(pp[0], F); E = map2(pp[pp.length-1], F); }
-      else { S = v3(0,0,0); E = mul3(F.e2, 140); }
-      if(len3(sub3(E, S)) < 2) E = add3(S, mul3(F.e2, 140));
-      M = (state.tech === 'swp' || state.tech === 'swb') ? 24 : 12;
-      for(i = 0; i <= M; i++) pts.push(add3(S, mul3(sub3(E, S), i / M)));
-    }
+    var pp = rel(state.path, pathC);
+    if(pp.length < 2) return null;
+    var pts = samplePath2(pp, state.ptype).map(function(p){ return map2(p, F); });
     var T = [];
-    for(i = 0; i < pts.length; i++){
-      var a = pts[Math.max(0, i-1)], b = pts[Math.min(pts.length-1, i+1)];
+    for(var i = 0; i < pts.length; i++){
+      var a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
       T.push(norm3(sub3(b, a)));
     }
     return { Q: pts, T: T };
@@ -1591,15 +1728,15 @@
   }
   function buildMesh(){
     MESH = null; PREVIEW = null;
-    var K = 36, F = frame();
-    var A2 = resampleClosed(rel(state.A, prof), K);
+    var K = 36, F = frame(), openProf = state.prtype !== 'shape';
+    var A2 = profRing(state.A, K);
     var pathOk = state.path.length >= 2;
-    var B2 = isBlend() ? resampleClosed(rel(state.B, prof), K) : null;
+    var B2 = isBlend() ? profRing(state.B, K) : null;
     if(!A2 || !pathOk || (isBlend() && !B2)){
       /* no solid yet — show what exists, flat, in the 3d view */
       PREVIEW = profilePreview(F) || (pathOk ? pathPreview(F) : null);
       if(!A2 && !pathOk) NOTE = 'sketch a profile and its line of action';
-      else if(!A2) NOTE = 'sketch a closed profile (3+ points) around the centre';
+      else if(!A2) NOTE = openProf ? 'sketch a profile line (2+ points)' : 'sketch a closed profile (3+ points) around the centre';
       else if(isBlend() && !B2) NOTE = 'blend needs shape B — hit the B chip and sketch it';
       else NOTE = PROMPT_LINE[state.tech];
       return;
@@ -1638,26 +1775,56 @@
         rings.push(ring);
       }
     }
-    var R = rings.length;
+    var R = rings.length, JN = openProf ? K - 1 : K;
     for(i = 0; i < (closed ? R : R - 1); i++){
       var r0 = rings[i], r1 = rings[(i+1) % R];
-      for(j = 0; j < K; j++)
+      for(j = 0; j < JN; j++)
         faces.push([r0[j], r0[(j+1)%K], r1[(j+1)%K], r1[j]]);
     }
-    if(!closed){ fan(rings[0], faces); fan(rings[R-1], faces); }
-    /* fit */
-    var C = v3(0,0,0), n = 0;
-    rings.forEach(function(r){ r.forEach(function(p){ C = add3(C, p); n++; }); });
-    C = mul3(C, 1/n);
-    var rad = 1;
-    rings.forEach(function(r){ r.forEach(function(p){ rad = Math.max(rad, len3(sub3(p, C))); }); });
-    rad = Math.max(rad, len3(C) * 1.05 + 20);
-    MESH = { faces: faces, C: C, R: rad };
+    if(!closed && !openProf){ fan(rings[0], faces); fan(rings[R-1], faces); }
+    /* feature edges: creases and boundaries; flat interiors stay clean */
+    var vid = 0;
+    faces.forEach(function(f){ f.forEach(function(p){ if(p._i === undefined) p._i = ++vid; }); });
+    var fnorm = faces.map(function(f){
+      return norm3(cross3(sub3(f[1], f[0]), sub3(f[2], f[0])));
+    });
+    var emap = {};
+    faces.forEach(function(f, fi){
+      for(var e = 0; e < f.length; e++){
+        var a = f[e], b = f[(e+1) % f.length];
+        var key = a._i < b._i ? a._i + '_' + b._i : b._i + '_' + a._i;
+        var rec = emap[key] || (emap[key] = { a: a, b: b, fs: [] });
+        rec.fs.push(fi);
+      }
+    });
+    var FACES = faces.map(function(f, fi){
+      var crease = [];
+      for(var e = 0; e < f.length; e++){
+        var a = f[e], b = f[(e+1) % f.length];
+        var key = a._i < b._i ? a._i + '_' + b._i : b._i + '_' + a._i;
+        var fs = emap[key].fs, cr = fs.length === 1;
+        for(var q = 0; q < fs.length && !cr; q++)
+          if(fs[q] !== fi && dot3(fnorm[fi], fnorm[fs[q]]) < 0.985) cr = true;
+        crease.push(cr);
+      }
+      return { pts: f, crease: crease };
+    });
+    var EDGES = [];
+    Object.keys(emap).forEach(function(k2){
+      var rec = emap[k2];
+      if(rec.fs.length === 2) EDGES.push({ a: rec.a, b: rec.b, f1: rec.fs[0], f2: rec.fs[1] });
+    });
+    MESH = { faces: FACES, edges: EDGES };
   }
 
   var _computeMesh = buildMesh;
   buildMesh = function(){ _computeMesh(); drawView(); };
-  var AXES = true;
+  var AXES = true, VIEW_R = 260;
+  view.addEventListener('wheel', function(e){
+    e.preventDefault();
+    VIEW_R = Math.max(60, Math.min(2400, VIEW_R * (e.deltaY > 0 ? 1.12 : 0.9)));
+    drawView();
+  }, { passive: false });
   var axChk = document.getElementById('t3Axes');
   if(axChk) axChk.addEventListener('change', function(){ AXES = axChk.checked; drawView(); });
 
@@ -1667,11 +1834,7 @@
     vcx.clearRect(0, 0, w, h);
     var hasMesh = !!MESH;
     if(noteEl) noteEl.textContent = hasMesh ? '' : NOTE;
-    var C = hasMesh ? MESH.C : v3(0, 0, 0);
-    var R = hasMesh ? MESH.R : 120;
-    if(!hasMesh && PREVIEW){
-      PREVIEW.pts.forEach(function(p){ R = Math.max(R, len3(p) * 1.2); });
-    }
+    var C = v3(0, 0, 0), R = VIEW_R;
     var S = 0.42 * Math.min(w, h) / R;
     var cy = Math.cos(state.yaw), sy = Math.sin(state.yaw);
     var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
@@ -1684,12 +1847,12 @@
     var AXD = [[v3(1,0,0), 'X'], [v3(0,1,0), 'Y'], [v3(0,0,1), 'Z']];
     var axLen = R * 1.15, axO = tv(v3(0, 0, 0));
     if(AXES){
-      /* the xy ground grid */
-      var G = R * 1.05, DIV = 8;
+      /* the xy ground grid — same spacing as the sketch snap grid, through the origin */
+      var gs = SNAP.g, km = Math.ceil(R * 1.05 / gs), G = km * gs;
       vcx.strokeStyle = muted(); vcx.globalAlpha = 0.18; vcx.lineWidth = 1;
       vcx.beginPath();
-      for(var gi = 0; gi <= DIV; gi++){
-        var go = -G + 2 * G * gi / DIV;
+      for(var gi = -km; gi <= km; gi++){
+        var go = gi * gs;
         var a1 = tv(v3(go, -G, 0)), a2 = tv(v3(go, G, 0));
         var b1 = tv(v3(-G, go, 0)), b2 = tv(v3(G, go, 0));
         vcx.moveTo(w/2 + a1.x*S, h/2 - a1.z*S); vcx.lineTo(w/2 + a2.x*S, h/2 - a2.z*S);
@@ -1731,29 +1894,50 @@
       drawCube();
       return;
     }
-    var out = [];
-    MESH.faces.forEach(function(f){
-      var q = f.map(tv), d = 0;
+    var out = [], facing = [];
+    MESH.faces.forEach(function(f, fi){
+      var q = f.pts.map(tv), d = 0;
       q.forEach(function(p){ d += p.d / q.length; });
-      out.push({ q: q, d: d });
+      var ux = q[1].x - q[0].x, uz = q[1].z - q[0].z;
+      var wx = q[2].x - q[0].x, wz = q[2].z - q[0].z;
+      facing[fi] = (uz * wx - ux * wz) < 0;
+      out.push({ q: q, d: d, crease: f.crease });
     });
     out.sort(function(a, b){ return b.d - a.d; });
-    /* hidden-line: paper faces occlude, ink wireframe on top of each */
+    /* hidden line: paper faces occlude; ink only on creases and silhouettes */
     var fc = paper(), ec = ink();
     out.forEach(function(f){
       vcx.beginPath();
       vcx.moveTo(w/2 + f.q[0].x*S, h/2 - f.q[0].z*S);
       for(var k = 1; k < f.q.length; k++) vcx.lineTo(w/2 + f.q[k].x*S, h/2 - f.q[k].z*S);
       vcx.closePath();
-      vcx.fillStyle = fc; vcx.strokeStyle = ec; vcx.lineWidth = 0.75;
+      vcx.fillStyle = fc; vcx.strokeStyle = fc; vcx.lineWidth = 1;
       vcx.fill(); vcx.stroke();
+      vcx.strokeStyle = ec; vcx.lineWidth = 1;
+      vcx.beginPath();
+      for(var e = 0; e < f.q.length; e++){
+        if(!f.crease[e]) continue;
+        var A = f.q[e], B = f.q[(e+1) % f.q.length];
+        vcx.moveTo(w/2 + A.x*S, h/2 - A.z*S);
+        vcx.lineTo(w/2 + B.x*S, h/2 - B.z*S);
+      }
+      vcx.stroke();
     });
+    vcx.strokeStyle = ec; vcx.lineWidth = 1.25;
+    vcx.beginPath();
+    MESH.edges.forEach(function(ed){
+      if(facing[ed.f1] === facing[ed.f2]) return;
+      var A = tv(ed.a), B = tv(ed.b);
+      vcx.moveTo(w/2 + A.x*S, h/2 - A.z*S);
+      vcx.lineTo(w/2 + B.x*S, h/2 - B.z*S);
+    });
+    vcx.stroke();
     if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
     drawCube();
   }
   /* ---- view cube: rotates with the view; click a face to snap to it ---- */
-  var CUBE = { cx: 52, cy: 52, s: 17 };
-  var CUBE_POLYS = [];
+  var CUBE = { cx: 64, cy: 64, s: 26 };
+  var CUBE_POLYS = [], CUBE_CORNERS = [];
   var CUBE_FACES = [
     { n: v3(0, 0, 1),  lbl: 'TOP',   yaw: null,        pitch:  Math.PI / 2 },
     { n: v3(0, 0, -1), lbl: 'BOT',   yaw: null,        pitch: -Math.PI / 2 },
@@ -1797,6 +1981,19 @@
         CUBE_POLYS.push({ pts: pts, f: pl.f });
       }
     });
+    /* clickable corners -> isometric views */
+    CUBE_CORNERS = [];
+    for(var sx2 = -1; sx2 <= 1; sx2 += 2)
+      for(var sy2 = -1; sy2 <= 1; sy2 += 2)
+        for(var sz2 = -1; sz2 <= 1; sz2 += 2){
+          var cn = v3(sx2, sy2, sz2), q2 = tvc(cn);
+          if(q2.d > -0.15) continue;
+          var px2 = CUBE.cx + q2.x * CUBE.s, py2 = CUBE.cy - q2.z * CUBE.s;
+          vcx.beginPath(); vcx.arc(px2, py2, 2.6, 0, TAU);
+          vcx.fillStyle = ink(); vcx.fill();
+          CUBE_CORNERS.push({ x: px2, y: py2, c: cn });
+        }
+    window.__t3corners = CUBE_CORNERS;
   }
   function pointInPoly(x, y, pts){
     var inside = false;
@@ -1807,6 +2004,15 @@
     return inside;
   }
   function cubeSnap(px, py){
+    for(var ci = 0; ci < CUBE_CORNERS.length; ci++){
+      var cc = CUBE_CORNERS[ci];
+      if((px - cc.x)*(px - cc.x) + (py - cc.y)*(py - cc.y) < 81){
+        state.yaw = Math.atan2(-cc.c.x, -cc.c.y);
+        state.pitch = Math.atan2(cc.c.z, Math.hypot(cc.c.x, cc.c.y));
+        drawView();
+        return true;
+      }
+    }
     for(var i = 0; i < CUBE_POLYS.length; i++){
       if(pointInPoly(px, py, CUBE_POLYS[i].pts)){
         var f = CUBE_POLYS[i].f;
@@ -1833,10 +2039,16 @@
     var w = cv.clientWidth, h = cv.clientHeight;
     c2.clearRect(0, 0, w, h);
     c2.strokeStyle = muted(); c2.globalAlpha = 0.22; c2.lineWidth = 1;
-    var g = SNAP.g;
+    var g = SNAP.g, cx = w / 2, cyy = h / 2, k;
     c2.beginPath();
-    for(var x = g; x < w; x += g){ c2.moveTo(x + 0.5, 0); c2.lineTo(x + 0.5, h); }
-    for(var y = g; y < h; y += g){ c2.moveTo(0, y + 0.5); c2.lineTo(w, y + 0.5); }
+    for(k = 0; cx + k < w || cx - k > 0; k += g){
+      if(cx + k < w){ c2.moveTo(Math.round(cx + k) + 0.5, 0); c2.lineTo(Math.round(cx + k) + 0.5, h); }
+      if(k && cx - k > 0){ c2.moveTo(Math.round(cx - k) + 0.5, 0); c2.lineTo(Math.round(cx - k) + 0.5, h); }
+    }
+    for(k = 0; cyy + k < h || cyy - k > 0; k += g){
+      if(cyy + k < h){ c2.moveTo(0, Math.round(cyy + k) + 0.5); c2.lineTo(w, Math.round(cyy + k) + 0.5); }
+      if(k && cyy - k > 0){ c2.moveTo(0, Math.round(cyy - k) + 0.5); c2.lineTo(w, Math.round(cyy - k) + 0.5); }
+    }
     c2.stroke();
     c2.globalAlpha = 0.65;
     c2.setLineDash([4, 4]);
@@ -1855,6 +2067,22 @@
       c2.moveTo(P[0].x, P[0].y);
       for(var i = 1; i < P.length; i++) c2.lineTo(P[i].x, P[i].y);
       if(closed && P.length >= 3) c2.closePath();
+      c2.stroke();
+    }
+    if(discs) P.forEach(function(p){
+      c2.beginPath(); c2.arc(p.x, p.y, 4.5, 0, TAU);
+      c2.fillStyle = col; c2.fill();
+    });
+  }
+  function profCurve(c2, P, col, discs){
+    if(state.prtype === 'shape'){ poly2(c2, P, col, true, discs); return; }
+    if(!P.length) return;
+    if(P.length >= 2){
+      var pts = samplePath2(P, state.prtype);
+      c2.strokeStyle = col; c2.lineWidth = 2; c2.lineJoin = 'round'; c2.lineCap = 'round';
+      c2.beginPath();
+      c2.moveTo(pts[0].x, pts[0].y);
+      for(var i = 1; i < pts.length; i++) c2.lineTo(pts[i].x, pts[i].y);
       c2.stroke();
     }
     if(discs) P.forEach(function(p){
@@ -1882,11 +2110,11 @@
           var px = p.x - w/2, py = h/2 - p.y;
           return { x: w/2 + (px*c - py*s), y: h/2 - (px*s + py*c) };
         });
-        poly2(pcx, ghost, muted(), true, false);
+        profCurve(pcx, ghost, muted(), false);
       }
     }
-    poly2(pcx, state.A, ink(), true, !isBlend() || state.shape === 'A');
-    if(isBlend()) poly2(pcx, state.B, accent(), true, state.shape === 'B');
+    profCurve(pcx, state.A, ink(), !isBlend() || state.shape === 'A');
+    if(isBlend()) profCurve(pcx, state.B, accent(), state.shape === 'B');
   }
   function drawPath(){
     boardBase(acx, pathC);
@@ -1901,20 +2129,12 @@
         acx.moveTo(a.x - dx/l*900, a.y - dy/l*900); acx.lineTo(a.x + dx/l*900, a.y + dy/l*900);
         acx.stroke(); acx.restore();
         acx.beginPath(); acx.moveTo(a.x, a.y); acx.lineTo(b.x, b.y); acx.stroke();
-      } else if(state.tech === 'swp' || state.tech === 'swb'){
-        if(P.length === 2){ acx.beginPath(); acx.moveTo(P[0].x, P[0].y); acx.lineTo(P[1].x, P[1].y); acx.stroke(); }
-        else {
-          var C = [P[0]].concat(P, [P[P.length-1]]);
-          acx.beginPath(); acx.moveTo(P[0].x, P[0].y);
-          for(var i = 0; i + 3 < C.length + 0; i++)
-            for(var t = 1; t <= 16; t++){
-              var q = catmull2(C[i], C[i+1], C[i+2], C[i+3], t/16);
-              acx.lineTo(q.x, q.y);
-            }
-          acx.stroke();
-        }
       } else {
-        acx.beginPath(); acx.moveTo(P[0].x, P[0].y); acx.lineTo(P[P.length-1].x, P[P.length-1].y); acx.stroke();
+        var pts = samplePath2(P, state.ptype);
+        acx.beginPath();
+        acx.moveTo(pts[0].x, pts[0].y);
+        for(var i = 1; i < pts.length; i++) acx.lineTo(pts[i].x, pts[i].y);
+        acx.stroke();
       }
     }
     P.forEach(function(p){
@@ -1928,7 +2148,7 @@
   /* ---- board interaction: tap add, drag move, right-click delete ---- */
   function activeProf(){ return (isBlend() && state.shape === 'B') ? state.B : state.A; }
   function wireBoard(cv, getP){
-    var drag = -1, moved = false;
+    var mode = null, ptIdx = -1, startPts = null, startPos = null;
     function pos(e){
       var r = cv.getBoundingClientRect();
       return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -1941,23 +2161,53 @@
       });
       return best;
     }
+    function onShape(p){
+      var P = getP();
+      if(P.length < 2) return false;
+      var closed = cv === prof && P.length >= 3;
+      var n = closed ? P.length : P.length - 1;
+      for(var i = 0; i < n; i++){
+        var a = P[i], b = P[(i+1) % P.length];
+        var vx = b.x - a.x, vy = b.y - a.y, l2 = vx*vx + vy*vy || 1;
+        var t = Math.max(0, Math.min(1, ((p.x - a.x)*vx + (p.y - a.y)*vy) / l2));
+        var dx = p.x - (a.x + vx*t), dy = p.y - (a.y + vy*t);
+        if(dx*dx + dy*dy < 81) return true;
+      }
+      return false;
+    }
     cv.addEventListener('pointerdown', function(e){
       if(e.button === 2) return;
       cv.setPointerCapture(e.pointerId);
-      drag = nearest(pos(e), 12); moved = false;
+      var p = pos(e);
+      ptIdx = nearest(p, 12);
+      if(ptIdx >= 0){ mode = 'pt'; return; }
+      if(onShape(p)){          /* grab the whole line or shape and carry it */
+        mode = 'shape';
+        startPos = p;
+        startPts = getP().map(function(q){ return { x: q.x, y: q.y }; });
+        return;
+      }
+      mode = 'add';
     });
     cv.addEventListener('pointermove', function(e){
-      if(drag < 0) return;
-      moved = true;
-      getP()[drag] = snap(pos(e));
-      refresh();
+      if(mode === 'pt'){
+        getP()[ptIdx] = snap(pos(e), cv);
+        refresh();
+      } else if(mode === 'shape'){
+        var p = pos(e), dx = p.x - startPos.x, dy = p.y - startPos.y;
+        if(SNAP.on){
+          dx = Math.round(dx / SNAP.g) * SNAP.g;
+          dy = Math.round(dy / SNAP.g) * SNAP.g;
+        }
+        var P = getP();
+        startPts.forEach(function(q, i){ P[i] = { x: q.x + dx, y: q.y + dy }; });
+        refresh();
+      }
     });
     cv.addEventListener('pointerup', function(e){
       if(e.button === 2) return;
-      if(drag >= 0){ drag = -1; if(moved) refresh(); return; }
-      drag = -1;
-      getP().push(snap(pos(e)));
-      refresh();
+      if(mode === 'add'){ getP().push(snap(pos(e), cv)); refresh(); }
+      mode = null;
     });
     cv.addEventListener('contextmenu', function(e){
       e.preventDefault();
@@ -1990,6 +2240,21 @@
       state.plane = b.dataset.plane;
       document.querySelectorAll('#t3Planes button').forEach(function(x){ x.classList.toggle('active', x === b); });
       buildMesh();
+    });
+  });
+  document.querySelectorAll('#t3PrType button').forEach(function(b){
+    b.addEventListener('click', function(){
+      state.prtype = b.dataset.pr;
+      document.querySelectorAll('#t3PrType button').forEach(function(x){ x.classList.toggle('active', x === b); });
+      refresh();
+    });
+  });
+  var ptWrap = document.getElementById('t3PType');
+  document.querySelectorAll('#t3PType button').forEach(function(b){
+    b.addEventListener('click', function(){
+      state.ptype = b.dataset.pt;
+      document.querySelectorAll('#t3PType button').forEach(function(x){ x.classList.toggle('active', x === b); });
+      refresh();
     });
   });
   var setHost = document.getElementById('t3Set');
@@ -2025,11 +2290,25 @@
   function applyTech(){
     if(abWrap) abWrap.hidden = !isBlend();
     if(!isBlend()) state.shape = 'A';
+    state.ptype = (state.tech === 'swp' || state.tech === 'swb') ? 'curve' : 'line';
+    if(ptWrap){
+      ptWrap.hidden = state.tech === 'rev';
+      ptWrap.querySelectorAll('button').forEach(function(x){ x.classList.toggle('active', x.dataset.pt === state.ptype); });
+    }
     if(profHint) profHint.textContent = TECH[state.tech].profHint;
     if(pathHint) pathHint.textContent = TECH[state.tech].pathHint;
     buildSettings();
     refresh();
   }
+  var T3ONLY = (typeof window !== 'undefined' && window.T3_ONLY) || null;
+  if(T3ONLY && T3ONLY.length){
+    if(T3ONLY.indexOf(state.tech) < 0) state.tech = T3ONLY[0];
+    document.querySelectorAll('.t3tab').forEach(function(b){
+      if(T3ONLY.indexOf(b.dataset.tech) < 0) b.style.display = 'none';
+      b.classList.toggle('active', b.dataset.tech === state.tech);
+    });
+  }
+  window.__t3 = state;
   document.querySelectorAll('.t3tab').forEach(function(b){
     b.addEventListener('click', function(){
       state.tech = b.dataset.tech;
@@ -2070,6 +2349,7 @@
     SNAP.g = v;
     if(sG) sG.value = v; if(sGN) sGN.value = v;
     drawBoards();
+    drawView();
   }
   if(sG) sG.addEventListener('input', function(){ setGrid(sG.value); });
   if(sGN) sGN.addEventListener('input', function(){ setGrid(sGN.value); });
@@ -2109,6 +2389,13 @@
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
   var TAU = Math.PI * 2;
+
+  var ITONLY = (typeof window !== 'undefined' && window.IT_ONLY) || null;
+  if(ITONLY && ITONLY.length){
+    document.querySelectorAll('.it-row[data-it]').forEach(function(r){
+      if(ITONLY.indexOf(r.dataset.it) < 0) r.style.display = 'none';
+    });
+  }
 
   /* number slider <-> manual entry */
   var itR = document.getElementById('itR'), itN = document.getElementById('itN');
@@ -2225,6 +2512,118 @@
     new MutationObserver(drawPad).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   }
 
+  /* graph mapper: drag the two handles, the remap curve follows */
+  var gmap = document.getElementById('itMap');
+  if(gmap){
+    var mcx = gmap.getContext('2d');
+    gmap.width = 192; gmap.height = 192;
+    mcx.setTransform(2, 0, 0, 2, 0, 0);
+    var H1 = { x: 0.35, y: 0.2 }, H2 = { x: 0.65, y: 0.85 }, holdH = null;
+    var drawMap = function(){
+      mcx.clearRect(0, 0, 96, 96);
+      mcx.strokeStyle = muted(); mcx.globalAlpha = 0.4; mcx.lineWidth = 1;
+      mcx.beginPath();
+      for(var i = 1; i < 4; i++){
+        mcx.moveTo(i*24 + 0.5, 0); mcx.lineTo(i*24 + 0.5, 96);
+        mcx.moveTo(0, i*24 + 0.5); mcx.lineTo(96, i*24 + 0.5);
+      }
+      mcx.stroke(); mcx.globalAlpha = 1;
+      var sx = function(v){ return v * 96; }, sy = function(v){ return 96 - v * 96; };
+      mcx.setLineDash([3, 3]); mcx.strokeStyle = muted(); mcx.lineWidth = 1;
+      mcx.beginPath();
+      mcx.moveTo(sx(0), sy(0)); mcx.lineTo(sx(H1.x), sy(H1.y));
+      mcx.moveTo(sx(1), sy(1)); mcx.lineTo(sx(H2.x), sy(H2.y));
+      mcx.stroke(); mcx.setLineDash([]);
+      mcx.strokeStyle = ink(); mcx.lineWidth = 2;
+      mcx.beginPath(); mcx.moveTo(sx(0), sy(0));
+      mcx.bezierCurveTo(sx(H1.x), sy(H1.y), sx(H2.x), sy(H2.y), sx(1), sy(1));
+      mcx.stroke();
+      [H1, H2].forEach(function(hd){
+        mcx.beginPath(); mcx.arc(sx(hd.x), sy(hd.y), 3.5, 0, TAU);
+        mcx.fillStyle = ink(); mcx.fill();
+      });
+    };
+    var mpos = function(e){
+      var r = gmap.getBoundingClientRect();
+      return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / 96)),
+               y: Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / 96)) };
+    };
+    gmap.addEventListener('pointerdown', function(e){
+      var p = mpos(e);
+      var d1 = (p.x-H1.x)*(p.x-H1.x) + (p.y-H1.y)*(p.y-H1.y);
+      var d2 = (p.x-H2.x)*(p.x-H2.x) + (p.y-H2.y)*(p.y-H2.y);
+      holdH = d1 < d2 ? H1 : H2;
+      holdH.x = p.x; holdH.y = p.y;
+      gmap.setPointerCapture(e.pointerId);
+      drawMap();
+    });
+    gmap.addEventListener('pointermove', function(e){
+      if(!holdH) return;
+      var p = mpos(e); holdH.x = p.x; holdH.y = p.y; drawMap();
+    });
+    gmap.addEventListener('pointerup', function(){ holdH = null; });
+    drawMap();
+    new MutationObserver(drawMap).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  }
+
+  /* domain: a two-handled range */
+  var dom = document.getElementById('itDom');
+  var domA = document.getElementById('itDomA'), domB = document.getElementById('itDomB');
+  if(dom && domA && domB){
+    var dmx = dom.getContext('2d');
+    dom.width = 300; dom.height = 52;
+    dmx.setTransform(2, 0, 0, 2, 0, 0);
+    var dA = +domA.value || 25, dB = +domB.value || 70, holdD = null;
+    var drawDom = function(){
+      dmx.clearRect(0, 0, 150, 26);
+      dmx.strokeStyle = muted(); dmx.lineWidth = 2;
+      dmx.beginPath(); dmx.moveTo(6, 13); dmx.lineTo(144, 13); dmx.stroke();
+      var xa = 6 + dA / 100 * 138, xb = 6 + dB / 100 * 138;
+      dmx.strokeStyle = ink(); dmx.lineWidth = 3;
+      dmx.beginPath(); dmx.moveTo(xa, 13); dmx.lineTo(xb, 13); dmx.stroke();
+      dmx.fillStyle = ink();
+      dmx.fillRect(xa - 3, 6, 6, 14);
+      dmx.fillRect(xb - 3, 6, 6, 14);
+    };
+    var dval = function(e){
+      var r = dom.getBoundingClientRect();
+      return Math.max(0, Math.min(100, Math.round((e.clientX - r.left - 6) / 138 * 100)));
+    };
+    var dapply = function(v){
+      if(holdD === 'a'){ dA = Math.min(v, dB); domA.value = dA; }
+      else { dB = Math.max(v, dA); domB.value = dB; }
+      drawDom();
+    };
+    dom.addEventListener('pointerdown', function(e){
+      var v = dval(e);
+      holdD = Math.abs(v - dA) <= Math.abs(v - dB) ? 'a' : 'b';
+      dom.setPointerCapture(e.pointerId);
+      dapply(v);
+    });
+    dom.addEventListener('pointermove', function(e){ if(holdD) dapply(dval(e)); });
+    dom.addEventListener('pointerup', function(){ holdD = null; });
+    var dnum = function(){
+      var va = +domA.value, vb = +domB.value;
+      if(!isNaN(va)) dA = Math.max(0, Math.min(100, va));
+      if(!isNaN(vb)) dB = Math.max(0, Math.min(100, vb));
+      if(dA > dB){ var t2 = dA; dA = dB; dB = t2; domA.value = dA; domB.value = dB; }
+      drawDom();
+    };
+    domA.addEventListener('change', dnum);
+    domB.addEventListener('change', dnum);
+    drawDom();
+    new MutationObserver(drawDom).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  }
+
+  /* button: true while held, like the grasshopper button */
+  var bang = document.getElementById('itBang'), bangOut = document.getElementById('itBangOut');
+  if(bang && bangOut){
+    bang.addEventListener('pointerdown', function(){ bangOut.textContent = 'true'; });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(ev){
+      bang.addEventListener(ev, function(){ bangOut.textContent = 'false'; });
+    });
+  }
+
   /* data input: browse + list */
   var browse = document.getElementById('diBrowse'), file = document.getElementById('diFile');
   var list = document.getElementById('diList');
@@ -2267,11 +2666,13 @@
 
   var GTAB = {
     xy:   { lab:'f(x) =', fx:'sin(x) * x', from:-10, to:10,
-      ex: [ { fx:'sin(x) * x' },
+      ex: [ { fx:'x' },
+            { fx:'x/2 + 3' },
+            { fx:'2*x - 5' },
+            { fx:'sin(x) * x' },
             { fx:'x^2 / 10 - 4' },
             { fx:'sin(x) + sin(3*x) / 3' },
-            { fx:'exp(-(x^2) / 10) * 8' },
-            { fx:'tan(x)', from:-6, to:6 } ] },
+            { fx:'exp(-(x^2) / 10) * 8' } ] },
     pol:  { lab:'r(t) =', fx:'1 + 0.5 * sin(6*t)', turns:1,
       ex: [ { fx:'4', turns:1 },
             { fx:'2 + 2 * cos(t)', turns:1 },
@@ -2291,6 +2692,15 @@
             { fx:'x^1.5 / 2' } ] }
   };
   var cur = 'xy';
+  var GRONLY = (typeof window !== 'undefined' && window.GR_ONLY) || null;
+  if(GRONLY && GRONLY.length){
+    if(GRONLY.indexOf(cur) < 0) cur = GRONLY[0];
+    document.querySelectorAll('.grtab').forEach(function(b){
+      if(GRONLY.indexOf(b.dataset.g) < 0) b.style.display = 'none';
+      b.classList.toggle('active', b.dataset.g === cur);
+    });
+  }
+  window.__gr = function(){ return { tab: cur, st: GTAB[cur] }; };
 
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
@@ -2615,6 +3025,246 @@
   loadTab();
 })();
 </script>
+<script id="exportsEngine">
+(function(){
+  "use strict";
+  /* ── every card gets the export options: Use / Export Prompt / Export HTML.
+     The HTML export lifts the page's styles, the card's markup and its engine,
+     sets a *_ONLY filter for the ticked units, and packs one standalone file.
+     The 2D lines card keeps its own bespoke exporter. ── */
+  var CARDS = [
+    { sel:'.t3d', title:'3D Techniques', engines:['t3dEngine'], only:'T3_ONLY', file:'3d-techniques.html',
+      units:[ { id:'ext', label:'Extrude' }, { id:'rev', label:'Revolve' }, { id:'swp', label:'Sweep' },
+              { id:'bln', label:'Blend' }, { id:'swb', label:'Sweep Blend' } ],
+      prompt: function(){
+        var s = window.__t3 || {};
+        return ['Build an interactive "3D Techniques" widget as one self-contained HTML file with no libraries.',
+        '',
+        'Two square sketchboards: a profile board whose centre is the line of action (mark it with an X), and a line-of-action board with a plane picker (XY / XZ / YZ). Both boards offer line styles — the profile: shape / line / poly / arc / curve (open profiles sweep into sheets); the line of action: line / polyline / arc / curve. Snap-to-grid with a density slider, on by default, grid centred on the board centre.',
+        'Techniques: extrude, revolve (angle setting), sweep, blend and sweep blend (two profiles on one board, A in ink, B in red). Twist setting shows a greyed rotated ghost of the end profile on the board.',
+        'Output: an orbitable 3D canvas with painter-sorted hidden-line rendering — white faces, black ink only on crease and silhouette edges, no wireframe lines on flat faces — an XY ground grid that matches the snap grid through the origin, XYZ axes, and a view cube whose faces and corners are clickable to snap the camera. Fixed view scale (mouse wheel zooms), no idle spin.',
+        'Interaction: tap adds a point; drag a point to move it, or grab the line to carry the whole sketch; right-click deletes a point. Show the solid only when both the profile and the line of action exist; before that show whichever sketch exists flat on its plane.',
+        '',
+        'Reproduce the current state: technique ' + (s.tech || 'ext') + ', plane ' + (s.plane || 'xy') +
+        ', path type ' + (s.ptype || 'line') + ', profile type ' + (s.prtype || 'shape') +
+        ', twist ' + (s.twist || 0) + '°, revolve angle ' + (s.angle || 360) + '°.',
+        'Style: white board, thin grey grids, 2px black ink, uppercase micro-labels.'].join('\n');
+      } },
+    { sel:'.itools', title:'Input Tools', engines:['uiToolsEngine'], only:'IT_ONLY', file:'input-tools.html',
+      units:[ { id:'slider', label:'Number slider' }, { id:'stepper', label:'Number entry' },
+              { id:'dial', label:'Dial' }, { id:'toggle', label:'Toggle' }, { id:'seg', label:'Segmented' },
+              { id:'pad', label:'XY pad' }, { id:'pool', label:'Gene pool' }, { id:'mapper', label:'Graph mapper' },
+              { id:'domain', label:'Domain' }, { id:'list', label:'Value list' }, { id:'button', label:'Button' },
+              { id:'panel', label:'Panel' } ],
+      prompt: function(){
+        return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family, reimagined in white paper and black ink:',
+        '',
+        '- number slider with a synced manual number entry',
+        '- number entry with adjacent − / + steppers sized to the box',
+        '- a drag dial synced with a degree entry',
+        '- an on/off toggle and a segmented control',
+        '- an XY pad with synced x / y entries',
+        '- a gene pool of five vertical sliders',
+        '- a graph mapper: a curve from corner to corner with two draggable bezier handles',
+        '- a domain: one track, two draggable ends, synced entries',
+        '- a value list dropdown, a momentary button that reads true while held, and a panel text entry',
+        '',
+        'Every control syncs both ways — graphical and numerical. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
+      } },
+    { sel:'.dinput', title:'Data Input', engines:['uiToolsEngine'], only:'DI_ONLY', file:'data-input.html',
+      units:null,
+      prompt: function(){
+        return ['Build a "Data Input" box as one self-contained HTML file with no libraries: a Browse button that opens a multi-file picker and lists each chosen file’s name and size (KB / MB) in dashed rows underneath. White paper, black ink, uppercase micro-labels, serif italic note explaining that import pipelines land later.'].join('\n');
+      } },
+    { sel:'.graphs', title:'Graphs', engines:['graphsEngine'], only:'GR_ONLY', file:'graphs.html',
+      units:[ { id:'xy', label:'XY' }, { id:'pol', label:'Polar' },
+              { id:'slog', label:'Semi-log' }, { id:'llog', label:'Log-log' } ],
+      prompt: function(){
+        var g = window.__gr ? window.__gr() : null;
+        var cur = g ? g.tab : 'xy', st = g ? g.st : {};
+        return ['Build a function plotter as one self-contained HTML file with no libraries.',
+        '',
+        'Tabs: XY, polar, semi-log and log-log. A safe recursive-descent expression parser (no eval) supporting sin cos tan asin acos atan sqrt ln log exp abs floor round sign, ^ for powers, and the constants pi, e, tau. Example equation chips that populate the box on click. Nice-step grids that snap to the same half-pixel as the zero axes; decade gridlines with faint minors on the log scales; polar rings and spokes from a whole-pixel centre with a turns setting.',
+        '',
+        'Reproduce the current state: ' + cur + ' plot of f = ' + (st.fx || 'sin(x) * x') +
+        (cur === 'pol' ? '' : ' from ' + st.from + ' to ' + st.to) + '.',
+        'Style: white board, thin grey grid, 2px black ink curve, mono expression entry, uppercase micro-labels.'].join('\n');
+      } }
+  ];
+
+  function el(tag, cls, txt){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(txt !== undefined) n.textContent = txt;
+    return n;
+  }
+  function collectCss(){
+    var css = '';
+    document.querySelectorAll('style').forEach(function(s){ css += s.textContent + '\n'; });
+    return css;
+  }
+  function buildDoc(cfg, ids){
+    var card = document.querySelector(cfg.sel);
+    var clone = card.cloneNode(true);
+    clone.querySelectorAll('.pgx-modes, .pgx-panel').forEach(function(n){ n.remove(); });
+    clone.querySelectorAll('[hidden]').forEach(function(n){ n.hidden = false; });
+    var eng = cfg.engines.map(function(id){
+      var s = document.getElementById(id);
+      return s ? s.textContent : '';
+    }).join('\n;\n');
+    return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>' + cfg.title + ' — OttomanLabs.AI</title><style>' +
+      ':root{--paper:#FFFFFF;--ink:#111111;--ink-60:#5A5A5A;--ink-35:#A9A9A9;--hair:#E3E3E3;' +
+      '--font-brand:"Avenir Next","Helvetica Neue",Arial,sans-serif;' +
+      '--font-serif:Georgia,"Times New Roman",serif;--font-display:Georgia,serif;--gap:24px;--wrap:100%;}' +
+      'body{margin:0;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;}' +
+      '.pg-credit{font-family:var(--font-brand);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-60);margin-top:1.1rem;}' +
+      '.pg-credit a{color:inherit;}' +
+      collectCss() + '</style></head><body>' +
+      clone.outerHTML +
+      '<p class="pg-credit">the computational ai playground · ' +
+      '<a href="https://ottomanlabs.ai/playground.html">ottomanlabs.ai</a></p>' +
+      '<scr' + 'ipt>window.' + cfg.only + '=' + JSON.stringify(ids || null) + ';</scr' + 'ipt>' +
+      '<scr' + 'ipt>' + eng + '</scr' + 'ipt>' +
+      '</body></html>';
+  }
+
+  CARDS.forEach(function(cfg){
+    var card = document.querySelector(cfg.sel);
+    if(!card) return;
+    var cap = card.querySelector('.draw-cap');
+    if(!cap) return;
+    /* mode tabs */
+    var modes = el('div', 'pg-modes pgx-modes');
+    var body = [].slice.call(card.children).filter(function(ch){ return ch !== cap; });
+    var panels = {};
+    ['use', 'prompt', 'html'].forEach(function(m){
+      var b = el('button', 'pgmode' + (m === 'use' ? ' active' : ''),
+                 m === 'use' ? 'Use' : m === 'prompt' ? 'Export Prompt' : 'Export HTML');
+      b.type = 'button'; b.dataset.mode = m;
+      modes.appendChild(b);
+    });
+    card.insertBefore(modes, cap.nextSibling);
+
+    /* prompt panel */
+    var pp = el('div', 'pg-panel pgx-panel');
+    pp.hidden = true;
+    pp.appendChild(el('p', 'pg-panel-note', 'the prompt below rebuilds this box — hand it to any AI'));
+    var ta = document.createElement('textarea');
+    ta.readOnly = true; ta.spellcheck = false;
+    pp.appendChild(ta);
+    var prow = el('div', 'pg-panel-row');
+    var copy = el('button', '', 'Copy prompt'); copy.type = 'button';
+    var cnote = el('span', 'pg-note', '');
+    prow.appendChild(copy); prow.appendChild(cnote);
+    pp.appendChild(prow);
+    card.appendChild(pp);
+    copy.addEventListener('click', function(){
+      var done = function(ok){ cnote.textContent = ok ? 'copied' : 'select the text and copy manually'; };
+      ta.focus(); ta.select();
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value).then(function(){ done(true); },
+          function(){ done(document.execCommand && document.execCommand('copy')); });
+      } else done(document.execCommand && document.execCommand('copy'));
+    });
+
+    /* html panel */
+    var hp = el('div', 'pg-panel pgx-panel');
+    hp.hidden = true;
+    hp.appendChild(el('p', 'pg-panel-note', cfg.units ?
+      'pick what you want and download this box as a single HTML file' :
+      'download this box as a single HTML file'));
+    var checks = null;
+    if(cfg.units){
+      var search = document.createElement('input');
+      search.type = 'search'; search.placeholder = 'Search…';
+      search.className = 'pgx-search';
+      hp.appendChild(search);
+      checks = el('div', 'pg-checks');
+      cfg.units.forEach(function(u){
+        var lab = el('label');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = true; cb.value = u.id;
+        lab.appendChild(cb);
+        lab.appendChild(document.createTextNode(u.label));
+        lab.dataset.name = u.label.toLowerCase();
+        checks.appendChild(lab);
+      });
+      hp.appendChild(checks);
+      search.addEventListener('input', function(){
+        var q = search.value.trim().toLowerCase();
+        checks.querySelectorAll('label').forEach(function(l){
+          l.style.display = (!q || l.dataset.name.indexOf(q) >= 0) ? '' : 'none';
+        });
+      });
+    }
+    var hrow = el('div', 'pg-panel-row');
+    if(checks){
+      var allB = el('button', '', 'All'), noneB = el('button', '', 'None');
+      allB.type = noneB.type = 'button';
+      allB.addEventListener('click', function(){ checks.querySelectorAll('input').forEach(function(c){ c.checked = true; }); });
+      noneB.addEventListener('click', function(){ checks.querySelectorAll('input').forEach(function(c){ c.checked = false; }); });
+      hrow.appendChild(allB); hrow.appendChild(noneB);
+    }
+    var dl = el('button', '', 'Download HTML'); dl.type = 'button';
+    var dnote = el('span', 'pg-note', '');
+    hrow.appendChild(dl); hrow.appendChild(dnote);
+    hp.appendChild(hrow);
+    card.appendChild(hp);
+    dl.addEventListener('click', function(){
+      var ids = null;
+      if(checks){
+        ids = [];
+        checks.querySelectorAll('input:checked').forEach(function(c){ ids.push(c.value); });
+        if(!ids.length){ dnote.textContent = 'pick at least one'; return; }
+      }
+      var blob = new Blob([buildDoc(cfg, ids)], { type: 'text/html' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = cfg.file;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      dnote.textContent = ids ? ids.length + ' packed' : 'packed';
+    });
+
+    panels.prompt = pp; panels.html = hp;
+    modes.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){
+        var m = b.dataset.mode;
+        modes.querySelectorAll('button').forEach(function(x){ x.classList.toggle('active', x === b); });
+        body.forEach(function(ch){ ch.hidden = m !== 'use'; });
+        pp.hidden = m !== 'prompt';
+        hp.hidden = m !== 'html';
+        if(m === 'prompt') ta.value = cfg.prompt();
+      });
+    });
+  });
+})();
+</script>
+<script id="introPopEngine">
+(function(){
+  "use strict";
+  /* the introduction popup: an in-page overlay, so popup blockers have
+     nothing to block. Enter (button or key) dismisses; once per session. */
+  var pop = document.getElementById('introPop'), btn = document.getElementById('ipEnter');
+  if(!pop || !btn) return;
+  var seen = false;
+  try { seen = sessionStorage.getItem('pg-intro') === '1'; } catch(e){}
+  if(!seen){
+    pop.hidden = false;
+    try { btn.focus(); } catch(e){}
+  }
+  function close(){
+    pop.hidden = true;
+    try { sessionStorage.setItem('pg-intro', '1'); } catch(e){}
+  }
+  btn.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){
+    if(!pop.hidden && (e.key === 'Escape' || e.key === 'Enter')) close();
+  });
+})();
+</script>
 <script>
 (function(){
   "use strict";
@@ -2679,6 +3329,7 @@
   var form = document.getElementById('soonForm');
   var email = document.getElementById('soonEmail');
   var note = document.getElementById('soonNote');
+  if(!form || !email || !note) return;
   if(form) form.addEventListener('submit', function(e){
     e.preventDefault();
     if(!email.value || !email.checkValidity()){ email.focus(); return; }
