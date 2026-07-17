@@ -149,7 +149,11 @@
     -webkit-appearance:slider-vertical; width:1.1rem; height:64px; padding:0; accent-color:var(--ink); }
   #itMap{ width:96px; height:96px; border:1px solid var(--hair); cursor:crosshair; touch-action:none; }
   #itDom{ width:150px; height:26px; border:1px solid var(--hair); cursor:ew-resize; touch-action:none; }
-  #itList{ font-family:var(--font-brand); font-size:.72rem; letter-spacing:.06em;
+  .it-mapwrap{ display:flex; flex-direction:column; gap:.35rem; align-items:flex-start; }
+  .it-mini{ width:3.2rem !important; }
+  .it-mini-lab{ font-family:var(--font-brand); font-size:.52rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-60); }
+  #itList, #itMapType, #itDialUnit{ font-family:var(--font-brand); font-size:.72rem; letter-spacing:.06em;
     border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.35rem .5rem; }
   .it-bang{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase;
     border:1px solid var(--ink); background:var(--paper); color:var(--ink); padding:.4rem .9rem; cursor:pointer; }
@@ -479,6 +483,8 @@
           <label for="itR">Number slider</label>
           <input type="range" id="itR" min="0" max="100" value="35">
           <input type="number" id="itN" min="0" max="100" value="35" aria-label="Number slider value">
+          <label class="it-mini-lab" for="itRStep">step</label>
+          <input type="number" id="itRStep" class="it-mini" value="1" min="0" step="any">
         </div>
         <div class="it-row" data-it="stepper">
           <label for="itVal">Number entry</label>
@@ -491,8 +497,15 @@
         <div class="it-row" data-it="dial">
           <label for="itDeg">Dial</label>
           <canvas id="itDial" aria-label="Dial — drag to rotate"></canvas>
-          <input type="number" id="itDeg" min="0" max="360" value="45">
-          <span class="it-unit">&deg;</span>
+          <input type="number" id="itDeg" value="45" step="any">
+          <select id="itDialUnit" aria-label="Dial unit">
+            <option value="deg">deg</option>
+            <option value="rad">rad</option>
+            <option value="grad">grad</option>
+            <option value="turn">turn</option>
+          </select>
+          <label class="it-mini-lab" for="itDegStep">step</label>
+          <input type="number" id="itDegStep" class="it-mini" value="1" min="0" step="any">
         </div>
         <div class="it-row" data-it="toggle">
           <label>Toggle</label>
@@ -515,19 +528,19 @@
             <input type="number" id="itPY" min="0" max="100" value="50" aria-label="Pad Y">
           </div>
         </div>
-        <div class="it-row" data-it="pool">
-          <label>Gene pool</label>
-          <div class="it-pool" id="itPool">
-            <input type="range" orient="vertical" min="0" max="100" value="30" aria-label="Gene 1">
-            <input type="range" orient="vertical" min="0" max="100" value="70" aria-label="Gene 2">
-            <input type="range" orient="vertical" min="0" max="100" value="45" aria-label="Gene 3">
-            <input type="range" orient="vertical" min="0" max="100" value="85" aria-label="Gene 4">
-            <input type="range" orient="vertical" min="0" max="100" value="20" aria-label="Gene 5">
-          </div>
-        </div>
         <div class="it-row" data-it="mapper">
           <label for="itMap">Graph mapper</label>
-          <canvas id="itMap" aria-label="Graph mapper — drag the handles"></canvas>
+          <div class="it-mapwrap">
+            <canvas id="itMap" aria-label="Graph mapper — drag the handles"></canvas>
+            <select id="itMapType" aria-label="Graph type">
+              <option value="bezier">Bezier</option>
+              <option value="linear">Linear</option>
+              <option value="sine">Sine</option>
+              <option value="power">Power</option>
+              <option value="gauss">Gaussian</option>
+              <option value="perlin">Perlin</option>
+            </select>
+          </div>
         </div>
         <div class="it-row" data-it="domain">
           <label>Domain</label>
@@ -549,8 +562,18 @@
           <span class="it-out" id="itBangOut">false</span>
         </div>
         <div class="it-row" data-it="panel">
-          <label for="itPanel">Panel</label>
+          <label for="itPanel">Text input</label>
           <input type="text" id="itPanel" placeholder="type anything&hellip;" spellcheck="false">
+        </div>
+        <div class="it-row" data-it="pool">
+          <label>Gene pool</label>
+          <div class="it-pool" id="itPool">
+            <input type="range" orient="vertical" min="0" max="100" value="30" aria-label="Gene 1">
+            <input type="range" orient="vertical" min="0" max="100" value="70" aria-label="Gene 2">
+            <input type="range" orient="vertical" min="0" max="100" value="45" aria-label="Gene 3">
+            <input type="range" orient="vertical" min="0" max="100" value="85" aria-label="Gene 4">
+            <input type="range" orient="vertical" min="0" max="100" value="20" aria-label="Gene 5">
+          </div>
         </div>
       </div>
     </div>
@@ -2410,6 +2433,17 @@
     });
   }
 
+  /* slider step */
+  var rStep = document.getElementById('itRStep');
+  if(rStep && itR && itN){
+    var applyStep = function(){
+      var v = Math.abs(+rStep.value) || 1;
+      itR.step = v; itN.step = v;
+    };
+    rStep.addEventListener('change', applyStep);
+    applyStep();
+  }
+
   /* number entry with steppers */
   var itVal = document.getElementById('itVal');
   var itMinus = document.getElementById('itMinus'), itPlus = document.getElementById('itPlus');
@@ -2418,10 +2452,16 @@
     itPlus.addEventListener('click', function(){ itVal.value = (+itVal.value || 0) + 1; });
   }
 
-  /* dial: drag to rotate, number entry synced */
+  /* dial: drag to rotate — degrees, radians, grads or turns, with a step */
   var dial = document.getElementById('itDial'), itDeg = document.getElementById('itDeg');
+  var dialUnit = document.getElementById('itDialUnit'), degStep = document.getElementById('itDegStep');
   if(dial && itDeg){
-    var dcx = dial.getContext('2d'), deg = +itDeg.value || 45, spin = false;
+    var dcx = dial.getContext('2d'), deg = 45, spin = false;
+    var DUNIT = { deg:  { f: 1,               dp: 0, def: 1 },
+                  rad:  { f: Math.PI / 180,   dp: 3, def: 0.01 },
+                  grad: { f: 10 / 9,          dp: 1, def: 1 },
+                  turn: { f: 1 / 360,         dp: 3, def: 0.01 } };
+    var dunit = 'deg';
     dial.width = 128; dial.height = 128;
     dcx.setTransform(2, 0, 0, 2, 0, 0);
     var drawDial = function(){
@@ -2433,9 +2473,19 @@
       dcx.beginPath(); dcx.moveTo(32, 32); dcx.lineTo(32 + 22*Math.cos(a), 32 + 22*Math.sin(a)); dcx.stroke();
       dcx.beginPath(); dcx.arc(32, 32, 3, 0, TAU); dcx.fillStyle = ink(); dcx.fill();
     };
-    var setDeg = function(v){
-      deg = ((Math.round(v) % 360) + 360) % 360;
-      itDeg.value = deg;
+    var stepVal = function(){
+      var v = Math.abs(+(degStep ? degStep.value : 1));
+      return v > 0 ? v : DUNIT[dunit].def;
+    };
+    var showVal = function(){
+      itDeg.value = +(deg * DUNIT[dunit].f).toFixed(DUNIT[dunit].dp);
+    };
+    var setDeg = function(v){          /* v in degrees; snap in the active unit */
+      var f = DUNIT[dunit].f, s = stepVal(), full = 360 * f;
+      var uv = Math.round(v * f / s) * s;
+      uv = ((uv % full) + full) % full;
+      deg = uv / f;
+      showVal();
       drawDial();
     };
     var fromEvent = function(e){
@@ -2446,8 +2496,20 @@
     dial.addEventListener('pointerdown', function(e){ spin = true; dial.setPointerCapture(e.pointerId); fromEvent(e); });
     dial.addEventListener('pointermove', function(e){ if(spin) fromEvent(e); });
     dial.addEventListener('pointerup', function(){ spin = false; });
-    itDeg.addEventListener('input', function(){ var v = +itDeg.value; if(!isNaN(v)){ deg = ((Math.round(v)%360)+360)%360; drawDial(); } });
-    drawDial();
+    itDeg.addEventListener('change', function(){
+      var v = +itDeg.value;
+      if(!isNaN(v)){
+        deg = ((v / DUNIT[dunit].f) % 360 + 360) % 360;
+        showVal(); drawDial();
+      }
+    });
+    if(dialUnit) dialUnit.addEventListener('change', function(){
+      dunit = dialUnit.value;
+      if(degStep) degStep.value = DUNIT[dunit].def;
+      showVal();
+    });
+    if(degStep) degStep.addEventListener('change', function(){ setDeg(deg); });
+    showVal(); drawDial();
     new MutationObserver(drawDial).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   }
 
@@ -2511,13 +2573,48 @@
     new MutationObserver(drawPad).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   }
 
-  /* graph mapper: drag the two handles, the remap curve follows */
-  var gmap = document.getElementById('itMap');
+  /* graph mapper: grasshopper-style graph types, draggable handles */
+  var gmap = document.getElementById('itMap'), mtype = document.getElementById('itMapType');
   if(gmap){
     var mcx = gmap.getContext('2d');
     gmap.width = 192; gmap.height = 192;
     mcx.setTransform(2, 0, 0, 2, 0, 0);
-    var H1 = { x: 0.35, y: 0.2 }, H2 = { x: 0.65, y: 0.85 }, holdH = null;
+    var MTYPES = {
+      bezier: { h: [ { x:0.35, y:0.2 }, { x:0.65, y:0.85 } ] },
+      linear: { h: [ { x:0, y:0 }, { x:1, y:1 } ] },
+      sine:   { h: [ { x:0.5, y:0.5 } ] },
+      power:  { h: [ { x:0.5, y:0.25 } ] },
+      gauss:  { h: [ { x:0.5, y:1 } ] },
+      perlin: { h: [ { x:0.5, y:0.5 } ] }
+    };
+    var mcur = 'bezier', holdH = null;
+    var mfn = function(t){
+      var H = MTYPES[mcur].h;
+      if(mcur === 'linear') return H[0].y + (H[1].y - H[0].y) * t;
+      if(mcur === 'sine'){
+        var f = 0.25 + H[0].x * 2.75, A = Math.max(0.05, Math.min(0.5, H[0].y * 0.5 + 0.05));
+        return 0.5 - A * Math.cos(2 * Math.PI * f * t);
+      }
+      if(mcur === 'power'){
+        var hx = Math.min(0.98, Math.max(0.02, H[0].x)), hy = Math.min(0.98, Math.max(0.02, H[0].y));
+        return Math.pow(t, Math.log(hy) / Math.log(hx));
+      }
+      if(mcur === 'gauss'){
+        var mu = H[0].x, s = 0.16;
+        return H[0].y * Math.exp(-(t - mu) * (t - mu) / (2 * s * s));
+      }
+      if(mcur === 'perlin'){
+        var cells = 3 + Math.round(H[0].x * 12), amp = H[0].y;
+        var hashN = function(i){
+          var x2 = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+          return x2 - Math.floor(x2);
+        };
+        var u = t * cells, i0 = Math.floor(u), fr = u - i0;
+        var sm = fr * fr * (3 - 2 * fr);
+        return 0.5 + (hashN(i0) * (1 - sm) + hashN(i0 + 1) * sm - 0.5) * amp;
+      }
+      return t;
+    };
     var drawMap = function(){
       mcx.clearRect(0, 0, 96, 96);
       mcx.strokeStyle = muted(); mcx.globalAlpha = 0.4; mcx.lineWidth = 1;
@@ -2527,17 +2624,28 @@
         mcx.moveTo(0, i*24 + 0.5); mcx.lineTo(96, i*24 + 0.5);
       }
       mcx.stroke(); mcx.globalAlpha = 1;
-      var sx = function(v){ return v * 96; }, sy = function(v){ return 96 - v * 96; };
-      mcx.setLineDash([3, 3]); mcx.strokeStyle = muted(); mcx.lineWidth = 1;
-      mcx.beginPath();
-      mcx.moveTo(sx(0), sy(0)); mcx.lineTo(sx(H1.x), sy(H1.y));
-      mcx.moveTo(sx(1), sy(1)); mcx.lineTo(sx(H2.x), sy(H2.y));
-      mcx.stroke(); mcx.setLineDash([]);
-      mcx.strokeStyle = ink(); mcx.lineWidth = 2;
-      mcx.beginPath(); mcx.moveTo(sx(0), sy(0));
-      mcx.bezierCurveTo(sx(H1.x), sy(H1.y), sx(H2.x), sy(H2.y), sx(1), sy(1));
-      mcx.stroke();
-      [H1, H2].forEach(function(hd){
+      var sx = function(v){ return v * 96; }, sy = function(v){ return 96 - Math.max(0, Math.min(1, v)) * 96; };
+      var H = MTYPES[mcur].h;
+      if(mcur === 'bezier'){
+        mcx.setLineDash([3, 3]); mcx.strokeStyle = muted(); mcx.lineWidth = 1;
+        mcx.beginPath();
+        mcx.moveTo(sx(0), sy(0)); mcx.lineTo(sx(H[0].x), sy(H[0].y));
+        mcx.moveTo(sx(1), sy(1)); mcx.lineTo(sx(H[1].x), sy(H[1].y));
+        mcx.stroke(); mcx.setLineDash([]);
+        mcx.strokeStyle = ink(); mcx.lineWidth = 2;
+        mcx.beginPath(); mcx.moveTo(sx(0), sy(0));
+        mcx.bezierCurveTo(sx(H[0].x), sy(H[0].y), sx(H[1].x), sy(H[1].y), sx(1), sy(1));
+        mcx.stroke();
+      } else {
+        mcx.strokeStyle = ink(); mcx.lineWidth = 2; mcx.lineJoin = 'round';
+        mcx.beginPath();
+        for(var k = 0; k <= 60; k++){
+          var t = k / 60, v = mfn(t);
+          k ? mcx.lineTo(sx(t), sy(v)) : mcx.moveTo(sx(t), sy(v));
+        }
+        mcx.stroke();
+      }
+      H.forEach(function(hd){
         mcx.beginPath(); mcx.arc(sx(hd.x), sy(hd.y), 3.5, 0, TAU);
         mcx.fillStyle = ink(); mcx.fill();
       });
@@ -2548,10 +2656,12 @@
                y: Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / 96)) };
     };
     gmap.addEventListener('pointerdown', function(e){
-      var p = mpos(e);
-      var d1 = (p.x-H1.x)*(p.x-H1.x) + (p.y-H1.y)*(p.y-H1.y);
-      var d2 = (p.x-H2.x)*(p.x-H2.x) + (p.y-H2.y)*(p.y-H2.y);
-      holdH = d1 < d2 ? H1 : H2;
+      var p = mpos(e), H = MTYPES[mcur].h, best = 0, bd = 1e9;
+      H.forEach(function(hd, i){
+        var d = (p.x-hd.x)*(p.x-hd.x) + (p.y-hd.y)*(p.y-hd.y);
+        if(d < bd){ bd = d; best = i; }
+      });
+      holdH = H[best];
       holdH.x = p.x; holdH.y = p.y;
       gmap.setPointerCapture(e.pointerId);
       drawMap();
@@ -2561,6 +2671,7 @@
       var p = mpos(e); holdH.x = p.x; holdH.y = p.y; drawMap();
     });
     gmap.addEventListener('pointerup', function(){ holdH = null; });
+    if(mtype) mtype.addEventListener('change', function(){ mcur = mtype.value; holdH = null; drawMap(); });
     drawMap();
     new MutationObserver(drawMap).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   }
@@ -3054,19 +3165,19 @@
               { id:'dial', label:'Dial' }, { id:'toggle', label:'Toggle' }, { id:'seg', label:'Segmented' },
               { id:'pad', label:'XY pad' }, { id:'pool', label:'Gene pool' }, { id:'mapper', label:'Graph mapper' },
               { id:'domain', label:'Domain' }, { id:'list', label:'Value list' }, { id:'button', label:'Button' },
-              { id:'panel', label:'Panel' } ],
+              { id:'panel', label:'Text input' } ],
       prompt: function(){
         return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family, reimagined in white paper and black ink:',
         '',
-        '- number slider with a synced manual number entry',
+        '- number slider with a synced manual number entry and a step setting',
         '- number entry with adjacent − / + steppers sized to the box',
-        '- a drag dial synced with a degree entry',
+        '- a drag dial synced with a numeric entry in degrees, radians, grads or turns, plus a step setting',
         '- an on/off toggle and a segmented control',
         '- an XY pad with synced x / y entries',
         '- a gene pool of five vertical sliders',
-        '- a graph mapper: a curve from corner to corner with two draggable bezier handles',
+        '- a graph mapper with grasshopper-style graph types — bezier, linear, sine, power, gaussian, perlin — and draggable handles',
         '- a domain: one track, two draggable ends, synced entries',
-        '- a value list dropdown, a momentary button that reads true while held, and a panel text entry',
+        '- a value list dropdown, a momentary button that reads true while held, and a text input',
         '',
         'Every control syncs both ways — graphical and numerical. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
       } },
