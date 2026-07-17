@@ -106,6 +106,11 @@
     text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
     padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
   .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
+  @media (max-width:719px){
+    .pg-hero-centre{ padding-left:32%; }   /* clear the gherkin on phones */
+    .pg-hero-title{ font-size:clamp(1.05rem,4.4vw,1.4rem); white-space:normal; }
+    .pg-hero-btn{ padding:.5rem 1.2rem; }
+  }
 
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
@@ -1811,8 +1816,8 @@
 
     /* the two sliders, unlabelled: levels first, then points. They sit in
        the band left of the lockup, hopping to its right side when the
-       window narrows so they never run under the text */
-    if(sg.h > 0.02){
+       window narrows so they never run under the text; phones skip them */
+    if(sg.h > 0.02 && !slim){
       var sLen = Math.min(120, W * 0.09);
       var sx0 = cx + half + 34;
       var cenL = W * 0.5 - Math.min(W * 0.25, 330);
