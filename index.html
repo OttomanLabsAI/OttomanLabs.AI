@@ -1660,10 +1660,12 @@
 <script>
 (function(){
   "use strict";
-  /* ── the playground hero: the whole Gherkin (dashboard export) spinning
-     with perpetual dots riding its diagrid; the gaussian bell and the
-     lemniscate as still plots; and the input kit — number slider, dial,
-     XY pad, graph mapper, gene pool — that stirs when the cursor nears. ── */
+  /* ── the playground hero: the Gherkin from the dashboard export, alone.
+     At rest it sits at the sparse settings — 6 diagrid points, 10 m
+     levels. Hovering the box fades in two unlabelled sliders that play
+     one after the other: levels to 8 m, then points to 22; the diagrid
+     densifies as they move, and everything eases home on leave.
+     Perpetual dots climb the diagonals. ── */
   var hero = document.getElementById('pgHero');
   var cv = document.getElementById('pgHeroCanvas');
   if(!hero || !cv) return;
@@ -1671,11 +1673,11 @@
   var TAU = Math.PI * 2;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
-  var LINES = [], DOTS = [], KNOBS = [], needle = null;
+  var LINES = [], DOTS = [], KNOBS = [];
 
   var GK = {
     pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
-    around: 22, twist: 2.5, hMax: 600, rMax: 150
+    twist: 2.5, hMax: 600, rMax: 150
   };
   function gbez(t){
     var q = GK.pts.map(function(p){ return { x: p.x, y: p.y }; });
@@ -1685,6 +1687,17 @@
         q[i].y += (q[i+1].y - q[i].y) * t;
       }
     return q[0];
+  }
+  /* radius lookup by model height — y is monotonic on this spline */
+  var GBS = [];
+  for(var gi = 0; gi <= 200; gi++) GBS.push(gbez(gi / 200));
+  function grad(y){
+    for(var j = 1; j < GBS.length; j++)
+      if(GBS[j].y >= y){
+        var a = GBS[j-1], b = GBS[j], f = (y - a.y) / ((b.y - a.y) || 1);
+        return a.x + (b.x - a.x) * f;
+      }
+    return GBS[GBS.length - 1].x;
   }
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
@@ -1708,43 +1721,55 @@
     return { x: L.pts[i-1].x + (L.pts[i].x - L.pts[i-1].x) * f,
              y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
   }
-  function near(x, y){
-    if(!cursor) return 0;
-    var d = Math.hypot(x - cursor.x, y - cursor.y);
-    return d > 150 ? 0 : 1 - d / 150;
-  }
-  /* plot hover: dots run for a beat with a slight zoom, hold in place,
-     then retreat home once the cursor moves off */
-  var HOV = { bell: { h: 0, run: 0 }, dym: { h: 0, run: 0 } }, DT = 0;
+  /* box hover: the sliders play one by one, hold, then ease home */
+  var HOV = { gk: { h: 0, run: 0 } }, DT = 0;
   window.__heroHov = HOV;
+  window.__heroState = function(){ return { lines: LINES.length, knobs: KNOBS.length }; };
   function hov(st){
     var on = cursor ? 1 : 0;
     st.h += (on - st.h) * 0.1;
-    st.run = on ? Math.min(1, st.run + DT / 1.4) : Math.max(0, st.run - DT * 1.6);
+    st.run = on ? Math.min(1, st.run + DT / 2.2) : Math.max(0, st.run - DT / 1.1);
     return st;
   }
 
   function geom(){
-    LINES = []; DOTS = []; KNOBS = []; needle = null;
+    LINES = []; DOTS = []; KNOBS = [];
     var slim = W < 720;
-    /* ── the whole gherkin, spinning, dots perpetual ── */
     var k = (H * 0.94) / GK.hMax;
     var half = GK.rMax * k;
-    var cx = Math.max(half + 12, W * (slim ? 0.14 : 0.1));
+    var cx = Math.max(half + 12, W * (slim ? 0.16 : 0.12));
     var yTop = H * 0.03;
-    var N = GK.around / 2, turns = GK.twist / 2;
+    var sg = hov(HOV.gk);
+    var p1 = Math.max(0, Math.min(1, sg.run / 0.45));
+    var p2 = Math.max(0, Math.min(1, (sg.run - 0.55) / 0.45));
+    var LH = 10 - 2 * p1;          /* level height: 10 m → 8 m */
+    var NP = 6 + 16 * p2;          /* diagrid points: 6 → 22 */
+    var turns = GK.twist / 2, mpy = GK.hMax / 180;
     var fam, i, s, t;
+
+    /* levels every LH metres, up to the 2 m top offset */
+    for(var hM = 0; ; hM += LH){
+      var hh = Math.min(hM, 178);
+      var my = GK.hMax - hh * mpy;
+      var rr = grad(my) * k, ly = yTop + my * k;
+      addLine([{ x: cx - rr, y: ly }, { x: cx + rr, y: ly }], 0.8, 'muted', 0.45);
+      if(hh === 178) break;
+    }
+
+    /* diagrid: line count follows the points slider, newest line fades in */
+    var Nc = NP / 2;
     for(fam = -1; fam <= 1; fam += 2){
-      for(i = 0; i < N; i++){
+      for(i = 0; i < Math.ceil(Nc); i++){
         var pts = [];
         for(s = 0; s <= 26; s++){
           t = s / 26;
-          var p = gbez(t), ph = TAU * (fam * turns * t + i / N);
+          var p = gbez(t), ph = TAU * (fam * turns * t + i / Nc);
           pts.push({ x: cx + p.x * k * Math.sin(ph), y: yTop + p.y * k });
         }
-        addLine(pts, 0.8, 'ink', 0.6,
-          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / N, dir: -1 }] : null);
-        KNOBS.push({ x: pts[26].x, y: pts[26].y, r: 2.6, hollow: true });   /* base node */
+        var la = (i < Math.floor(Nc) ? 1 : Nc - Math.floor(Nc)) * 0.6;
+        addLine(pts, 0.8, 'ink', la,
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / Nc, dir: -1 }] : null);
+        KNOBS.push({ x: pts[26].x, y: pts[26].y, r: 2.6, hollow: true, a: la / 0.6 });   /* base node */
       }
     }
     var sl = [], sr = [];
@@ -1758,105 +1783,13 @@
     addLine(sr, 1.5, 'ink', 1);
     addLine([sl[26], sr[26]], 1, 'muted', 0.5);   /* ground chord under the base nodes */
 
-    /* ── the plots, packed into the free band between the gherkin and
-       the centre lockup so nothing overlaps at any hero width ── */
-    if(!slim){
-      var cenL = W * 0.5 - Math.min(W * 0.22, 210);
-      var gherR = cx + half + 24;
-      var band = cenL - gherR, pad = Math.max(10, band * 0.05);
-      var two = band >= 250, one = band >= 110;
-      if(one){
-        var w1 = two ? (band - 3 * pad) * 0.42 : band - 2 * pad;
-        var gx = gherR + pad + w1 / 2, gy = H * 0.72;
-        var sb = hov(HOV.bell);
-        var zb = 1 + 0.07 * sb.h;
-        var gw = Math.min(175, w1 * 0.92) * zb, gh = Math.min(H * 0.62, 150) * zb;
-        addLine([{ x: gx - gw/2, y: gy }, { x: gx + gw/2, y: gy }], 1, 'muted', 0.8);
-        addLine([{ x: gx, y: gy - gh * 1.05 }, { x: gx, y: gy + gh * 0.06 }], 1, 'muted', 0.55);
-        var bell = [];
-        for(i = 0; i <= 52; i++){
-          var xm = (i / 52 * 2 - 1) * 10;
-          bell.push({ x: gx + xm / 10 * gw / 2, y: gy - Math.exp(-xm * xm / 10) * gh });
-        }
-        addLine(bell, 1.5, 'ink', 1, [{ u: 0.12 + sb.run * 0.62 }]);
-      }
-      if(two){
-        /* dymak plot: two circles slightly offset, next to the bell */
-        var w2 = (band - 3 * pad) * 0.58;
-        var px = gherR + 2 * pad + w1 + w2 / 2, py = H * 0.5;
-        var sd = hov(HOV.dym);
-        var zd = 1 + 0.07 * sd.h;
-        var PR = Math.min(74, Math.min(H * 0.36, w2 * 0.46 / 1.3)) * zd;
-        addLine([{ x: px - PR * 1.3, y: py }, { x: px + PR * 1.3, y: py }], 1, 'muted', 0.55);
-        addLine([{ x: px, y: py - PR * 1.3 }, { x: px, y: py + PR * 1.3 }], 1, 'muted', 0.55);
-        var ringA = [], ringB = [];
-        var bx = px + PR * 0.18, by = py + PR * 0.12, BR = PR * 0.74;
-        for(i = 0; i <= 48; i++){
-          var a2 = TAU * i / 48;
-          ringA.push({ x: px + PR * Math.cos(a2), y: py + PR * Math.sin(a2) });
-          ringB.push({ x: bx + BR * Math.cos(a2), y: by + BR * Math.sin(a2) });
-        }
-        addLine(ringA, 1.5, 'ink', 1, [{ u: 0.62 + sd.run * 0.55 }]);
-        addLine(ringB, 1.5, 'ink', 1, [{ u: 0.12 + sd.run * 0.55 }]);
-      }
-    }
-
-    /* ── the input kit: stirs a little when the cursor is near ── */
-    if(!slim){
-      var x1 = W * 0.845, x2 = W * 0.94;
-      /* number slider across the top */
-      var sy = H * 0.15, sx0 = W * 0.825, sx1 = Math.min(W * 0.965, sx0 + Math.min(W * 0.13, 210));
-      var ks = near((sx0 + sx1) / 2, sy);
-      addLine([{ x: sx0, y: sy }, { x: sx1, y: sy }], 2, 'muted', 0.8);
-      KNOBS.push({ x: sx0 + (sx1 - sx0) * (0.35 + ks * 0.2 * Math.sin(T * 2.6)), y: sy, r: 5 });
-      /* dial */
-      var dy = H * 0.46, dr = Math.min(H * 0.15, 32);
-      var kd = near(x1, dy), dc = [];
-      for(i = 0; i <= 32; i++){
-        var a3 = TAU * i / 32;
-        dc.push({ x: x1 + dr * Math.cos(a3), y: dy + dr * Math.sin(a3) });
-      }
-      addLine(dc, 1.2, 'ink', 0.85);
-      needle = { x: x1, y: dy, r: dr, a: -1.9 + kd * 1.1 * Math.sin(T * 2.2) };
-      /* xy pad */
-      var ps = Math.min(H * 0.3, 64), pl = x2 - ps/2, pt2 = dy - ps/2;
-      var kp = near(x2, dy);
-      addLine([{ x: pl, y: pt2 }, { x: pl + ps, y: pt2 }, { x: pl + ps, y: pt2 + ps },
-               { x: pl, y: pt2 + ps }, { x: pl, y: pt2 }], 1.1, 'ink', 0.8);
-      var pdx = x2 + kp * 9 * Math.sin(T * 1.9), pdy = dy + kp * 9 * Math.cos(T * 2.3);
-      pdx = Math.max(pl + 4, Math.min(pl + ps - 4, pdx));
-      pdy = Math.max(pt2 + 4, Math.min(pt2 + ps - 4, pdy));
-      addLine([{ x: pdx, y: pt2 }, { x: pdx, y: pt2 + ps }], 1, 'muted', 0.6);
-      addLine([{ x: pl, y: pdy }, { x: pl + ps, y: pdy }], 1, 'muted', 0.6);
-      KNOBS.push({ x: pdx, y: pdy, r: 3.5 });
-      /* graph mapper */
-      var my = H * 0.8, ms = Math.min(H * 0.28, 60), ml = x1 - ms/2, mt = my - ms/2;
-      var km = near(x1, my);
-      addLine([{ x: ml, y: mt }, { x: ml + ms, y: mt }, { x: ml + ms, y: mt + ms },
-               { x: ml, y: mt + ms }, { x: ml, y: mt }], 1.1, 'ink', 0.8);
-      var h1 = { x: 0.35, y: 0.25 + km * 0.16 * Math.sin(T * 2.1) };
-      var h2 = { x: 0.65, y: 0.8 + km * 0.16 * Math.sin(T * 2.5 + 1) };
-      var mc = [];
-      for(i = 0; i <= 30; i++){
-        t = i / 30;
-        var mtx = 3*(1-t)*(1-t)*t*h1.x + 3*(1-t)*t*t*h2.x + t*t*t;
-        var mty = 3*(1-t)*(1-t)*t*h1.y + 3*(1-t)*t*t*h2.y + t*t*t;
-        mc.push({ x: ml + mtx * ms, y: mt + ms - mty * ms });
-      }
-      addLine(mc, 1.4, 'ink', 1);
-      KNOBS.push({ x: ml + h1.x * ms, y: mt + ms - Math.max(0.05, Math.min(0.95, h1.y)) * ms, r: 2.6 });
-      KNOBS.push({ x: ml + h2.x * ms, y: mt + ms - Math.max(0.05, Math.min(0.95, h2.y)) * ms, r: 2.6 });
-      /* gene pool */
-      var gy0 = H * 0.66, gy1 = H * 0.95;
-      var kg = near(x2, (gy0 + gy1) / 2);
-      var LV = [0.3, 0.7, 0.45, 0.85, 0.2];
-      for(i = 0; i < 5; i++){
-        var tx = x2 - 26 + i * 13;
-        addLine([{ x: tx, y: gy0 }, { x: tx, y: gy1 }], 2, 'muted', 0.7);
-        var lv = LV[i] + kg * 0.16 * Math.sin(T * 2 + i * 1.3);
-        lv = Math.max(0.05, Math.min(0.95, lv));
-        KNOBS.push({ x: tx, y: gy1 - (gy1 - gy0) * lv, r: 4 });
-      }
+    /* the two sliders, unlabelled: levels first, then points */
+    if(sg.h > 0.02){
+      var sx0 = cx + half + 34, sx1 = sx0 + Math.min(120, W * 0.09);
+      [ { y: H * 0.40, u: p1 }, { y: H * 0.54, u: p2 } ].forEach(function(sd){
+        addLine([{ x: sx0, y: sd.y }, { x: sx1, y: sd.y }], 2, 'muted', 0.8 * sg.h);
+        KNOBS.push({ x: sx0 + (sx1 - sx0) * sd.u, y: sd.y, r: 5, a: sg.h });
+      });
     }
   }
 
@@ -1885,9 +1818,12 @@
       var u = d.u != null ? d.u : T * d.sp * (d.dir || 1) + d.off;
       u = ((u % 1) + 1) % 1;
       var p = arcPoint(d.line, u);
+      ctx.globalAlpha = Math.min(1, d.line.alpha / 0.6);
       ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU); ctx.fill();
     });
+    ctx.globalAlpha = 1;
     KNOBS.forEach(function(kb){
+      ctx.globalAlpha = kb.a == null ? 1 : Math.min(1, kb.a);
       ctx.beginPath(); ctx.arc(kb.x, kb.y, kb.r, 0, TAU);
       if(kb.hollow){
         ctx.fillStyle = paper(); ctx.fill();
@@ -1895,15 +1831,7 @@
         ctx.fillStyle = IK;
       } else ctx.fill();
     });
-    if(needle){
-      ctx.strokeStyle = IK; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(needle.x, needle.y);
-      ctx.lineTo(needle.x + needle.r * 0.78 * Math.cos(needle.a),
-                 needle.y + needle.r * 0.78 * Math.sin(needle.a));
-      ctx.stroke();
-      ctx.beginPath(); ctx.arc(needle.x, needle.y, 2.4, 0, TAU); ctx.fill();
-    }
+    ctx.globalAlpha = 1;
   }
   function frame(){ geom(); draw(); }
   function loop(){
