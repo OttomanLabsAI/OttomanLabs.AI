@@ -1390,8 +1390,8 @@
       })));
     }
     L.push('');
-    L.push('Interaction: a click adds a point; dragging an existing point moves it and the geometry re-solves live; right-click deletes a point; points of an incomplete group render hollow. Add Undo and Clear buttons, and wipe the points when the type changes.');
-    L.push('Style: white square board with a thin grey 40px grid, 2px black ink lines with round caps, dashed 1px grey construction guides, small black point discs.');
+    L.push('Interaction: a click adds a point, snapped to a grid (snap on by default, with a grid-density slider plus number entry); dragging an existing point moves it and the geometry re-solves live; right-click deletes a point; points clamp to the board; points of an incomplete group render hollow. Add Undo and Clear buttons, and wipe the points when the type changes.');
+    L.push('Style: white square board with a thin grey snap grid that ends at its outermost whole cells, 2px black ink lines with round caps, dashed 1px grey construction guides, small black point discs.');
     L.push('Deliver one self-contained HTML file with no external libraries.');
     txt.value = L.join('\n');
   }
@@ -3226,10 +3226,10 @@
         var s = window.__t3 || {};
         return ['Build an interactive "3D Techniques" widget as one self-contained HTML file with no libraries.',
         '',
-        'Two square sketchboards: a profile board whose centre is the line of action (mark it with an X), and a line-of-action board with a plane picker (XY / XZ / YZ). Both boards offer line styles — the profile: shape / line / poly / arc / bezier / curve (open profiles sweep into sheets); the line of action: line / polyline / arc / bezier / curve. Snap-to-grid with a density slider, on by default, grid centred on the board centre.',
-        'Techniques: extrude, revolve (angle setting), sweep, blend and sweep blend (two profiles on one board, A in ink, B in red). Twist setting shows a greyed rotated ghost of the end profile on the board.',
-        'Output: an orbitable 3D canvas with painter-sorted hidden-line rendering — white faces, black ink only on crease and silhouette edges, no wireframe lines on flat faces — an XY ground grid that matches the snap grid through the origin, XYZ axes, and a view cube whose faces and corners are clickable to snap the camera. Fixed view scale (mouse wheel zooms), no idle spin.',
-        'Interaction: tap adds a point; drag a point to move it, or grab the line to carry the whole sketch; right-click deletes a point. Show the solid only when both the profile and the line of action exist; before that show whichever sketch exists flat on its plane.',
+        'Two square sketchboards with snap-to-grid (on by default; density slider plus number entry; the grid centres on the board and ends at its outermost whole cells): a profile board whose centre is the line of action (marked with an X), and a line-of-action board with a plane picker (XY / XZ / YZ). Both offer line styles under the board — profile: shape / line / poly / arc / bezier / curve (open profiles sweep into sheets); line of action: line / polyline / arc / bezier / curve. Each board has Undo and Clear buttons, and points clamp to the board.',
+        'Techniques: extrude, revolve (angle setting; the axis is drawn on the line-of-action board), sweep, blend and sweep blend (two profiles on one board, A in ink, B in red, chips only where applicable). The twist setting draws a greyed rotated ghost of the end profile on the board. Solids appear only when both sketches exist; before that, whichever sketch exists shows flat on its plane in the 3D view.',
+        'Output: a 3D canvas with painter-sorted hidden-line rendering — white faces, ink only on crease and silhouette edges, so flat faces stay clean while curved surfaces show their mesh; path corners mitre properly (the section stretches by 1/cos of the half-turn at each joint). Separate Axes and Grid checkboxes, both on by default; the XY ground grid matches the snap spacing through the origin; a view cube in the corner rotates with the view and its faces and corners click to snap the camera. Fixed view scale: left-drag orbits, right-drag pans, the mouse wheel zooms, and cube snaps re-centre the pan.',
+        'Interaction: tap adds a point; drag a point to move it, or grab the line to carry the whole sketch; right-click deletes a point.',
         '',
         'Reproduce the current state: technique ' + (s.tech || 'ext') + ', plane ' + (s.plane || 'xy') +
         ', path type ' + (s.ptype || 'line') + ', profile type ' + (s.prtype || 'shape') +
@@ -3243,19 +3243,19 @@
               { id:'list', label:'Value list' }, { id:'button', label:'Button' },
               { id:'panel', label:'Text input' }, { id:'pool', label:'Gene pool' } ],
       prompt: function(){
-        return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family, reimagined in white paper and black ink:',
+        return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family in white paper and black ink, in this order:',
         '',
-        '- number slider with a synced manual number entry and a step setting',
-        '- number entry with adjacent − / + steppers sized to the box',
+        '- number entry with adjacent − / + stepper buttons sized to match the box',
+        '- number slider with a synced manual entry and a step setting',
         '- a drag dial synced with a numeric entry in degrees, radians, grads or turns, plus a step setting',
         '- an on/off toggle and a segmented control',
         '- an XY pad with synced x / y entries',
-        '- a gene pool of five vertical sliders',
-        '- a graph mapper with grasshopper-style graph types — bezier, linear, sine, power, gaussian, perlin — and draggable handles',
-        '- a domain: one track, two draggable ends, synced entries',
+        '- a graph mapper with grasshopper-style graph types — bezier, linear, sine, power, gaussian, perlin — chosen from a dropdown, each reshaped by draggable handles',
+        '- a domain: one track, two draggable ends, synced entries that cannot cross',
         '- a value list dropdown, a momentary button that reads true while held, and a text input',
+        '- a gene pool of five vertical sliders',
         '',
-        'Every control syncs both ways — graphical and numerical. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
+        'Every control syncs both ways — graphical and numerical. Handle dots stay fully visible when a value sits on its boundary, while the value itself stays clamped to the range. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
       } },
     { sel:'.dinput', title:'Data Input', engines:['uiToolsEngine'], only:'DI_ONLY', file:'data-input.html',
       units:null,
