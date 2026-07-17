@@ -755,9 +755,13 @@
         var ev = Math.hypot(m[3][0]-m[0][0], m[3][1]-m[0][1], m[3][2]-m[0][2]);
         var tu = Math.max(2, Math.round(eu / 0.045)) * 5;
         var tv = Math.max(2, Math.round(ev / 0.045)) * 5;
-        uv = { a:(pts[1].x-pts[0].x)/tu, b:(pts[1].y-pts[0].y)/tu,
-               c:(pts[3].x-pts[0].x)/tv, d:(pts[3].y-pts[0].y)/tv,
-               e:pts[0].x, f:pts[0].y, w:tu, h:tv };
+        var sux = pts[1].x - pts[0].x, suy = pts[1].y - pts[0].y;
+        var svx = pts[3].x - pts[0].x, svy = pts[3].y - pts[0].y;
+        /* tiny faces skip the texel pass — flat fill reads the same and
+           the per-face clip work is what lags */
+        if(Math.abs(sux * svy - suy * svx) > 150)
+          uv = { a: sux/tu, b: suy/tu, c: svx/tv, d: svy/tv,
+                 e: pts[0].x, f: pts[0].y, w: tu, h: tv };
       }
       return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), base: f.col, br: br, uv: uv };
     }).sort(function(a, b){
@@ -794,15 +798,12 @@
   window.__vox = { mkProj: mkProj, slab: slab, sq: sq, paintVox: paintVox };
   function voxIsland(ctx, x0, gy, sc, yaw, th){
     var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
-    [ /* half, dx, dy, z0, z1 — the chunky stepped landmass */
+    [ /* half, dx, dy, z0, z1 — the chunky stepped landmass, kept lean */
       [0.68,  0.00,  0.00, -0.075, 0,      th.top,  th.side],
       [0.34,  0.52, -0.34, -0.075, 0,      th.top,  th.side],
-      [0.30, -0.54,  0.34, -0.075, 0,      th.top,  th.side],
       [0.58,  0.02,  0.02, -0.21, -0.075,  th.dirt, th.dirt],
-      [0.34, -0.28, -0.24, -0.21, -0.075,  th.dirt, th.dirt],
       [0.44,  0.02, -0.02, -0.34, -0.21,   th.dirt2, th.dirt2],
-      [0.28, -0.02,  0.04, -0.46, -0.34,   th.stone, th.stone],
-      [0.15,  0.04, -0.02, -0.55, -0.46,   th.stone, th.stone]
+      [0.26, -0.02,  0.04, -0.50, -0.34,   th.stone, th.stone]
     ].forEach(function(q){
       var f0 = faces.length;
       slab(faces, sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
@@ -1314,12 +1315,6 @@
     if(!stage || !canvas) return;
     var ctx = canvas.getContext('2d');
     var nameEl = document.getElementById(cfg.name);
-    var TREES = [
-      { p: 0.85, r: 0.90, s: 0.070 },
-      { p: 2.35, r: 0.86, s: 0.060 },
-      { p: 4.05, r: 0.88, s: 0.075 },
-      { p: 5.45, r: 0.84, s: 0.058 }
-    ];
     var idx = 0, rot = 0, rotFrom = 0, rotTo = 0, animT = 1;
     var hitZones = [];
 
@@ -1409,35 +1404,8 @@
       });
       ctx.setLineDash([]);
 
-      var cx = w * 0.5, cy = h * 0.64, rx = Math.min(w * 0.36, 460), ry = h * 0.185;
-      /* the minecraft island — same voxel recipe as the project isles */
-      var vk = Math.min(rx * 1.4, h * 0.58), YAW = 0.62;
-      if(window.__vox){
-        var V = window.__vox, vprj = V.mkProj(cx, cy, vk, YAW), vfaces = [];
-        var TH = { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096' };
-        [[0.68, 0.00, 0.00, -0.075, 0, TH.top, TH.side],
-         [0.34, 0.52, -0.34, -0.075, 0, TH.top, TH.side],
-         [0.30, -0.54, 0.34, -0.075, 0, TH.top, TH.side],
-         [0.58, 0.02, 0.02, -0.21, -0.075, TH.dirt, TH.dirt],
-         [0.34, -0.28, -0.24, -0.21, -0.075, TH.dirt, TH.dirt],
-         [0.44, 0.02, -0.02, -0.34, -0.21, TH.dirt2, TH.dirt2],
-         [0.28, -0.02, 0.04, -0.46, -0.34, TH.stone, TH.stone],
-         [0.15, 0.04, -0.02, -0.55, -0.46, TH.stone, TH.stone]]
-        .forEach(function(q){
-          V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
-          vfaces[vfaces.length - 1].col = q[5];
-        });
-        if(cfg.hilly){
-          /* the terraced hill, in blocks */
-          [[0.30, -0.10, 0.08, 0, 0.07, '#86D177'],
-           [0.19, -0.08, 0.06, 0.07, 0.13, '#93DA82']].forEach(function(q){
-            V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[5]);
-          });
-        }
-        V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
-      }
-      /* the carousel rides the island's top face */
-      rx = vk * 0.62; ry = vk * 0.26;
+      var cx = w * 0.5, cy = h * 0.62;
+      var rx = Math.min(w * 0.30, 400), ry = h * 0.15, YAW = 0.62;
 
       function ground(phi, r){
         var a = phi - rot;
@@ -1447,18 +1415,29 @@
       }
       var drawables = [];
       hitZones = [];
-      TREES.forEach(function(t){
-        var g = ground(t.p, t.r);
-        drawables.push({ d: g.depth, run: function(){ tree(g.x, g.y, h * t.s); } });
-      });
+      /* every tool floats on its own little voxel island, like the projects */
       cfg.tools.forEach(function(p, i){
-        var g = ground(i * (TAU / cfg.tools.length), 0.62);
+        var g = ground(i * (TAU / cfg.tools.length), 1);
         var depth01 = (g.depth + 1) / 2;
         var s = h * (0.15 + 0.19 * depth01);
+        var ik = h * (0.30 + 0.18 * depth01);
         hitZones.push({ i: i, x: g.x, gy: g.y, s: s, d: g.depth });
         drawables.push({ d: g.depth, run: function(){
-          ctx.fillStyle = 'rgba(0,0,0,.16)';
-          ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.015, s * p.shadow, s * 0.055, 0, 0, TAU); ctx.fill();
+          ctx.fillStyle = 'rgba(0,0,0,.12)';
+          ctx.beginPath(); ctx.ellipse(g.x, g.y + ik * 0.52, ik * 0.55, ik * 0.09, 0, 0, TAU); ctx.fill();
+          if(window.__vox){
+            var V = window.__vox, vprj = V.mkProj(g.x, g.y, ik, YAW), vfaces = [];
+            [[0.62, 0.00, 0.00, -0.09, 0, '#7CC96F', '#5CA455'],
+             [0.30, 0.48, -0.30, -0.09, 0, '#7CC96F', '#5CA455'],
+             [0.46, 0.02, 0.02, -0.26, -0.09, '#8B5A3C', '#8B5A3C'],
+             [0.24, -0.02, 0.03, -0.40, -0.26, '#8C9096', '#8C9096']]
+            .forEach(function(q){
+              V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
+              vfaces[vfaces.length - 1].col = q[5];
+            });
+            V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
+          }
+          tree(g.x + ik * 0.42, g.y + ik * 0.06, h * 0.05);
           p.draw(ctx, g.x, g.y, s, i * (TAU / cfg.tools.length) - rot);
           chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h, p.dash ? null : 'coming soon');
         }});
@@ -1744,7 +1723,27 @@
   var HOV = { gk: { h: 0, run: 0 } }, DT = 0;
   window.__heroHov = HOV;
   window.__heroState = function(){ return { lines: LINES.length, knobs: KNOBS.length }; };
-  function hov(st){
+  function hov(st, auto){
+    if(auto){
+      /* phones: no hover — the loop plays on its own. Up, a long pause at
+         the peak, back down, a short pause at the base, and again */
+      st.h += (1 - st.h) * 0.1;
+      st.ph = st.ph || 'up'; st.wait = st.wait || 0;
+      if(st.ph === 'up'){
+        st.run = Math.min(1, st.run + DT / 2.2);
+        if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
+      } else if(st.ph === 'peak'){
+        st.wait += DT;
+        if(st.wait > 2.6){ st.ph = 'down'; }
+      } else if(st.ph === 'down'){
+        st.run = Math.max(0, st.run - DT / 1.1);
+        if(st.run <= 0){ st.ph = 'base'; st.wait = 0; }
+      } else {
+        st.wait += DT;
+        if(st.wait > 0.9){ st.ph = 'up'; }
+      }
+      return st;
+    }
     var on = cursor ? 1 : 0;
     st.h += (on - st.h) * 0.1;
     st.run = on ? Math.min(1, st.run + DT / 2.2) : Math.max(0, st.run - DT / 1.1);
@@ -1758,7 +1757,7 @@
     var half = GK.rMax * k;
     var cx = Math.max(half + 12, W * (slim ? 0.16 : 0.12));
     var yTop = H * 0.03;
-    var sg = hov(HOV.gk);
+    var sg = hov(HOV.gk, slim);
     var p1 = Math.max(0, Math.min(1, sg.run / 0.45));
     var p2 = Math.max(0, Math.min(1, (sg.run - 0.55) / 0.45));
     var LH = 10 - 2 * p1;          /* level height: 10 m → 8 m */
@@ -1814,19 +1813,26 @@
     addLine(sr, 1.5, 'ink', 1);
     addLine([sl[26], sr[26]], 1, 'muted', 0.5);   /* ground chord under the base nodes */
 
-    /* the two sliders, unlabelled: levels first, then points. They sit in
-       the band left of the lockup, hopping to its right side when the
-       window narrows so they never run under the text; phones skip them */
-    if(sg.h > 0.02 && !slim){
-      var sLen = Math.min(120, W * 0.09);
-      var sx0 = cx + half + 34;
-      var cenL = W * 0.5 - Math.min(W * 0.25, 330);
-      if(sx0 + sLen > cenL - 10){
-        sx0 = W * 0.5 + Math.min(W * 0.25, 330);
-        sLen = Math.max(50, Math.min(sLen, W - 16 - sx0));
+    /* the two sliders, unlabelled: levels first, then points. Desktop puts
+       them beside the gherkin (hopping right of the lockup when narrow);
+       phones tuck them low beneath the lockup while the loop autoplays */
+    if(sg.h > 0.02){
+      var sx0, sx1, sy1, sy2;
+      if(slim){
+        sx0 = W * 0.40; sx1 = W * 0.62;
+        sy1 = H * 0.84; sy2 = H * 0.94;
+      } else {
+        var sLen = Math.min(120, W * 0.09);
+        sx0 = cx + half + 34;
+        var cenL = W * 0.5 - Math.min(W * 0.25, 330);
+        if(sx0 + sLen > cenL - 10){
+          sx0 = W * 0.5 + Math.min(W * 0.25, 330);
+          sLen = Math.max(50, Math.min(sLen, W - 16 - sx0));
+        }
+        sx1 = sx0 + sLen;
+        sy1 = H * 0.40; sy2 = H * 0.54;
       }
-      var sx1 = sx0 + sLen;
-      [ { y: H * 0.40, u: p1 }, { y: H * 0.54, u: p2 } ].forEach(function(sd){
+      [ { y: sy1, u: p1 }, { y: sy2, u: p2 } ].forEach(function(sd){
         addLine([{ x: sx0, y: sd.y }, { x: sx1, y: sd.y }], 2, 'muted', 0.8 * sg.h);
         KNOBS.push({ x: sx0 + (sx1 - sx0) * sd.u, y: sd.y, r: 5, a: sg.h });
       });
