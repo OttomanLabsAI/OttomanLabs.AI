@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
 <title>OttomanLabs.AI — Practical AI for BIM &amp; Construction</title>
 <meta name="description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1. Parametric building dashboards, prompt-by-prompt AI tutorials, and Revit integration through pyRevit add-ins and Revit-ready exports.">
 <link rel="canonical" href="https://ottomanlabs.ai/">
@@ -98,16 +101,12 @@
   .pg-hero canvas{ display:block; width:100%; height:auto; }
   .pg-hero-centre{ position:absolute; inset:0; display:flex; flex-direction:column; gap:.4rem;
     align-items:center; justify-content:center; text-align:center; pointer-events:none; }
-  .pg-hero-kicker{ font-family:var(--font-serif); font-style:italic; font-size:1.05rem; color:var(--ink-60); }
+  .pg-hero-kicker{ font-family:var(--font-display); font-size:.76rem; letter-spacing:.3em; text-transform:uppercase; color:var(--ink-60); }
   .pg-hero-title{ font-family:var(--font-display); font-size:clamp(1.5rem,3.2vw,2.5rem); letter-spacing:.14em; }
   .pg-hero-btn{ font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.22em;
     text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
     padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
-  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{
-    background:#B01018; border-color:#B01018; color:#fff; box-shadow:0 0 18px rgba(176,16,24,.35); }
-  [data-theme="dark"] .pg-hero:hover .pg-hero-btn,
-  [data-theme="dark"] .pg-hero:focus-visible .pg-hero-btn{
-    background:#DE8286; border-color:#DE8286; color:#111; box-shadow:0 0 18px rgba(222,130,134,.4); }
+  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
 
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
@@ -741,19 +740,41 @@
       var d = 0, z = 0;
       for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
       var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
-      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+      var uv = null;
+      if(f.pts.length === 4){
+        /* texel grid in the face's own u/v basis: ~0.045 model units per
+           texel, 5 pattern units per texel, so the tile bakes onto the block
+           and rides with it as the camera orbits */
+        var m = f.pts;
+        var eu = Math.hypot(m[1][0]-m[0][0], m[1][1]-m[0][1], m[1][2]-m[0][2]);
+        var ev = Math.hypot(m[3][0]-m[0][0], m[3][1]-m[0][1], m[3][2]-m[0][2]);
+        var tu = Math.max(2, Math.round(eu / 0.045)) * 5;
+        var tv = Math.max(2, Math.round(ev / 0.045)) * 5;
+        uv = { a:(pts[1].x-pts[0].x)/tu, b:(pts[1].y-pts[0].y)/tu,
+               c:(pts[3].x-pts[0].x)/tv, d:(pts[3].y-pts[0].y)/tv,
+               e:pts[0].x, f:pts[0].y, w:tu, h:tv };
+      }
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), uv: uv };
     }).sort(function(a, b){
       var dd = b.d - a.d;
       if(Math.abs(dd) > 0.06) return dd;
       return (a.z - b.z) || dd;
     });
-    out.forEach(function(f){
+    out.forEach(function(f, fi){
       ctx.beginPath();
       ctx.moveTo(f.pts[0].x, f.pts[0].y);
       for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
       ctx.closePath();
       ctx.fillStyle = f.col; ctx.fill();
-      ctx.fillStyle = texPattern(ctx); ctx.fill();   /* minecraft texel speckle */
+      if(f.uv){
+        var o = f.uv, ox = (fi * 3 % 8) * 5, oy = (fi * 5 % 8) * 5;
+        ctx.save(); ctx.clip();
+        ctx.transform(o.a, o.b, o.c, o.d, o.e, o.f);
+        ctx.translate(-ox, -oy);   /* per-face tile offset so blocks don't repeat */
+        ctx.fillStyle = texPattern(ctx);
+        ctx.fillRect(ox, oy, o.w, o.h);
+        ctx.restore();
+      }
       ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
     });
   }
@@ -1639,10 +1660,10 @@
 <script>
 (function(){
   "use strict";
-  /* ── the playground hero: the whole Gherkin (from the dashboard's export)
-     slowly spinning, the gaussian bell and the lemniscate from the graphs
-     card in motion, the input kit — dots riding every line, burgundy glow
-     around the cursor. Geometry rebuilds each frame. ── */
+  /* ── the playground hero: the whole Gherkin (dashboard export) spinning
+     with perpetual dots riding its diagrid; the gaussian bell and the
+     lemniscate as still plots; and the input kit — number slider, dial,
+     XY pad, graph mapper, gene pool — that stirs when the cursor nears. ── */
   var hero = document.getElementById('pgHero');
   var cv = document.getElementById('pgHeroCanvas');
   if(!hero || !cv) return;
@@ -1650,7 +1671,7 @@
   var TAU = Math.PI * 2;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
-  var LINES = [], DOTS = [], dial = null;
+  var LINES = [], DOTS = [], KNOBS = [], needle = null;
 
   var GK = {
     pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
@@ -1665,20 +1686,9 @@
       }
     return q[0];
   }
-
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
-  function burg(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? '#DE8286' : '#B01018'; }
-  function hx(c){
-    c = c.replace('#', '');
-    if(c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
-    return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
-  }
-  function mix(a, b, t){
-    var A = hx(a), B = hx(b);
-    return 'rgb(' + Math.round(A[0]+(B[0]-A[0])*t) + ',' + Math.round(A[1]+(B[1]-A[1])*t) + ',' +
-           Math.round(A[2]+(B[2]-A[2])*t) + ')';
-  }
+
   function addLine(pts, lw, base, alpha, dots){
     var cum = [0];
     for(var i = 1; i < pts.length; i++)
@@ -1697,27 +1707,20 @@
     return { x: L.pts[i-1].x + (L.pts[i].x - L.pts[i-1].x) * f,
              y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
   }
-  function glowAt(x, y){
+  function near(x, y){
     if(!cursor) return 0;
     var d = Math.hypot(x - cursor.x, y - cursor.y);
-    return d > 170 ? 0 : (1 - d / 170);
-  }
-  function glowFor(L){
-    if(!cursor) return 0;
-    var g = 0;
-    for(var i = 0; i < L.pts.length; i += 3)
-      g = Math.max(g, glowAt(L.pts[i].x, L.pts[i].y));
-    return g;
+    return d > 150 ? 0 : 1 - d / 150;
   }
 
   function geom(){
-    LINES = []; DOTS = [];
+    LINES = []; DOTS = []; KNOBS = []; needle = null;
     var slim = W < 720;
-    /* ── the whole gherkin, spinning ── */
+    /* ── the whole gherkin, spinning, dots perpetual ── */
     var k = (H * 0.94) / GK.hMax;
     var half = GK.rMax * k;
     var cx = Math.max(half + 12, W * (slim ? 0.14 : 0.1));
-    var yBot = H * 0.97;
+    var yTop = H * 0.03;
     var N = GK.around / 2, turns = GK.twist / 2, spin = T * 0.18;
     var fam, i, s, t;
     for(fam = -1; fam <= 1; fam += 2){
@@ -1726,41 +1729,38 @@
         for(s = 0; s <= 26; s++){
           t = s / 26;
           var p = gbez(t), ph = TAU * (fam * turns * t + i / N) + spin * fam;
-          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yBot - p.y * k });
+          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yTop + p.y * k });
         }
         addLine(pts, 0.8, 'ink', 0.6,
-          i % 3 === 0 ? [{ sp: 0.045, off: (fam + 1) / 4 + i / N, mode: 'loop' }] : null);
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / N }] : null);
+        KNOBS.push({ x: pts[26].x, y: pts[26].y, r: 2 });   /* base node */
       }
     }
     var sl = [], sr = [];
     for(s = 0; s <= 26; s++){
       t = s / 26;
       var pp = gbez(t);
-      sl.push({ x: cx - pp.x * k, y: yBot - pp.y * k });
-      sr.push({ x: cx + pp.x * k, y: yBot - pp.y * k });
+      sl.push({ x: cx - pp.x * k, y: yTop + pp.y * k });
+      sr.push({ x: cx + pp.x * k, y: yTop + pp.y * k });
     }
     addLine(sl, 1.5, 'ink', 1);
     addLine(sr, 1.5, 'ink', 1);
+    addLine([sl[26], sr[26]], 1, 'muted', 0.5);   /* ground chord under the base nodes */
 
-    /* ── the gaussian bell, peak drifting ── */
+    /* ── the plots, still ── */
     if(!slim){
       var gx = W * 0.28, gy = H * 0.72;
       var gw = Math.min(W * 0.11, 175), gh = Math.min(H * 0.62, 150);
       addLine([{ x: gx - gw/2, y: gy }, { x: gx + gw/2, y: gy }], 1, 'muted', 0.8);
       addLine([{ x: gx, y: gy - gh * 1.05 }, { x: gx, y: gy + gh * 0.06 }], 1, 'muted', 0.55);
-      var mu = 3.2 * Math.sin(T * 0.32);
-      var amp = 0.92 + 0.08 * Math.sin(T * 0.7);
       var bell = [];
       for(i = 0; i <= 52; i++){
         var xm = (i / 52 * 2 - 1) * 10;
-        var v = Math.exp(-Math.pow(xm - mu, 2) / 10);
-        bell.push({ x: gx + xm / 10 * gw / 2, y: gy - v * gh * amp });
+        bell.push({ x: gx + xm / 10 * gw / 2, y: gy - Math.exp(-xm * xm / 10) * gh });
       }
-      addLine(bell, 1.5, 'ink', 1, [{ sp: 0.1, off: 0, mode: 'loop' }]);
+      addLine(bell, 1.5, 'ink', 1);
     }
-
-    /* ── the lemniscate, rotating in its polar grid ── */
-    var rx = W * (slim ? 0.8 : 0.71), ry = H * 0.5, R = Math.min(H * 0.37, 92);
+    var rx = W * (slim ? 0.8 : 0.66), ry = H * 0.5, R = Math.min(H * 0.37, 92);
     var ring = [], ring2 = [];
     for(i = 0; i <= 40; i++){
       var a2 = TAU * i / 40;
@@ -1774,36 +1774,73 @@
       addLine([{ x: rx + R * 0.15 * Math.cos(sa), y: ry + R * 0.15 * Math.sin(sa) },
                { x: rx + R * Math.cos(sa), y: ry + R * Math.sin(sa) }], 1, 'muted', 0.25);
     }
-    var alpha = T * 0.22;
-    [0, Math.PI].forEach(function(base, li){
+    [0, Math.PI].forEach(function(base){
       var lobe = [];
       for(i = 0; i <= 44; i++){
         var th = base - Math.PI / 4 + (Math.PI / 2) * i / 44;
-        var c2 = Math.max(0, Math.cos(2 * (th - base) + 0));
         var rr = R * 0.98 * Math.sqrt(Math.max(0, Math.cos(2 * (th - base))));
-        lobe.push({ x: rx + rr * Math.cos(th + alpha), y: ry + rr * Math.sin(th + alpha) });
+        lobe.push({ x: rx + rr * Math.cos(th), y: ry + rr * Math.sin(th) });
       }
-      addLine(lobe, 1.5, 'ink', 1, [{ sp: 0.07, off: li * 0.5, mode: 'loop' }]);
+      addLine(lobe, 1.5, 'ink', 1);
     });
 
-    /* ── input kit ── */
+    /* ── the input kit: stirs a little when the cursor is near ── */
     if(!slim){
-      var x0 = W * 0.885, cw = Math.min(W * 0.09, 140);
-      var sy = H * 0.24;
-      addLine([{ x: x0 - cw/2, y: sy }, { x: x0 + cw/2, y: sy }], 2, 'muted', 0.8,
-        [{ sp: 0.35, off: 0, mode: 'pingpong', r: 5 }]);
-      var dy = H * 0.52, dr = Math.min(H * 0.17, 36);
-      var dc = [];
+      var x1 = W * 0.845, x2 = W * 0.94;
+      /* number slider across the top */
+      var sy = H * 0.15, sx0 = W * 0.825, sx1 = Math.min(W * 0.965, sx0 + Math.min(W * 0.13, 210));
+      var ks = near((sx0 + sx1) / 2, sy);
+      addLine([{ x: sx0, y: sy }, { x: sx1, y: sy }], 2, 'muted', 0.8);
+      KNOBS.push({ x: sx0 + (sx1 - sx0) * (0.35 + ks * 0.2 * Math.sin(T * 2.6)), y: sy, r: 5 });
+      /* dial */
+      var dy = H * 0.46, dr = Math.min(H * 0.15, 32);
+      var kd = near(x1, dy), dc = [];
       for(i = 0; i <= 32; i++){
         var a3 = TAU * i / 32;
-        dc.push({ x: x0 + dr * Math.cos(a3), y: dy + dr * Math.sin(a3) });
+        dc.push({ x: x1 + dr * Math.cos(a3), y: dy + dr * Math.sin(a3) });
       }
       addLine(dc, 1.2, 'ink', 0.85);
-      dial = { x: x0, y: dy, r: dr };
-      var ty = H * 0.8;
-      addLine([{ x: x0 - cw * 0.22, y: ty }, { x: x0 + cw * 0.22, y: ty }], 9, 'muted', 0.5,
-        [{ sp: 0, off: 1, mode: 'fixed', r: 6 }]);
-    } else dial = null;
+      needle = { x: x1, y: dy, r: dr, a: -1.9 + kd * 1.1 * Math.sin(T * 2.2) };
+      /* xy pad */
+      var ps = Math.min(H * 0.3, 64), pl = x2 - ps/2, pt2 = dy - ps/2;
+      var kp = near(x2, dy);
+      addLine([{ x: pl, y: pt2 }, { x: pl + ps, y: pt2 }, { x: pl + ps, y: pt2 + ps },
+               { x: pl, y: pt2 + ps }, { x: pl, y: pt2 }], 1.1, 'ink', 0.8);
+      var pdx = x2 + kp * 9 * Math.sin(T * 1.9), pdy = dy + kp * 9 * Math.cos(T * 2.3);
+      pdx = Math.max(pl + 4, Math.min(pl + ps - 4, pdx));
+      pdy = Math.max(pt2 + 4, Math.min(pt2 + ps - 4, pdy));
+      addLine([{ x: pdx, y: pt2 }, { x: pdx, y: pt2 + ps }], 1, 'muted', 0.6);
+      addLine([{ x: pl, y: pdy }, { x: pl + ps, y: pdy }], 1, 'muted', 0.6);
+      KNOBS.push({ x: pdx, y: pdy, r: 3.5 });
+      /* graph mapper */
+      var my = H * 0.8, ms = Math.min(H * 0.28, 60), ml = x1 - ms/2, mt = my - ms/2;
+      var km = near(x1, my);
+      addLine([{ x: ml, y: mt }, { x: ml + ms, y: mt }, { x: ml + ms, y: mt + ms },
+               { x: ml, y: mt + ms }, { x: ml, y: mt }], 1.1, 'ink', 0.8);
+      var h1 = { x: 0.35, y: 0.25 + km * 0.16 * Math.sin(T * 2.1) };
+      var h2 = { x: 0.65, y: 0.8 + km * 0.16 * Math.sin(T * 2.5 + 1) };
+      var mc = [];
+      for(i = 0; i <= 30; i++){
+        t = i / 30;
+        var mtx = 3*(1-t)*(1-t)*t*h1.x + 3*(1-t)*t*t*h2.x + t*t*t;
+        var mty = 3*(1-t)*(1-t)*t*h1.y + 3*(1-t)*t*t*h2.y + t*t*t;
+        mc.push({ x: ml + mtx * ms, y: mt + ms - mty * ms });
+      }
+      addLine(mc, 1.4, 'ink', 1);
+      KNOBS.push({ x: ml + h1.x * ms, y: mt + ms - Math.max(0.05, Math.min(0.95, h1.y)) * ms, r: 2.6 });
+      KNOBS.push({ x: ml + h2.x * ms, y: mt + ms - Math.max(0.05, Math.min(0.95, h2.y)) * ms, r: 2.6 });
+      /* gene pool */
+      var gy0 = H * 0.66, gy1 = H * 0.95;
+      var kg = near(x2, (gy0 + gy1) / 2);
+      var LV = [0.3, 0.7, 0.45, 0.85, 0.2];
+      for(i = 0; i < 5; i++){
+        var tx = x2 - 26 + i * 13;
+        addLine([{ x: tx, y: gy0 }, { x: tx, y: gy1 }], 2, 'muted', 0.7);
+        var lv = LV[i] + kg * 0.16 * Math.sin(T * 2 + i * 1.3);
+        lv = Math.max(0.05, Math.min(0.95, lv));
+        KNOBS.push({ x: tx, y: gy1 - (gy1 - gy0) * lv, r: 4 });
+      }
+    }
   }
 
   function draw(){
@@ -1814,55 +1851,37 @@
       for(var x = 23; x < W; x += 46)
         ctx.fillRect(x - 0.75, y - 0.75, 1.5, 1.5);
     ctx.globalAlpha = 1;
-    var BG = burg(), IK = ink(), MT = muted();
+    var IK = ink(), MT = muted();
     LINES.forEach(function(L){
-      var g = glowFor(L);
-      var base = L.base === 'ink' ? IK : MT;
-      ctx.strokeStyle = g ? mix(base, BG, Math.min(1, g * 1.2)) : base;
+      ctx.strokeStyle = L.base === 'ink' ? IK : MT;
       ctx.lineWidth = L.lw;
       ctx.globalAlpha = L.alpha;
       ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-      if(g > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 14 * g; }
       ctx.beginPath();
       for(var i = 0; i < L.pts.length; i++)
         i ? ctx.lineTo(L.pts[i].x, L.pts[i].y) : ctx.moveTo(L.pts[i].x, L.pts[i].y);
       ctx.stroke();
-      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     });
+    ctx.fillStyle = IK;
     DOTS.forEach(function(d){
-      var u = d.mode === 'fixed' ? d.off
-            : d.mode === 'pingpong' ? 0.5 + 0.45 * Math.sin(T * d.sp * TAU + d.off)
-            : (T * d.sp + d.off) % 1;
-      var p = arcPoint(d.line, u);
-      var g = glowAt(p.x, p.y);
-      ctx.fillStyle = g ? mix(IK, BG, Math.min(1, g * 1.25)) : IK;
-      if(g > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 16 * g; }
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, (d.r || 2.4) + g, 0, TAU);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      var p = arcPoint(d.line, (T * d.sp + d.off) % 1);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU); ctx.fill();
     });
-    if(dial){
-      var na = -1.9 + Math.sin(T * 0.45) * 1.1;
-      var nx = dial.x + dial.r * 0.78 * Math.cos(na), ny = dial.y + dial.r * 0.78 * Math.sin(na);
-      var g2 = Math.max(glowAt(dial.x, dial.y), glowAt(nx, ny));
-      ctx.strokeStyle = g2 ? mix(IK, BG, Math.min(1, g2 * 1.2)) : IK;
-      ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-      if(g2 > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 14 * g2; }
+    KNOBS.forEach(function(kb){
+      ctx.beginPath(); ctx.arc(kb.x, kb.y, kb.r, 0, TAU); ctx.fill();
+    });
+    if(needle){
+      ctx.strokeStyle = IK; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(dial.x, dial.y);
-      ctx.lineTo(nx, ny);
+      ctx.moveTo(needle.x, needle.y);
+      ctx.lineTo(needle.x + needle.r * 0.78 * Math.cos(needle.a),
+                 needle.y + needle.r * 0.78 * Math.sin(needle.a));
       ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = ctx.strokeStyle;
-      ctx.beginPath(); ctx.arc(dial.x, dial.y, 2.4, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(needle.x, needle.y, 2.4, 0, TAU); ctx.fill();
     }
   }
-  function frame(){
-    geom();
-    draw();
-  }
+  function frame(){ geom(); draw(); }
   function loop(){
     T = (performance.now() - t0) / 1000;
     frame();
@@ -1871,12 +1890,8 @@
   hero.addEventListener('pointermove', function(e){
     var r = cv.getBoundingClientRect();
     cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
-    if(reduced) frame();
   });
-  hero.addEventListener('pointerleave', function(){
-    cursor = null;
-    if(reduced) frame();
-  });
+  hero.addEventListener('pointerleave', function(){ cursor = null; });
   function resize(){
     var w = hero.clientWidth;
     if(!w) return;

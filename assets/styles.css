@@ -10,32 +10,6 @@
   src:url('fonts/Flux-Regular.woff2') format('woff2');
   font-weight:400 700; font-display:swap;
 }
-/* Optional families — available to use anywhere via the --font-* vars below */
-@font-face{
-  font-family:'Bank of England';
-  src:url('fonts/BankofEngland.woff2') format('woff2');
-  font-weight:400 700; font-display:swap;
-}
-@font-face{
-  font-family:'Gill Sans Monopoly';
-  src:url('fonts/GillSans-Bold.woff2') format('woff2');
-  font-weight:700; font-display:swap;
-}
-@font-face{
-  font-family:'Copperplate Gothic Light';
-  src:url('fonts/CopperplateGothic-Light.woff2') format('woff2');
-  font-weight:300 400; font-display:swap;
-}
-@font-face{
-  font-family:'Kabel';
-  src:url('fonts/Kabel-Book.woff2') format('woff2');
-  font-weight:400; font-display:swap;
-}
-@font-face{
-  font-family:'Marlboro';
-  src:url('fonts/Marlboro.woff2') format('woff2');
-  font-weight:400; font-display:swap;
-}
 
 :root{
   --paper:#FFFFFF;
@@ -47,13 +21,6 @@
   --font-brand:'Flux','Afacad Flux',sans-serif;
   --font-serif:'Newsreader',Georgia,serif;
   --font-display:'Prata',Georgia,serif;
-
-  /* optional families, ready to swap in wherever you like */
-  --font-bank:'Bank of England',serif;
-  --font-gill:'Gill Sans Monopoly','Gill Sans',sans-serif;
-  --font-copperplate:'Copperplate Gothic Light','Copperplate',serif;
-  --font-kabel:'Kabel',sans-serif;
-  --font-marlboro:'Marlboro',sans-serif;
 
   --wrap:1880px;   /* near full-bleed on desktop, capped for very wide monitors */
   --gap:14px;
