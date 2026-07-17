@@ -1743,7 +1743,7 @@
           pts.push({ x: cx + p.x * k * Math.sin(ph), y: yTop + p.y * k });
         }
         addLine(pts, 0.8, 'ink', 0.6,
-          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / N }] : null);
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / N, dir: -1 }] : null);
         KNOBS.push({ x: pts[26].x, y: pts[26].y, r: 2.6, hollow: true });   /* base node */
       }
     }
@@ -1882,7 +1882,9 @@
     });
     ctx.fillStyle = IK;
     DOTS.forEach(function(d){
-      var p = arcPoint(d.line, d.u != null ? d.u % 1 : (T * d.sp + d.off) % 1);
+      var u = d.u != null ? d.u : T * d.sp * (d.dir || 1) + d.off;
+      u = ((u % 1) + 1) % 1;
+      var p = arcPoint(d.line, u);
       ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU); ctx.fill();
     });
     KNOBS.forEach(function(kb){
