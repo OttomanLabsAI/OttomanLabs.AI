@@ -1674,7 +1674,7 @@
   var TAU = Math.PI * 2;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
-  var LINES = [], DOTS = [], KNOBS = [];
+  var LINES = [], DOTS = [], KNOBS = [], DOTA = 0;
 
   var GK = {
     pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
@@ -1736,7 +1736,7 @@
          it while hovered */
       if(st.ph === 'peak'){
         st.wait += DT;
-        if(st.wait > 2.6){ st.ph = 'down'; }
+        if(st.wait > 3){ st.ph = 'down'; }
       } else if(st.ph === 'down'){
         st.run = Math.max(0, st.run - DT / 1.6);
         if(st.run <= 0){ st.ph = 'base'; st.wait = 0; }
@@ -1763,6 +1763,7 @@
     var cx = Math.max(half + 12, W * (slim ? 0.16 : 0.12));
     var yTop = H * 0.03;
     var sg = hov(HOV.gk, slim);
+    DOTA = Math.max(0, Math.min(1, (sg.run - 0.9) / 0.1));   /* dots only at full */
     var p1 = Math.max(0, Math.min(1, sg.run / 0.45));
     var p2 = Math.max(0, Math.min(1, (sg.run - 0.55) / 0.45));
     var LH = 10 - 2 * p1;          /* level height: 10 m → 8 m */
@@ -1884,10 +1885,11 @@
       ctx.globalAlpha = 1;
     });
     DOTS.forEach(function(d){
+      if(DOTA <= 0) return;
       var u = d.u != null ? d.u : T * d.sp * (d.dir || 1) + d.off;
       u = ((u % 1) + 1) % 1;
       var p = arcPoint(d.line, u);
-      ctx.globalAlpha = Math.min(1, d.line.alpha / 0.6);
+      ctx.globalAlpha = Math.min(1, d.line.alpha / 0.6) * DOTA;
       ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU);
       ctx.fillStyle = paper(); ctx.fill();
       ctx.strokeStyle = IK; ctx.lineWidth = 1; ctx.stroke();
