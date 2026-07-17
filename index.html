@@ -1720,33 +1720,35 @@
              y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
   }
   /* box hover: the sliders play one by one, hold, then ease home */
-  var HOV = { gk: { h: 0, run: 0 } }, DT = 0;
+  var HOV = { gk: { h: 0, run: 1, ph: 'peak', wait: 0 } }, DT = 0;
   window.__heroHov = HOV;
   window.__heroState = function(){ return { lines: LINES.length, knobs: KNOBS.length }; };
   function hov(st, auto){
-    if(auto){
-      /* phones: no hover — the loop plays on its own. Up, a long pause at
-         the peak, back down, a short pause at the base, and again */
-      st.h += (1 - st.h) * 0.1;
-      st.ph = st.ph || 'up'; st.wait = st.wait || 0;
-      if(st.ph === 'up'){
-        st.run = Math.min(1, st.run + DT / 2.2);
-        if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
-      } else if(st.ph === 'peak'){
+    var active = auto || !!cursor;
+    st.h += ((active ? 1 : 0) - st.h) * 0.1;
+    if(active){
+      /* the settings cycle, starting from the dense look: a long pause at
+         the peak, down to the sparse export settings, a short pause at
+         the base, and back up. Phones run it on their own; desktop runs
+         it while hovered */
+      if(st.ph === 'peak'){
         st.wait += DT;
         if(st.wait > 2.6){ st.ph = 'down'; }
       } else if(st.ph === 'down'){
-        st.run = Math.max(0, st.run - DT / 1.1);
+        st.run = Math.max(0, st.run - DT / 1.6);
         if(st.run <= 0){ st.ph = 'base'; st.wait = 0; }
-      } else {
+      } else if(st.ph === 'base'){
         st.wait += DT;
         if(st.wait > 0.9){ st.ph = 'up'; }
+      } else {
+        st.run = Math.min(1, st.run + DT / 2.2);
+        if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
       }
-      return st;
+    } else {
+      /* idle: settle back to the dense look */
+      st.run = Math.min(1, st.run + DT / 1.1);
+      st.ph = 'peak'; st.wait = 0;
     }
-    var on = cursor ? 1 : 0;
-    st.h += (on - st.h) * 0.1;
-    st.run = on ? Math.min(1, st.run + DT / 2.2) : Math.max(0, st.run - DT / 1.1);
     return st;
   }
 
@@ -1771,32 +1773,47 @@
     for(var hM = 0; ; hM += LH){
       var hh = Math.min(hM, 178);
       var my = GK.hMax - hh * mpy;
-      Ls.push({ r: grad(my) * k, y: yTop + my * k, t: 1 - my / GK.hMax });
+      Ls.push({ my: my, r: grad(my) * k, y: yTop + my * k });
       if(hh === 178) break;
     }
     Ls.forEach(function(L){
       addLine([{ x: cx - L.r, y: L.y }, { x: cx + L.r, y: L.y }], 0.8, 'muted', 0.45);
     });
+    var NlR = Ls.length;                 /* ring levels — verticals stop here */
+    Ls.push({ my: 0, r: 0, y: yTop });   /* the apex: braces close the dome */
 
     /* diagrid like the dashboard: one node grid — every level, NPi
        azimuth slots. The brace families step one slot per level from the
        even nodes and the verticals rise through the same node columns, so
-       every element meets at the diagrid connections */
+       every element meets at the diagrid connections. Between nodes the
+       members follow the shell, keeping the weave smooth */
     var NPi = Math.max(4, 2 * Math.round(NP / 2)), Nl = Ls.length;
-    function nodeAt(l, j){
-      return { x: cx + Ls[l].r * Math.sin(TAU * j / NPi), y: Ls[l].y };
+    function nodePt(lf, j){
+      var s0 = Math.max(0, Math.min(Nl - 2, Math.floor(lf)));
+      var f = lf - s0;
+      var my = Ls[s0].my + (Ls[s0 + 1].my - Ls[s0].my) * f;
+      return { x: cx + grad(my) * k * Math.sin(TAU * j / NPi), y: yTop + my * k };
     }
     for(fam = -1; fam <= 1; fam += 2){
       for(i = 0; i < NPi; i += 2){
         var pts = [];
-        for(s = 0; s < Nl; s++) pts.push(nodeAt(s, i + fam * s));
+        for(s = 0; s < Nl; s++){
+          pts.push(nodePt(s, i + fam * s));
+          if(s < Nl - 1){
+            pts.push(nodePt(s + 1/3, i + fam * (s + 1/3)));
+            pts.push(nodePt(s + 2/3, i + fam * (s + 2/3)));
+          }
+        }
         addLine(pts, 0.8, 'ink', 0.6,
           i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / NPi }] : null);
       }
     }
     for(i = 0; i < NPi; i++){
       var vp = [];
-      for(s = 0; s < Nl; s++) vp.push(nodeAt(s, i));
+      for(s = 0; s < NlR; s++){
+        vp.push(nodePt(s, i));
+        if(s < NlR - 1) vp.push(nodePt(s + 0.5, i));
+      }
       addLine(vp, 0.7, 'ink', 0.3);
       KNOBS.push({ x: vp[0].x, y: vp[0].y, r: 2.6, hollow: true });   /* base node */
     }
