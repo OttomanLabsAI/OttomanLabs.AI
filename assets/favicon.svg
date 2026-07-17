@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- one big OttomanAI sparkle, black on white -->
+  <rect width="64" height="64" fill="#FFFFFF"/>
+  <path fill="#111111" d="M32 5 Q32 32 59 32 Q32 32 32 59 Q32 32 5 32 Q32 32 32 5 Z"/>
+</svg>

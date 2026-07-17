@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<title>OttomanLabs.AI — Practical AI for BIM &amp; Construction</title>
+<meta name="description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1. Parametric building dashboards, prompt-by-prompt AI tutorials, and Revit integration through pyRevit add-ins and Revit-ready exports.">
+<link rel="canonical" href="https://ottomanlabs.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="OttomanLabs.AI — Practical AI for BIM &amp; Construction">
+<meta property="og:description" content="Weeks of work in minutes, from day 1 — parametric dashboards, prompt-by-prompt AI tutorials, and Revit integration via pyRevit.">
+<meta property="og:url" content="https://ottomanlabs.ai/">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OttomanLabs.AI — Practical AI for BIM &amp; Construction">
+<meta name="twitter:description" content="Weeks of work in minutes, from day 1 — parametric dashboards, prompt-by-prompt AI tutorials, and Revit integration via pyRevit.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://ottomanlabs.ai/#org",
+      "name": "OttomanLabs.AI",
+      "url": "https://ottomanlabs.ai/",
+      "logo": "https://ottomanlabs.ai/assets/og-thumb.png",
+      "description": "Practical AI for BIM & Construction — parametric building dashboards, prompt-by-prompt AI tutorials, and Revit integration through pyRevit add-ins.",
+      "founder": { "@type": "Person", "name": "Fadil Karim" },
+      "email": "fid_kk@proton.me",
+      "sameAs": [
+        "https://github.com/ottomanlabsai",
+        "https://www.youtube.com/@OttomanlabsAI",
+        "https://uk.linkedin.com/in/fadil-karim",
+        "https://instagram.com/ottomanlabs.ai",
+        "https://t.me/ottomanlabs.ai"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://ottomanlabs.ai/#site",
+      "url": "https://ottomanlabs.ai/",
+      "name": "OttomanLabs.AI",
+      "description": "Practical AI for BIM & Construction — weeks of work in minutes, from day 1.",
+      "publisher": { "@id": "https://ottomanlabs.ai/#org" }
+    }
+  ]
+}
+</script>
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  /* the one-line site claim under the masthead */
+  .claim{
+    border:1px solid var(--hair); padding:.75rem 1.2rem; margin:0 0 var(--gap);
+    display:flex; align-items:baseline; gap:.5rem 1.1rem; flex-wrap:wrap;
+  }
+  .claim h1{
+    margin:0; font-family:var(--font-brand); font-weight:600;
+    font-size:clamp(.8rem,1.7vw,1rem); letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink);
+  }
+  .claim-sub{ font-family:var(--font-serif); font-style:italic;
+    font-size:.98rem; color:var(--ink-60); }
+
+  /* large text dividers between sections */
+  .section-head{
+    font-family:var(--font-display); font-size:clamp(1.6rem,4vw,2.8rem);
+    letter-spacing:.01em; line-height:1; margin:2.4rem 0 1rem; color:var(--ink);
+    display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;
+  }
+  .section-head:first-of-type{ margin-top:.4rem; }
+  /* future disciplines — greyed until they land */
+  .section-head.sh-soon{ opacity:.55; }
+  .section-head.sh-soon + .section-head.sh-soon{ margin-top:0; }
+  .section-head .sh-sub{ font-family:var(--font-brand); font-style:normal;
+    font-size:clamp(.66rem,1.3vw,.8rem); color:var(--ink-60); letter-spacing:.18em;
+    text-transform:uppercase; }
+
+  .mosaic{
+    display:grid; gap:var(--gap);
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .mosaic-rest{
+    grid-template-areas:
+      "news    read   follow github"
+      "stocks  cv     cv     github"
+      "youtube strategy strategy b2";
+  }
+  /* ── the playground hero banner ── */
+  .pg-hero{ position:relative; display:block; border:1px solid var(--hair);
+    margin-bottom:var(--gap); text-decoration:none; color:var(--ink); overflow:hidden; }
+  .pg-hero canvas{ display:block; width:100%; height:auto; }
+  .pg-hero-centre{ position:absolute; inset:0; display:flex; flex-direction:column; gap:.4rem;
+    align-items:center; justify-content:center; text-align:center; pointer-events:none; }
+  .pg-hero-title{ font-family:var(--font-display); font-weight:700; font-size:clamp(1.3rem,2.6vw,2.4rem); letter-spacing:.01em; line-height:1; white-space:nowrap; }
+  .pg-hero-btn{ font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.22em;
+    text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
+    padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
+  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
+  @media (max-width:719px){
+    .pg-hero-centre{ padding-left:32%; }   /* clear the gherkin on phones */
+    .pg-hero-title{ font-size:clamp(1.05rem,4.4vw,1.4rem); white-space:normal; }
+    .pg-hero-btn{ padding:.5rem 1.2rem; }
+  }
+
+  /* ── interactive project selector (the one colour tile on the page) ── */
+  .selector-box{ padding:0; gap:0; overflow:hidden; }
+  .selector-stage{ position:relative; width:100%; }
+  .selector-stage canvas{ display:block; width:100%; height:auto; cursor:pointer; }
+  .sel-arrow{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+    width:44px; height:44px; border-radius:50%; border:2px solid #3D8C4C;
+    background:#57B368; color:#fff; font-size:1.6rem; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0 0 .2rem;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  .sel-arrow:hover{ background:#69C47A; }
+  .sel-arrow.prev{ left:.7rem; }
+  .sel-arrow.next{ right:.7rem; }
+  .sel-banner{
+    display:flex; align-items:center; justify-content:center;
+    width:100%; padding:.72rem 1rem; background:var(--ink); color:var(--paper);
+  }
+  .sel-banner .sel-name{ font-family:var(--font-display); font-size:1.35rem; letter-spacing:.05em; }
+  /* entry options float over the sea, either side of the island */
+  .sel-opt{
+    position:absolute; bottom:7%; z-index:2;
+    display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
+    font-family:var(--font-brand); font-weight:600; font-size:.64rem; letter-spacing:.2em;
+    text-transform:uppercase; color:#fff; border:1px solid #fff;
+    background:#111; padding:.5rem 1.1rem; text-decoration:none; text-align:center;
+  }
+  .opt-dash{ left:3%; }
+  .opt-tut{ right:3%; }
+  .sel-opt small{ font-size:.5rem; font-weight:500; letter-spacing:.18em; opacity:.75; }
+  .sel-opt:hover{ background:#fff; color:#111; text-decoration:none; }
+  .sel-opt[aria-disabled="true"]{ color:rgba(255,255,255,.55); border-color:rgba(255,255,255,.5); cursor:default; }
+  .sel-opt[aria-disabled="true"]:hover{ background:#111; color:rgba(255,255,255,.55); }
+  .sel-opt.nope{ animation:selNope .4s; }
+  @keyframes selNope{ 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); } }
+  @media (max-width:700px){ .sel-opt{ padding:.4rem .7rem; font-size:.56rem; } .sel-opt small{ font-size:.46rem; } }
+  .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
+  .a-follow{grid-area:follow} .a-cv{grid-area:cv}
+  .a-stocks{grid-area:stocks} .a-youtube{grid-area:youtube}
+  .a-playground{grid-area:b2} .a-strategy{grid-area:strategy}
+  .box.blank{ min-height:150px; }
+
+  .a-github{ justify-content:space-between; padding-top:1.8rem; padding-bottom:1.8rem; gap:.8rem; }
+
+  .oval{
+    width:min(230px,100%); aspect-ratio:230/150; border:1px solid var(--ink);
+    border-radius:50%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:.3rem; position:relative; padding:1rem;
+  }
+  .oval::before{
+    content:""; position:absolute; inset:7px; border:1px dashed var(--ink);
+    border-radius:50%;
+  }
+
+  .follow-icons{ display:flex; align-items:flex-end; gap:1.1rem; }
+  .social-line{ display:flex; flex-wrap:wrap; justify-content:center; gap:.3rem .9rem; }
+  .social-line a{ font-family:var(--font-brand); font-weight:500; font-size:.66rem;
+    letter-spacing:.24em; text-transform:uppercase; }
+
+  @media (max-width:900px){
+    .mosaic-rest{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-areas:
+        "github  github"
+        "read    read"
+        "news    follow"
+        "stocks  youtube"
+        "strategy strategy"
+        "b2 b2"
+        "cv      cv";
+    }
+    .box.blank{ display:none; }
+  }
+  @media (max-width:560px){
+    .mosaic{ display:flex; flex-direction:column; }
+  }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ════════ MASTHEAD ════════ -->
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="claim">
+    <h1>Practical AI for BIM &amp; Construction</h1>
+    <span class="claim-sub">weeks of work in minutes &mdash; from day 1</span>
+  </div>
+
+  <a class="pg-hero" id="pgHero" href="playground.html" aria-label="Enter the Computational AI Playground">
+    <canvas id="pgHeroCanvas" aria-hidden="true"></canvas>
+    <span class="pg-hero-centre">
+      <span class="pg-hero-title">Computational AI Playground</span>
+      <span class="pg-hero-btn">Enter</span>
+    </span>
+  </a>
+
+  <h2 class="section-head">Architecture and Structural</h2>
+
+    <!-- ════════ PROJECT SELECTOR (the one colour tile) ════════ -->
+    <div class="box selector-box">
+      <div class="selector-stage" id="selStage" role="group" aria-roledescription="carousel"
+           aria-label="Interactive project selector" tabindex="0">
+        <canvas id="selCanvas" aria-hidden="true"></canvas>
+        <button class="sel-arrow prev" id="selPrev" aria-label="Previous project">&#8249;</button>
+        <button class="sel-arrow next" id="selNext" aria-label="Next project">&#8250;</button>
+        <a class="sel-opt opt-dash" id="selDash" href="gherkin.html">Concept design<small>open the model</small></a>
+        <a class="sel-opt opt-tut" id="selTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
+      </div>
+      <div class="sel-banner" id="selBanner" aria-live="polite">
+        <span class="sel-name" id="selName">THE GHERKIN</span>
+      </div>
+    </div>
+
+  <h2 class="section-head sh-soon">Topography<span class="sh-sub">coming soon</span></h2>
+    <div class="box selector-box">
+      <div class="selector-stage" id="topoStage" role="group" aria-roledescription="carousel"
+           aria-label="Topography tools preview" tabindex="0">
+        <canvas id="topoCanvas" aria-hidden="true"></canvas>
+        <button class="sel-arrow prev" id="topoPrev" aria-label="Previous tool">&#8249;</button>
+        <button class="sel-arrow next" id="topoNext" aria-label="Next tool">&#8250;</button>
+        <a class="sel-opt opt-dash" id="topoDash" href="#" aria-disabled="true">Concept design<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="topoTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
+      </div>
+      <div class="sel-banner" aria-live="polite">
+        <span class="sel-name" id="topoName">TOPOFORGE</span>
+      </div>
+    </div>
+
+  <h2 class="section-head sh-soon">MEP<span class="sh-sub">coming soon</span></h2>
+    <div class="box selector-box">
+      <div class="selector-stage" id="mepStage" role="group" aria-roledescription="carousel"
+           aria-label="MEP tools preview" tabindex="0">
+        <canvas id="mepCanvas" aria-hidden="true"></canvas>
+        <button class="sel-arrow prev" id="mepPrev" aria-label="Previous tool">&#8249;</button>
+        <button class="sel-arrow next" id="mepNext" aria-label="Next tool">&#8250;</button>
+        <a class="sel-opt opt-dash" id="mepDash" href="#" aria-disabled="true">Concept design<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="mepTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
+      </div>
+      <div class="sel-banner" aria-live="polite">
+        <span class="sel-name" id="mepName">BULK PLACEMENT</span>
+      </div>
+    </div>
+
+  <h2 class="section-head">The Studio<span class="sh-sub">writing, picks, code &amp; ways to follow along</span></h2>
+  <div class="mosaic mosaic-rest">
+
+    <!-- ════════ GITHUB (tall) ════════ -->
+    <a class="box a-github" href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">
+      <img src="assets/ottomanai-logo-02.jpg" alt="OttomanAI" width="190" style="mix-blend-mode:multiply">
+      <span class="orn" aria-hidden="true"><i>◆</i><i>●</i><i>◆</i><i>●</i><i>◆</i></span>
+      <span class="caps caps-tight" style="line-height:2.1">open source<br>always open<br>GitHub &amp; PyPI</span>
+      <span class="caps caps-tight muted">browse the code</span>
+    </a>
+
+    <!-- ════════ NEWS ════════ -->
+    <div class="box a-news">
+      <svg viewBox="0 0 70 40" width="58" height="33" stroke="#111" fill="none" stroke-width="2" aria-hidden="true">
+        <path d="M4,30 L64,5 L36,36 L29,23 Z"/>
+        <path d="M29,23 L64,5" stroke-width="1.4"/>
+      </svg>
+      <span class="ital">Sign up for</span>
+      <span class="display" style="font-size:1.7rem">NEWS</span>
+      <!-- Front-end only: connect to your mailing provider before launch. -->
+      <form class="newsform" id="newsForm" novalidate>
+        <label class="skip" for="newsEmail">Email address</label>
+        <input id="newsEmail" type="email" placeholder="your@address" required autocomplete="email">
+        <button type="submit" aria-label="Sign up">→</button>
+      </form>
+      <span class="ok-msg" id="newsOk">NOTED — THANK YOU</span>
+    </div>
+
+    <!-- ════════ READING ROOM (bottom middle) ════════ -->
+    <a class="box a-read" href="reading.html">
+      <div class="oval">
+        <span class="caps">The Reading<br>Room</span>
+        <span class="ital" style="font-size:1rem">48 volumes</span>
+        <span class="caps caps-tight muted" style="font-size:.6rem">2006 — present</span>
+      </div>
+    </a>
+
+    <!-- ════════ FOLLOW ME ════════ -->
+    <div class="box a-follow">
+      <span class="follow-icons" aria-hidden="true">
+        <svg viewBox="0 0 70 40" width="50" height="29" stroke="#111" fill="none" stroke-width="2">
+          <path d="M4,30 L64,5 L36,36 L29,23 Z"/><path d="M29,23 L64,5" stroke-width="1.4"/>
+        </svg>
+        <svg viewBox="0 0 60 46" width="52" height="40" stroke="#111" fill="none" stroke-width="2">
+          <rect x="6" y="13" width="48" height="29" rx="3"/>
+          <circle cx="30" cy="27.5" r="9"/><circle cx="30" cy="27.5" r="4" stroke-width="1.4"/>
+          <rect x="12" y="7" width="12" height="6"/><rect x="44" y="9" width="7" height="4"/>
+        </svg>
+      </span>
+      <span class="ital">follow me on</span>
+      <div class="social-line">
+        <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://instagram.com/fid_900" target="_blank" rel="noopener">Instagram &middot; personal</a>
+        <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+
+    <!-- ════════ FADIL'S STOCK PICKS ════════ -->
+    <a class="box a-stocks" href="stocks.html">
+      <svg viewBox="0 0 120 44" width="110" height="40" fill="none" stroke="#111" aria-hidden="true">
+        <polyline points="2,40 22,38 40,39 60,34 80,35 102,30 118,31" stroke="#B9B9B5" stroke-width="1.5" stroke-linejoin="round"/>
+        <polyline points="2,36 18,30 30,33 44,20 58,24 72,12 86,16 100,7 118,10" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span class="ital">Fadil&rsquo;s</span>
+      <span class="display" style="font-size:1.45rem">STOCK PICKS</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">63 companies &middot; 13 categories &middot; annotated</span>
+    </a>
+
+    <!-- ════════ DOWNLOAD MY CV ════════ -->
+    <a class="box a-cv" href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">
+      <svg viewBox="0 0 60 70" width="44" height="51" stroke="#111" fill="none" stroke-width="2" aria-hidden="true">
+        <path d="M10,4 H38 L52,18 V66 H10 Z"/>
+        <path d="M38,4 V18 H52"/>
+        <line x1="18" y1="28" x2="44" y2="28" stroke-width="1.6"/>
+        <line x1="18" y1="36" x2="44" y2="36" stroke-width="1.6"/>
+        <line x1="18" y1="44" x2="34" y2="44" stroke-width="1.6"/>
+        <path d="M31,50 V61 M25,55 L31,61 L37,55"/>
+      </svg>
+      <span class="ital">Download</span>
+      <span class="display" style="font-size:1.5rem">MY CV</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">Fadil Karim · Computational BIM Engineer · PDF</span>
+    </a>
+
+    <!-- ════════ YOUTUBE ════════ -->
+    <a class="box a-youtube" href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">
+      <svg viewBox="0 0 64 46" width="58" height="42" aria-hidden="true">
+        <rect x="1" y="1" width="62" height="44" rx="10" fill="none" stroke="#111" stroke-width="2"/>
+        <path d="M26 14 L46 23 L26 32 Z" fill="#111"/>
+      </svg>
+      <span class="ital">watch on</span>
+      <span class="display" style="font-size:1.4rem">YOUTUBE</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">@OttomanlabsAI &middot; Revit, Grasshopper &amp; AI</span>
+    </a>
+    <!-- ════════ AI STRATEGY ════════ -->
+    <a class="box a-strategy" href="strategy.html">
+      <svg viewBox="0 0 96 44" width="88" height="40" fill="none" stroke="#111" stroke-width="2" aria-hidden="true">
+        <rect x="2" y="14" width="22" height="16"/>
+        <rect x="37" y="2" width="22" height="16"/>
+        <rect x="37" y="26" width="22" height="16"/>
+        <rect x="72" y="14" width="22" height="16"/>
+        <path d="M24 22 H31 M31 22 V10 H37 M31 22 V34 H37 M59 10 H66 V22 H72 M59 34 H66 V22" stroke-width="1.6"/>
+      </svg>
+      <span class="ital">AI Strategy of</span>
+      <span class="display" style="font-size:1.4rem">BIM &amp; CONSTRUCTION</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">the playbook &middot; coming soon</span>
+    </a>
+    <div class="box blank a-playground" aria-hidden="true"></div>
+
+  </div>
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<!-- ════════ NEWSLETTER POPUP ════════ -->
+<div class="nl-pop" id="nlPop" role="dialog" aria-modal="true" aria-labelledby="nlTitle" hidden>
+  <div class="nl-card">
+    <button class="nl-x" id="nlClose" aria-label="Close">&times;</button>
+    <span class="ital">Sign up for</span>
+    <h3 class="nl-title" id="nlTitle">THE NEWSLETTER</h3>
+    <p>Parametric design notes, new tools and project drops — a short letter, no spam.</p>
+    <form class="nl-form" id="nlForm" novalidate>
+      <label class="skip" for="nlEmail">Email address</label>
+      <input type="email" id="nlEmail" placeholder="your@address" required autocomplete="email">
+      <button type="submit">Subscribe</button>
+    </form>
+    <p class="nl-note" id="nlNote" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* ── interactive project selector: a colourful low-poly island carousel ── */
+  var stage = document.getElementById('selStage');
+  var canvas = document.getElementById('selCanvas');
+  if(!stage || !canvas) return;
+  var ctx = canvas.getContext('2d');
+  var nameEl = document.getElementById('selName');
+  var dashBtn = document.getElementById('selDash');
+  var tutBtn = document.getElementById('selTut');
+
+  // dash / tut: destinations for the two entry options (null = coming soon)
+  var PROJECTS = [
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london' },
+    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20, theme:'city' },
+    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32, theme:'dubai' },
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48, theme:'regency' },
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58, theme:'odense' }
+  ];
+  var TAU = Math.PI * 2;
+  var idx = 0;                 // selected project
+  var rot = 0, rotFrom = 0, rotTo = 0, animT = 1;   // camera yaw around the island + easing state
+  var hitZones = [];           // screen-space model bounds, refreshed by draw()
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- shared 3D projection: fixed pitch, camera yaw = rot ----
+  var SB = 0.42;                          // sin(pitch) — raised for the isometric look
+  var CB = Math.sqrt(1 - SB * SB);        // cos(pitch) — vertical foreshortening
+  var LIGHT = -0.9;                       // light azimuth in view space
+  // per-model projector: model meters → screen px (x0,gy = ground anchor)
+  function mkProj(x0, gy, k, yaw){
+    var ca = Math.cos(yaw), sa = Math.sin(yaw);
+    return function(mx, my, mz){
+      var rx = mx * ca - my * sa;
+      var ry = mx * sa + my * ca;        // +ry = toward the camera
+      return { x: x0 + rx * k, y: gy + (ry * SB - mz * CB) * k, d: -ry };
+    };
+  }
+  function shade(hex, br){
+    var n = parseInt(hex.slice(1), 16);
+    var r = Math.min(255, Math.round(((n >> 16) & 255) * br));
+    var g = Math.min(255, Math.round(((n >> 8) & 255) * br));
+    var b = Math.min(255, Math.round((n & 255) * br));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+  // painter-sorted flat-shaded faces. az = plan azimuth of the face normal
+  // (null = top face, drawn a touch brighter); yaw feeds the light so faces
+  // darken as the camera orbits past them.
+  function paintFaces(ctx, faces, prj, yaw, lineCol){
+    var out = faces.map(function(f){
+      var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
+      var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){ return (b.d - a.d) || (a.z - b.z); });
+    out.forEach(function(f){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = f.col; ctx.fill();
+      ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+  // vertical prism from a plan polygon: side quads (outward normals) + top
+  function prismFaces(faces, plan, z1, col){
+    var cx0 = 0, cy0 = 0;
+    plan.forEach(function(p){ cx0 += p[0] / plan.length; cy0 += p[1] / plan.length; });
+    for(var i = 0; i < plan.length; i++){
+      var a = plan[i], b = plan[(i + 1) % plan.length];
+      var nx = (b[1] - a[1]), ny = -(b[0] - a[0]);            // edge normal
+      var mx = (a[0] + b[0]) / 2 - cx0, my = (a[1] + b[1]) / 2 - cy0;
+      if(nx * mx + ny * my < 0){ nx = -nx; ny = -ny; }        // point outward
+      faces.push({ pts: [[a[0],a[1],0],[b[0],b[1],0],[b[0],b[1],z1],[a[0],a[1],z1]],
+                   col: col, az: Math.atan2(nx, ny) });
+    }
+    faces.push({ pts: plan.map(function(p){ return [p[0], p[1], z1]; }), col: col, az: null });
+  }
+  function rectPlan(ox, oy, dx, dy, hl, hw){                   // rect centred on (ox,oy), axis (dx,dy)
+    var L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+    var px = -dy, py = dx;
+    return [[ox + dx*hl + px*hw, oy + dy*hl + py*hw],
+            [ox - dx*hl + px*hw, oy - dy*hl + py*hw],
+            [ox - dx*hl - px*hw, oy - dy*hl - py*hw],
+            [ox + dx*hl - px*hw, oy + dy*hl - py*hw]];
+  }
+
+  /* ---- scene painting ---- */
+  function draw(){
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if(w <= 0 || h <= 0) return;
+    ctx.clearRect(0, 0, w, h);
+
+    // sky
+    var sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+    sky.addColorStop(0, '#A9DFF0'); sky.addColorStop(1, '#E6F7FC');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.55);
+    // sun
+    ctx.fillStyle = '#FFE9A8';
+    ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, Math.min(w, h) * 0.05, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#FFD670';
+    ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, Math.min(w, h) * 0.032, 0, TAU); ctx.fill();
+    // clouds
+    cloud(w * 0.16, h * 0.13, w * 0.052);
+    cloud(w * 0.42, h * 0.08, w * 0.038);
+    cloud(w * 0.66, h * 0.18, w * 0.03);
+    // blimp
+    blimp(w * 0.30, h * 0.20, w * 0.045);
+
+    // sea
+    var sea = ctx.createLinearGradient(0, h * 0.42, 0, h);
+    sea.addColorStop(0, '#2E93AC'); sea.addColorStop(1, '#57C7DD');
+    ctx.fillStyle = sea; ctx.fillRect(0, h * 0.42, w, h * 0.58);
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.4; ctx.setLineDash([9, 14]);
+    [0.50, 0.62, 0.78, 0.92].forEach(function(f, i){
+      ctx.beginPath(); ctx.moveTo(w * (i % 2 ? 0.06 : 0.02), h * f); ctx.lineTo(w * (i % 2 ? 0.96 : 0.9), h * f); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // floating voxel islands: one per landmark, orbiting the same way.
+    // ground() maps a world plan position (angle, radius) to its screen
+    // point; depth 1 = nearest.
+    var cx = w * 0.5, cy = h * 0.56, rx = Math.min(w * 0.36, 460), ry = h * 0.20;
+    function ground(phi, r){
+      var a = phi - rot;
+      return { x: cx + rx * r * Math.sin(a),
+               y: cy + ry * r * Math.cos(a),
+               depth: Math.cos(a) };
+    }
+    var drawables = [];
+    hitZones = [];
+    PROJECTS.forEach(function(p, i){
+      var g = ground(i * (TAU / PROJECTS.length), 0.62);
+      var depth01 = (g.depth + 1) / 2;
+      var s = h * (0.13 + 0.18 * depth01);                     // model height in px
+      hitZones.push({ i: i, x: g.x, gy: g.y, s: s, d: g.depth });
+      drawables.push({ d: g.depth, run: function(){
+        // soft shadow cast on the sea far below the floating island
+        ctx.fillStyle = 'rgba(10,44,62,.22)';
+        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.85, s * 0.52, s * 0.075, 0, 0, TAU); ctx.fill();
+        voxIsland(ctx, g.x, g.y, s, -rot, THEMES[p.theme] || THEMES.london);
+        ctx.fillStyle = 'rgba(0,0,0,.16)';
+        ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.012, s * p.shadow, s * 0.05, 0, 0, TAU); ctx.fill();
+        p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
+        chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h);
+      }});
+    });
+    drawables.sort(function(a, b){ return a.d - b.d; });       // back → front
+    drawables.forEach(function(o){ o.run(); });
+
+    // title plaque
+    plaque(cx, h * 0.058, 'THE OTTOMANLABS PROJECTS', h);
+  }
+
+  function cloud(x, y, r){
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, TAU); ctx.arc(x + r * 1.1, y + r * 0.18, r * 0.75, 0, TAU);
+    ctx.arc(x - r * 1.05, y + r * 0.22, r * 0.65, 0, TAU); ctx.fill();
+  }
+  function blimp(x, y, r){
+    ctx.fillStyle = '#EDEFF2';
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#C6CCD4';
+    ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x - r * 1.35, y - r * 0.28);
+    ctx.lineTo(x - r * 1.35, y + r * 0.28); ctx.closePath(); ctx.fill();
+    ctx.fillRect(x - r * 0.18, y + r * 0.34, r * 0.36, r * 0.22);
+  }
+  function tree(x, y, s){
+    ctx.fillStyle = '#8B5A3C'; ctx.fillRect(x - s * 0.05, y - s * 0.22, s * 0.1, s * 0.24);
+    ctx.fillStyle = '#3E8E56';
+    ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x - s * 0.3, y - s * 0.28); ctx.lineTo(x + s * 0.3, y - s * 0.28); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#57A96B';
+    ctx.beginPath(); ctx.moveTo(x, y - s * 1.22); ctx.lineTo(x - s * 0.22, y - s * 0.62); ctx.lineTo(x + s * 0.22, y - s * 0.62); ctx.closePath(); ctx.fill();
+  }
+  function chip(x, y, text, big, h, sub){
+    var fs = Math.max(9, h * (big ? 0.045 : 0.03));
+    var fs2 = fs * 0.6;
+    var f1 = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
+    var f2 = '500 ' + fs2 + 'px "Afacad Flux",sans-serif';
+    ctx.font = f1;
+    var tw = ctx.measureText(text).width, sw = 0;
+    var twoLine = !!(big && sub);
+    if(twoLine){ ctx.font = f2; sw = ctx.measureText(sub.toUpperCase()).width; }
+    var cw = Math.max(tw, sw), px = fs * 0.75, py = fs * 0.46;
+    var ch2 = fs + py * 2 + (twoLine ? fs2 * 1.5 : 0);
+    var top = y - ch2;
+    ctx.fillStyle = big ? '#2B2B28' : 'rgba(43,43,40,.82)';
+    rround(x - cw / 2 - px, top, cw + px * 2, ch2, twoLine ? fs * 0.55 : ch2 / 2);
+    ctx.fill();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFF8E7';
+    ctx.font = f1;
+    ctx.fillText(text, x, top + py + fs / 2);
+    if(twoLine){
+      ctx.fillStyle = 'rgba(255,248,231,.72)';
+      ctx.font = f2;
+      ctx.fillText(sub.toUpperCase(), x, top + py + fs + fs2 * 0.85);
+    }
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+  function plaque(x, y, text, h){
+    if(window.__ogClean) return;   // og-thumbnail capture hook: hide the plaque
+    var fs = Math.max(10, h * 0.038);
+    ctx.font = '600 ' + fs + 'px "Afacad Flux",sans-serif';
+    var tw = ctx.measureText(text).width, px = fs * 1.1, py = fs * 0.55;
+    ctx.fillStyle = '#FFF6DF';
+    rround(x - tw / 2 - px, y, tw + px * 2, fs + py * 2, 4);
+    ctx.fill();
+    ctx.strokeStyle = '#C9B98F'; ctx.lineWidth = 1.5;
+    rround(x - tw / 2 - px, y, tw + px * 2, fs + py * 2, 4);
+    ctx.stroke();
+    ctx.fillStyle = '#6B5B33';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y + py + fs * 0.52);
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+  function rround(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /* ---- voxel islands: each landmark floats on a chunky, Minecraft-ish
+     island themed to its own city; drawn with the same projector ---- */
+  function slab(faces, plan, z0, z1, col){
+    var cx0 = 0, cy0 = 0;
+    plan.forEach(function(p){ cx0 += p[0] / plan.length; cy0 += p[1] / plan.length; });
+    for(var i = 0; i < plan.length; i++){
+      var a = plan[i], b = plan[(i + 1) % plan.length];
+      var nx = (b[1] - a[1]), ny = -(b[0] - a[0]);
+      var mx = (a[0] + b[0]) / 2 - cx0, my = (a[1] + b[1]) / 2 - cy0;
+      if(nx * mx + ny * my < 0){ nx = -nx; ny = -ny; }
+      faces.push({ pts: [[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],[a[0],a[1],z1]],
+                   col: col, az: Math.atan2(nx, ny) });
+    }
+    faces.push({ pts: plan.map(function(p){ return [p[0], p[1], z1]; }), col: col, az: null });
+  }
+  function sq(ox, oy, half){ return rectPlan(ox, oy, 1, 0, half, half); }
+  function voxTree(d, x, y, sc){
+    d.push([x, y, 0.030 * sc, 0, 0.10 * sc, '#8B5A3C']);
+    d.push([x, y, 0.085 * sc, 0.10 * sc, 0.22 * sc, '#3E8E56']);
+    d.push([x, y, 0.055 * sc, 0.22 * sc, 0.30 * sc, '#57A96B']);
+  }
+  function voxPalm(d, x, y, sc){
+    d.push([x, y, 0.022 * sc, 0, 0.20 * sc, '#9A6B3F']);
+    d.push([x, y, 0.11 * sc, 0.20 * sc, 0.245 * sc, '#3E8E56']);
+    d.push([x, y, 0.05 * sc, 0.245 * sc, 0.29 * sc, '#57A96B']);
+  }
+  function voxHouse(d, x, y, wall, roof){
+    d.push([x, y, 0.075, 0, 0.10, wall]);
+    d.push([x, y, 0.055, 0.10, 0.16, roof]);
+  }
+  var THEMES = {
+    london:  { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096',
+               deco: function(d){ voxTree(d, -0.50, 0.30, 1); voxTree(d, 0.30, -0.50, 0.8);
+                                  voxHouse(d, 0.52, 0.34, '#C86452', '#6E4A2E'); } },
+    city:    { top:'#74BD68', side:'#569A50', dirt:'#7E7F84', dirt2:'#6A6B70', stone:'#57585D',
+               deco: function(d){ d.push([-0.50, 0.30, 0.07, 0, 0.20, '#AEB4BC']);
+                                  d.push([0.34, -0.48, 0.06, 0, 0.14, '#C6CCD4']);
+                                  voxTree(d, 0.52, 0.34, 0.7); } },
+    dubai:   { top:'#EAD298', side:'#D9B87A', dirt:'#C9A36A', dirt2:'#B08D55', stone:'#96753F',
+               deco: function(d){ voxPalm(d, -0.50, 0.30, 1); voxPalm(d, 0.32, -0.50, 0.8);
+                                  d.push([0.50, 0.34, 0.09, 0, 0.05, '#F2E2B0']); } },
+    regency: { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#9AA0A8',
+               deco: function(d){ voxHouse(d, -0.50, 0.32, '#F2EFE6', '#8C9096');
+                                  voxHouse(d, 0.50, -0.34, '#F2EFE6', '#8C9096');
+                                  voxTree(d, 0.48, 0.40, 0.75); } },
+    odense:  { top:'#86CF78', side:'#63AC5C', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096',
+               deco: function(d){ voxHouse(d, -0.52, 0.30, '#9C3B32', '#4A3527');
+                                  voxHouse(d, 0.30, -0.52, '#B3402F', '#4A3527');
+                                  voxTree(d, 0.52, 0.36, 0.85); } }
+  };
+  /* island painter: stacked slabs differ in depth by noise-level amounts, so
+     near-ties resolve by height (lower faces first) instead of raw depth */
+  /* minecraft tiles: an 8x8 quantized-noise tile per block colour (the
+     wool/grass/dirt look from the reference set), upscaled unsmoothed */
+  var TILES = {};
+  function texTile(ctx, col){
+    if(TILES[col]) return TILES[col];
+    var t = document.createElement('canvas');
+    t.width = 8; t.height = 8;
+    var tc = t.getContext('2d');
+    var LV = [0.85, 0.93, 1, 1.09];
+    for(var y = 0; y < 8; y++)
+      for(var x = 0; x < 8; x++){
+        var h1 = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; h1 -= Math.floor(h1);
+        tc.fillStyle = shade(col, LV[Math.floor(h1 * 4) % 4]);
+        tc.fillRect(x, y, 1, 1);
+      }
+    var big = document.createElement('canvas');
+    big.width = 40; big.height = 40;
+    var bc = big.getContext('2d');
+    bc.imageSmoothingEnabled = false;
+    bc.drawImage(t, 0, 0, 40, 40);
+    TILES[col] = ctx.createPattern(big, 'repeat');
+    return TILES[col];
+  }
+  function paintVox(ctx, faces, prj, yaw, lineCol){
+    var out = faces.map(function(f){
+      var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
+      var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
+      var uv = null;
+      if(f.pts.length === 4){
+        /* texel grid in the face's own u/v basis: ~0.045 model units per
+           texel, 5 pattern units per texel, so the tile bakes onto the block
+           and rides with it as the camera orbits */
+        var m = f.pts;
+        var eu = Math.hypot(m[1][0]-m[0][0], m[1][1]-m[0][1], m[1][2]-m[0][2]);
+        var ev = Math.hypot(m[3][0]-m[0][0], m[3][1]-m[0][1], m[3][2]-m[0][2]);
+        var tu = Math.max(2, Math.round(eu / 0.045)) * 5;
+        var tv = Math.max(2, Math.round(ev / 0.045)) * 5;
+        var sux = pts[1].x - pts[0].x, suy = pts[1].y - pts[0].y;
+        var svx = pts[3].x - pts[0].x, svy = pts[3].y - pts[0].y;
+        /* tiny faces skip the texel pass — flat fill reads the same and
+           the per-face clip work is what lags */
+        if(Math.abs(sux * svy - suy * svx) > 150)
+          uv = { a: sux/tu, b: suy/tu, c: svx/tv, d: svy/tv,
+                 e: pts[0].x, f: pts[0].y, w: tu, h: tv };
+      }
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), base: f.col, br: br, uv: uv };
+    }).sort(function(a, b){
+      var dd = b.d - a.d;
+      if(Math.abs(dd) > 0.06) return dd;
+      return (a.z - b.z) || dd;
+    });
+    out.forEach(function(f, fi){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = f.col; ctx.fill();
+      if(f.uv){
+        var o = f.uv, ox = (fi * 3 % 8) * 5, oy = (fi * 5 % 8) * 5;
+        ctx.save(); ctx.clip();
+        ctx.transform(o.a, o.b, o.c, o.d, o.e, o.f);
+        ctx.translate(-ox, -oy);   /* per-face tile offset so blocks don't repeat */
+        ctx.fillStyle = texTile(ctx, f.base);
+        ctx.fillRect(ox, oy, o.w, o.h);
+        /* bake the face light onto the tile */
+        if(f.br < 1){
+          ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.5, (1 - f.br) * 0.85).toFixed(3) + ')';
+          ctx.fillRect(ox, oy, o.w, o.h);
+        } else if(f.br > 1){
+          ctx.fillStyle = 'rgba(255,255,255,' + ((f.br - 1) * 0.4).toFixed(3) + ')';
+          ctx.fillRect(ox, oy, o.w, o.h);
+        }
+        ctx.restore();
+      }
+      ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+  window.__vox = { mkProj: mkProj, slab: slab, sq: sq, paintVox: paintVox };
+  function voxIsland(ctx, x0, gy, sc, yaw, th){
+    var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    [ /* half, dx, dy, z0, z1 — the chunky stepped landmass, kept lean */
+      [0.68,  0.00,  0.00, -0.075, 0,      th.top,  th.side],
+      [0.34,  0.52, -0.34, -0.075, 0,      th.top,  th.side],
+      [0.58,  0.02,  0.02, -0.21, -0.075,  th.dirt, th.dirt],
+      [0.44,  0.02, -0.02, -0.34, -0.21,   th.dirt2, th.dirt2],
+      [0.26, -0.02,  0.04, -0.50, -0.34,   th.stone, th.stone]
+    ].forEach(function(q){
+      var f0 = faces.length;
+      slab(faces, sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
+      faces[faces.length - 1].col = q[5];              /* top face keeps the top colour */
+    });
+    var d = [];
+    th.deco(d);
+    d.forEach(function(c){ slab(faces, sq(c[0], c[1], c[2]), c[3], c[4], c[5]); });
+    paintVox(ctx, faces, prj, yaw, 'rgba(0,0,0,.14)');
+  }
+
+  /* ---- the four structures as true 3D models (yaw = camera orbit) ---- */
+
+  // The Gherkin — built from the dashboard's exported settings JSON
+  // (gherkinsettings 2026-07-06): cubic profile spline on the 600-logical
+  // board, H 180 m, levels every 8 m with a 1 m top offset, 22 diagrid nodes.
+  var GHERKIN = {
+    H: 180, levelH: 8, topOff: 1, N: 22,
+    pts: [[0, 0], [120, 0], [180, 390], [120, 600]]            // board space: y 0 = tip, 600 = base
+  };
+  var GK = (function(){
+    var P = GHERKIN.pts, S = 64, poly = [];
+    for(var i = 0; i <= S; i++){                               // degree-3, 4 points → a Bézier
+      var t = i / S, u = 1 - t;
+      poly.push({ x: u*u*u*P[0][0] + 3*u*u*t*P[1][0] + 3*u*t*t*P[2][0] + t*t*t*P[3][0],
+                  y: u*u*u*P[0][1] + 3*u*u*t*P[1][1] + 3*u*t*t*P[2][1] + t*t*t*P[3][1] });
+    }
+    var zs = [], hi = GHERKIN.H - GHERKIN.topOff;
+    for(var z = 0; z < hi - GHERKIN.levelH * 0.01; z += GHERKIN.levelH) zs.push(z);
+    zs.push(hi);
+    var rs = zs.map(function(zz){
+      var yL = (1 - zz / GHERKIN.H) * 600, best = 0;
+      for(var j = 0; j < poly.length - 1; j++){
+        var a = poly[j], b = poly[j + 1];
+        if((a.y - yL) * (b.y - yL) <= 0 && a.y !== b.y){
+          var xx = a.x + (b.x - a.x) * (yL - a.y) / (b.y - a.y);
+          if(xx > best) best = xx;
+        }
+      }
+      return best / 600 * GHERKIN.H;                           // logical x → meters
+    });
+    return { zs: zs, rs: rs };
+  })();
+
+  function drawGherkin(ctx, x0, gy, s, yaw){
+    var k = s / (GHERKIN.H * CB), prj = mkProj(x0, gy, k, yaw);
+    var N = GHERKIN.N, L = GK.zs.length, i, j;
+    // glass body: the silhouette of the surface of revolution (±r about the axis)
+    ctx.beginPath();
+    for(i = 0; i < L; i++){ var pR = prj(0, 0, GK.zs[i]); var X = pR.x + GK.rs[i] * k;
+      i ? ctx.lineTo(X, pR.y) : ctx.moveTo(X, pR.y); }
+    for(i = L - 1; i >= 0; i--){ var pL = prj(0, 0, GK.zs[i]); ctx.lineTo(pL.x - GK.rs[i] * k, pL.y); }
+    ctx.closePath();
+    var g = ctx.createLinearGradient(x0 - s * 0.3, 0, x0 + s * 0.3, 0);
+    g.addColorStop(0, '#4E9E8C'); g.addColorStop(0.45, '#82CDB9'); g.addColorStop(1, '#5FAF9C');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = '#245E52'; ctx.lineWidth = Math.max(1.1, s * 0.012); ctx.stroke();
+    // level rings — real 3D circles
+    ctx.strokeStyle = 'rgba(36,94,82,.42)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(i = 0; i < L; i++){
+      var r = GK.rs[i]; if(r < 1e-3) continue;
+      for(j = 0; j <= N; j++){
+        var th = TAU * j / N;
+        var p = prj(r * Math.cos(th), r * Math.sin(th), GK.zs[i]);
+        j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+      }
+    }
+    ctx.stroke();
+    // diagrid braces: node k joins the two bracketing nodes on the level above
+    ctx.strokeStyle = 'rgba(30,77,67,.75)'; ctx.lineWidth = Math.max(1, s * 0.008);
+    ctx.beginPath();
+    for(i = 0; i < L - 1; i++){
+      var r1 = GK.rs[i], r2 = GK.rs[i + 1];
+      if(r1 < 1e-3 || r2 < 1e-3) continue;
+      var o1 = (i % 2) * Math.PI / N, o2 = ((i + 1) % 2) * Math.PI / N;
+      var aOff = (i % 2 === 0) ? -1 : 0, bOff = (i % 2 === 0) ? 0 : 1;
+      for(j = 0; j < N; j++){
+        var a1 = TAU * j / N + o1;
+        var lo = prj(r1 * Math.cos(a1), r1 * Math.sin(a1), GK.zs[i]);
+        [aOff, bOff].forEach(function(off){
+          var jj = ((j + off) % N + N) % N;
+          var a2 = TAU * jj / N + o2;
+          var up = prj(r2 * Math.cos(a2), r2 * Math.sin(a2), GK.zs[i + 1]);
+          ctx.moveTo(lo.x, lo.y); ctx.lineTo(up.x, up.y);
+        });
+      }
+    }
+    ctx.stroke();
+    // cap
+    var tip = prj(0, 0, GHERKIN.H);
+    ctx.fillStyle = '#DFF3EE';
+    ctx.beginPath(); ctx.arc(tip.x, tip.y, Math.max(1.6, s * 0.02), 0, TAU); ctx.fill();
+  }
+
+  function drawShard(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), w = 0.13;
+    var c = [[w, w], [-w, w], [-w, -w], [w, -w]], faces = [];
+    for(var i = 0; i < 4; i++){
+      var a = c[i], b = c[(i + 1) % 4];
+      faces.push({ pts: [[a[0], a[1], 0], [b[0], b[1], 0], [0, 0, 0.94]],
+                   col: '#A9C4D8', az: Math.atan2(a[0] + b[0], a[1] + b[1]) });
+    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(94,126,150,.85)');
+    var t0 = prj(0, 0, 0.90), t1 = prj(0, 0, 1);               // the broken-tip spire
+    ctx.strokeStyle = '#5E7E96'; ctx.lineWidth = Math.max(1.1, s * 0.014);
+    ctx.beginPath(); ctx.moveTo(t0.x, t0.y); ctx.lineTo(t1.x, t1.y); ctx.stroke();
+  }
+
+  function drawBurj(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    prismFaces(faces, rectPlan(0, 0, 1, 0.4, 0.075, 0.07), 0.80, '#D6DAE0');
+    [0, TAU / 3, TAU * 2 / 3].forEach(function(t){             // three wings, each stepping down
+      var dx = Math.sin(t), dy = Math.cos(t);
+      prismFaces(faces, rectPlan(dx * 0.10, dy * 0.10, dx, dy, 0.085, 0.045), 0.60, '#C6CCD5');
+      prismFaces(faces, rectPlan(dx * 0.19, dy * 0.19, dx, dy, 0.075, 0.038), 0.42, '#B7BEC9');
+      prismFaces(faces, rectPlan(dx * 0.27, dy * 0.27, dx, dy, 0.060, 0.032), 0.26, '#A8AFBB');
+    });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(110,120,134,.55)');
+    var s0 = prj(0, 0, 0.80), s1 = prj(0, 0, 1);
+    ctx.strokeStyle = '#8892A0'; ctx.lineWidth = Math.max(1.2, s * 0.012);
+    ctx.beginPath(); ctx.moveTo(s0.x, s0.y); ctx.lineTo(s1.x, s1.y); ctx.stroke();
+  }
+
+  function drawCrescent(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw);
+    var Ro = 0.50, Ri = 0.36, hB = 0.34, a0 = -1.15, a1 = 1.15, n = 14, faces = [], i;
+    var outer = [], inner = [];
+    for(i = 0; i <= n; i++){
+      var th = a0 + (a1 - a0) * i / n;
+      outer.push([Ro * Math.sin(th), Ro * Math.cos(th), th]);
+      inner.push([Ri * Math.sin(th), Ri * Math.cos(th), th]);
+    }
+    for(i = 0; i < n; i++){
+      var oa = outer[i], ob = outer[i + 1], ia = inner[i], ib = inner[i + 1];
+      faces.push({ pts: [[oa[0], oa[1], 0], [ob[0], ob[1], 0], [ob[0], ob[1], hB], [oa[0], oa[1], hB]],
+                   col: '#F2E7CD', az: (oa[2] + ob[2]) / 2 });
+      faces.push({ pts: [[ia[0], ia[1], 0], [ib[0], ib[1], 0], [ib[0], ib[1], hB], [ia[0], ia[1], hB]],
+                   col: '#DECFA9', az: (ia[2] + ib[2]) / 2 + Math.PI });
+    }
+    [[outer[0], inner[0], a0 - Math.PI / 2], [outer[n], inner[n], a1 + Math.PI / 2]].forEach(function(e){
+      faces.push({ pts: [[e[0][0], e[0][1], 0], [e[1][0], e[1][1], 0], [e[1][0], e[1][1], hB], [e[0][0], e[0][1], hB]],
+                   col: '#E7D9B8', az: e[2] });
+    });
+    var roof = outer.map(function(p){ return [p[0], p[1], hB]; })
+      .concat(inner.slice().reverse().map(function(p){ return [p[0], p[1], hB]; }));
+    faces.push({ pts: roof, col: '#EADDBD', az: null });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(176,143,90,.55)');
+    // colonnade on the camera-facing stretch of the outer facade
+    ctx.strokeStyle = '#B08F5A'; ctx.lineWidth = Math.max(1, s * 0.012);
+    ctx.beginPath();
+    for(i = 0; i <= n * 2; i++){
+      var tc = a0 + (a1 - a0) * i / (n * 2);
+      if(Math.cos(tc + yaw) < 0.25) continue;                  // hidden side of the arc
+      var b0 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), 0.03);
+      var b1 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), hB * 0.8);
+      ctx.moveTo(b0.x, b0.y); ctx.lineTo(b1.x, b1.y);
+    }
+    ctx.stroke();
+  }
+
+  // Dymak HQ — round glass hall under a swirling shingled roof that dips
+  // into a central open courtyard (modelled from the reference photos)
+  // Dymak HQ — proportions and rake from the exported pyDymak OBJ:
+  // R 70, hole r 25 offset 15 toward the low side, roof rim 35 m -> 10 m,
+  // hole rim 15 m -> 25 m opposed, 36 bays. u maps metres to model units.
+  function drawDymak(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw);
+    var u = 0.0077, Re = 70 * u, Ro = Re * 0.94, Ri = 25 * u, n = 36, faces = [], i;
+    var PH = 0.8;                                              // plan angle of the roof high point
+    var hw = 8 * u;                                            // glass drum, under the 10 m low rim
+    var hcx = 15 * u * Math.sin(PH + Math.PI), hcy = 15 * u * Math.cos(PH + Math.PI);
+    function rimO(th){ return u * (22.5 + 12.5 * Math.cos(th - PH)); }
+    function rimI(th){ return u * (20.0 -  5.0 * Math.cos(th - PH)); }
+    for(i = 0; i < n; i++){
+      var t0 = TAU * i / n, t1 = TAU * (i + 1) / n, tm = (t0 + t1) / 2;
+      var s0 = Math.sin(t0), c0 = Math.cos(t0), s1 = Math.sin(t1), c1 = Math.cos(t1);
+      // glass drum, set in from the eave
+      faces.push({ pts: [[Ro*s0,Ro*c0,0],[Ro*s1,Ro*c1,0],[Ro*s1,Ro*c1,hw],[Ro*s0,Ro*c0,hw]],
+                   col: '#C79E6F', az: tm });
+      // shingled fascia: deep on the high side, a sliver on the low side
+      faces.push({ pts: [[Re*s0,Re*c0,hw],[Re*s1,Re*c1,hw],[Re*s1,Re*c1,rimO(t1)],[Re*s0,Re*c0,rimO(t0)]],
+                   col: '#9C5F3E', az: tm });
+      // roof: raked outer rim sweeping into the offset, counter-raked hole
+      faces.push({ pts: [[Re*s0,Re*c0,rimO(t0)],[Re*s1,Re*c1,rimO(t1)],
+                         [hcx+Ri*s1,hcy+Ri*c1,rimI(t1)],[hcx+Ri*s0,hcy+Ri*c0,rimI(t0)]],
+                   col: '#B5734D', az: tm });
+    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(90,52,32,.45)');
+    // radial roof seams — the far half is the visible bowl of the crater
+    ctx.strokeStyle = 'rgba(90,52,32,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(i = 0; i < n; i++){
+      var ts = TAU * (i + 0.5) / n;
+      if(Math.cos(ts + yaw) > -0.1) continue;
+      var r0 = prj(Re * Math.sin(ts), Re * Math.cos(ts), rimO(ts));
+      var r1 = prj(hcx + Ri * Math.sin(ts), hcy + Ri * Math.cos(ts), rimI(ts));
+      ctx.moveTo(r0.x, r0.y); ctx.lineTo(r1.x, r1.y);
+    }
+    ctx.stroke();
+    // the raked rim edge itself
+    ctx.strokeStyle = '#8A5637'; ctx.lineWidth = Math.max(1.1, s * 0.012);
+    ctx.beginPath();
+    for(i = 0; i <= n * 2; i++){
+      var te = TAU * i / (n * 2);
+      var pe = prj(Re * Math.sin(te), Re * Math.cos(te), rimO(te));
+      i ? ctx.lineTo(pe.x, pe.y) : ctx.moveTo(pe.x, pe.y);
+    }
+    ctx.stroke();
+    // mullions on the camera-facing glass
+    ctx.strokeStyle = '#6E4A2E'; ctx.lineWidth = Math.max(1, s * 0.01);
+    ctx.beginPath();
+    for(i = 0; i < n * 2; i++){
+      var tc = TAU * i / (n * 2);
+      if(Math.cos(tc + yaw) < 0.2) continue;
+      var m0 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), 0.01);
+      var m1 = prj(Ro * Math.sin(tc), Ro * Math.cos(tc), hw - 0.01);
+      ctx.moveTo(m0.x, m0.y); ctx.lineTo(m1.x, m1.y);
+    }
+    ctx.stroke();
+  }
+
+  /* ---- interaction ---- */
+  function wobble(btn){
+    btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope');
+  }
+  function setOpt(btn, url, liveNote){
+    if(url){
+      btn.setAttribute('href', url);
+      btn.removeAttribute('aria-disabled');
+      btn.querySelector('small').textContent = liveNote;
+    } else {
+      btn.setAttribute('href', '#');
+      btn.setAttribute('aria-disabled', 'true');
+      btn.querySelector('small').textContent = 'coming soon';
+    }
+  }
+  function syncBanner(){
+    var p = PROJECTS[idx];
+    nameEl.textContent = (p.the + ' ' + p.name).toUpperCase();
+    setOpt(dashBtn, p.dash, 'open the model');
+    setOpt(tutBtn, p.tut, 'start learning');
+  }
+  [dashBtn, tutBtn].forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      if(btn.getAttribute('aria-disabled') === 'true'){ e.preventDefault(); wobble(btn); }
+    });
+  });
+  function targetRot(){ return idx * (TAU / PROJECTS.length); }   // camera yaw that puts the pick up front
+  function go(delta){ goTo(idx + delta); }
+  function goTo(i){
+    idx = (i % PROJECTS.length + PROJECTS.length) % PROJECTS.length;
+    syncBanner();
+    rotFrom = rot; rotTo = targetRot();
+    // rotate the short way round
+    while(rotTo - rotFrom > Math.PI) rotTo -= TAU;
+    while(rotTo - rotFrom < -Math.PI) rotTo += TAU;
+    if(reduced){ rot = rotTo; draw(); return; }
+    animT = 0; requestAnimationFrame(step);
+  }
+  function step(){
+    animT = Math.min(1, animT + 1 / 26);
+    var e = 1 - Math.pow(1 - animT, 3);
+    rot = rotFrom + (rotTo - rotFrom) * e;
+    draw();
+    if(animT < 1) requestAnimationFrame(step);
+  }
+  document.getElementById('selPrev').addEventListener('click', function(){ go(-1); });
+  document.getElementById('selNext').addEventListener('click', function(){ go(1); });
+  stage.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); }
+    if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
+    if(e.key === 'Enter'){ dashBtn.click(); }
+  });
+  // swipe / click on the scene
+  var downX = null;
+  canvas.addEventListener('pointerdown', function(e){ downX = e.clientX; });
+  canvas.addEventListener('pointerup', function(e){
+    if(downX === null) return;
+    var dx = e.clientX - downX; downX = null;
+    if(Math.abs(dx) > 40){ go(dx < 0 ? 1 : -1); return; }
+    // a plain click brings the clicked model to the front — navigation only
+    // ever happens through the dashboard / tutorial buttons
+    var r = canvas.getBoundingClientRect();
+    var cx = e.clientX - r.left, cy = e.clientY - r.top;
+    var hit = null;
+    hitZones.forEach(function(z){
+      if(Math.abs(cx - z.x) < z.s * 0.55 && cy > z.gy - z.s * 1.05 && cy < z.gy + z.s * 0.55){
+        if(!hit || z.d > hit.d) hit = z;                       // frontmost wins on overlap
+      }
+    });
+    if(hit && hit.i !== idx) goTo(hit.i);
+  });
+
+  function resize(){
+    var w = stage.clientWidth;
+    var h = Math.max(250, Math.min(400, Math.round(w * 0.42)));
+    var dpr = window.devicePixelRatio || 1;
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+  syncBanner();
+  resize();
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  /* ── coming-soon tool islands (Topography & MEP) ──────────────────────
+     A slimmed twin of the projects selector: same sky, sea and orbiting
+     camera, two tool models per island. The Topography island is hilly,
+     terraced with contour (topo) lines; the MEP island matches the
+     projects one. Everything is labelled coming soon. */
+  var TAU = Math.PI * 2;
+  var SB = 0.22, CB = Math.sqrt(1 - SB * SB), LIGHT = -0.9;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function mkProj(x0, gy, k, yaw){
+    var ca = Math.cos(yaw), sa = Math.sin(yaw);
+    return function(mx, my, mz){
+      var rx = mx * ca - my * sa;
+      var ry = mx * sa + my * ca;
+      return { x: x0 + rx * k, y: gy + (ry * SB - mz * CB) * k, d: -ry };
+    };
+  }
+  function shade(hex, br){
+    var n = parseInt(hex.slice(1), 16);
+    var r = Math.min(255, Math.round(((n >> 16) & 255) * br));
+    var g = Math.min(255, Math.round(((n >> 8) & 255) * br));
+    var b = Math.min(255, Math.round((n & 255) * br));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+  function paintFaces(ctx, faces, prj, yaw, lineCol){
+    var out = faces.map(function(f){
+      var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
+      var d = 0, z = 0;
+      for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
+      var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br) };
+    }).sort(function(a, b){ return (b.d - a.d) || (a.z - b.z); });
+    out.forEach(function(f){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = f.col; ctx.fill();
+      ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+  // box between z0 and z1 from a plan polygon (sides + top + bottom)
+  function slabFaces(faces, plan, z0, z1, col){
+    var cx0 = 0, cy0 = 0;
+    plan.forEach(function(p){ cx0 += p[0] / plan.length; cy0 += p[1] / plan.length; });
+    for(var i = 0; i < plan.length; i++){
+      var a = plan[i], b = plan[(i + 1) % plan.length];
+      var nx = (b[1] - a[1]), ny = -(b[0] - a[0]);
+      var mx = (a[0] + b[0]) / 2 - cx0, my = (a[1] + b[1]) / 2 - cy0;
+      if(nx * mx + ny * my < 0){ nx = -nx; ny = -ny; }
+      faces.push({ pts: [[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],[a[0],a[1],z1]],
+                   col: col, az: Math.atan2(nx, ny) });
+    }
+    faces.push({ pts: plan.map(function(p){ return [p[0], p[1], z1]; }), col: col, az: null });
+  }
+  function rectPlan(ox, oy, dx, dy, hl, hw){
+    var L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+    var px = -dy, py = dx;
+    return [[ox + dx*hl + px*hw, oy + dy*hl + py*hw],
+            [ox - dx*hl + px*hw, oy - dy*hl + py*hw],
+            [ox - dx*hl - px*hw, oy - dy*hl - py*hw],
+            [ox + dx*hl - px*hw, oy + dy*hl - py*hw]];
+  }
+  function discPlan(ox, oy, r, n){
+    var pts = [];
+    for(var i = 0; i < n; i++){
+      var a = TAU * i / n;
+      pts.push([ox + r * Math.cos(a), oy + r * Math.sin(a)]);
+    }
+    return pts;
+  }
+
+  /* ---- tool models: (ctx, x0, gy, s, yaw), s = height in px ---- */
+
+  // TopoForge — a sculpted TIN tile: soil skirt, undulating green surface,
+  // wireframe mesh and the white spline-extent points
+  var TF_G = 6;
+  var TF_H = [
+    [0.02,0.03,0.05,0.06,0.04,0.02],
+    [0.03,0.08,0.13,0.11,0.06,0.03],
+    [0.04,0.13,0.24,0.19,0.08,0.04],
+    [0.04,0.10,0.17,0.14,0.07,0.03],
+    [0.03,0.05,0.07,0.06,0.10,0.05],
+    [0.02,0.03,0.04,0.04,0.05,0.03]
+  ];
+  function drawTopoForge(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [], i, j;
+    var HS = 0.46, step = HS * 2 / (TF_G - 1);
+    function P(i, j){ return [-HS + i * step, -HS + j * step, 0.05 + TF_H[j][i]]; }
+    // soil skirt around the tile
+    var rim = [];
+    for(i = 0; i < TF_G; i++) rim.push([i, 0]);
+    for(j = 1; j < TF_G; j++) rim.push([TF_G - 1, j]);
+    for(i = TF_G - 2; i >= 0; i--) rim.push([i, TF_G - 1]);
+    for(j = TF_G - 2; j >= 1; j--) rim.push([0, j]);
+    for(i = 0; i < rim.length; i++){
+      var a = P(rim[i][0], rim[i][1]), b = P(rim[(i + 1) % rim.length][0], rim[(i + 1) % rim.length][1]);
+      faces.push({ pts: [[a[0],a[1],0],[b[0],b[1],0],[b[0],b[1],b[2]],[a[0],a[1],a[2]]],
+                   col: '#C9A36A', az: Math.atan2(a[0] + b[0], a[1] + b[1]) });
+    }
+    // undulating surface, shaded by height
+    for(j = 0; j < TF_G - 1; j++) for(i = 0; i < TF_G - 1; i++){
+      var h4 = (TF_H[j][i] + TF_H[j][i+1] + TF_H[j+1][i+1] + TF_H[j+1][i]) / 4;
+      var t = Math.min(1, h4 / 0.22);
+      var hx = function(n){ n = Math.round(n); return (n < 16 ? '0' : '') + n.toString(16); };
+      var col = '#' + hx(94 + t * 88) + hx(165 + t * 61) + hx(90 + t * 53);
+      faces.push({ pts: [P(i,j), P(i+1,j), P(i+1,j+1), P(i,j+1)], col: col, az: null });
+    }
+    paintFaces(ctx, faces, prj, yaw, 'rgba(31,63,36,.28)');
+    // TIN wireframe over the surface
+    ctx.strokeStyle = 'rgba(23,58,28,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(j = 0; j < TF_G; j++) for(i = 0; i < TF_G - 1; i++){
+      var pa = prj.apply(null, P(i, j)), pb = prj.apply(null, P(i + 1, j));
+      ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y);
+      pa = prj.apply(null, P(j, i)); pb = prj.apply(null, P(j, i + 1));
+      ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y);
+    }
+    ctx.stroke();
+    // spline extent points on the rim
+    ctx.fillStyle = '#FFF8E7';
+    [[0,0],[TF_G-1,0],[TF_G-1,TF_G-1],[0,TF_G-1],[Math.floor(TF_G/2),0]].forEach(function(q){
+      var p = prj.apply(null, P(q[0], q[1]));
+      ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1.6, s * 0.02), 0, TAU); ctx.fill();
+    });
+  }
+
+  // Align to Topography — a fence post standing plumb on a terraced mound
+  function drawFencePost(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    slabFaces(faces, discPlan(0, 0, 0.36, 14), 0, 0.10, '#69B25E');
+    slabFaces(faces, discPlan(0.03, -0.02, 0.23, 14), 0.10, 0.21, '#7CC96F');
+    slabFaces(faces, rectPlan(0.03, -0.02, 1, 0, 0.045, 0.045), 0.21, 0.88, '#8B5A3C');
+    slabFaces(faces, rectPlan(0.03, -0.02, 1, 0, 0.062, 0.062), 0.88, 0.94, '#7A4E33');
+    paintFaces(ctx, faces, prj, yaw, 'rgba(31,63,36,.35)');
+  }
+
+  // Line to Fence — a dashed setting-out line growing a run of fence
+  function drawFenceLine(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    // ground guide: dashed line through the posts
+    ctx.strokeStyle = 'rgba(255,248,231,.9)'; ctx.lineWidth = Math.max(1.5, s * 0.02);
+    ctx.setLineDash([s * 0.06, s * 0.05]);
+    ctx.beginPath();
+    var gA = prj(-0.82, 0, 0), gB = prj(0.82, 0, 0);
+    ctx.moveTo(gA.x, gA.y); ctx.lineTo(gB.x, gB.y); ctx.stroke();
+    ctx.setLineDash([]);
+    [-0.51, -0.17, 0.17, 0.51].forEach(function(px){
+      slabFaces(faces, rectPlan(px, 0, 1, 0, 0.030, 0.030), 0, 0.60, '#8B5A3C');
+    });
+    slabFaces(faces, rectPlan(0, 0, 1, 0, 0.575, 0.013), 0.44, 0.482, '#A56B44');
+    slabFaces(faces, rectPlan(0, 0, 1, 0, 0.575, 0.013), 0.22, 0.262, '#A56B44');
+    paintFaces(ctx, faces, prj, yaw, 'rgba(63,40,22,.35)');
+  }
+
+  // Bulk Placement — a cluster of manhole covers dropped in one go
+  function drawManholes(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    var spots = [[-0.34, 0.10], [0.06, -0.16], [0.40, 0.14], [0.02, 0.34]];
+    spots.forEach(function(sp){
+      slabFaces(faces, discPlan(sp[0], sp[1], 0.185, 12), 0, 0.028, '#7A8089');
+      slabFaces(faces, discPlan(sp[0], sp[1], 0.150, 12), 0.028, 0.052, '#4A4F57');
+    });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(20,22,26,.4)');
+    // cover detail: inner ring + two lifting keys
+    ctx.strokeStyle = 'rgba(233,236,240,.55)'; ctx.lineWidth = 1;
+    spots.forEach(function(sp){
+      ctx.beginPath();
+      for(var j = 0; j <= 12; j++){
+        var a = TAU * j / 12;
+        var p = prj(sp[0] + 0.095 * Math.cos(a), sp[1] + 0.095 * Math.sin(a), 0.052);
+        j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+      }
+      ctx.stroke();
+      var d1 = prj(sp[0] - 0.05, sp[1], 0.052), d2 = prj(sp[0] + 0.05, sp[1], 0.052);
+      ctx.fillStyle = 'rgba(233,236,240,.55)';
+      ctx.beginPath(); ctx.arc(d1.x, d1.y, Math.max(1, s * 0.012), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(d2.x, d2.y, Math.max(1, s * 0.012), 0, TAU); ctx.fill();
+    });
+  }
+
+  // Place Downpipes — a wall panel with gutter, downpipes and shoes
+  function drawDownpipes(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    slabFaces(faces, rectPlan(0, -0.02, 1, 0, 0.34, 0.035), 0, 0.76, '#DDE1E6');
+    slabFaces(faces, rectPlan(0, 0.0, 1, 0, 0.37, 0.030), 0.76, 0.82, '#5F656E');
+    [-0.17, 0.17].forEach(function(px){
+      slabFaces(faces, discPlan(px, 0.062, 0.048, 8), 0.06, 0.78, '#2F363E');
+      slabFaces(faces, rectPlan(px, 0.11, 0, 1, 0.055, 0.042), 0.02, 0.08, '#262C33');
+    });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(30,34,40,.3)');
+  }
+
+  /* ---- the island factory ---- */
+  function makeToolIsland(cfg){
+    var stage = document.getElementById(cfg.stage);
+    var canvas = document.getElementById(cfg.canvas);
+    if(!stage || !canvas) return;
+    var ctx = canvas.getContext('2d');
+    var nameEl = document.getElementById(cfg.name);
+    var idx = 0, rot = 0, rotFrom = 0, rotTo = 0, animT = 1;
+    var hitZones = [];
+
+    function rround(x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+    function cloud(x, y, r){
+      ctx.fillStyle = 'rgba(255,255,255,.92)';
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU); ctx.arc(x + r * 1.1, y + r * 0.18, r * 0.75, 0, TAU);
+      ctx.arc(x - r * 1.05, y + r * 0.22, r * 0.65, 0, TAU); ctx.fill();
+    }
+    function tree(x, y, s){
+      ctx.fillStyle = '#8B5A3C'; ctx.fillRect(x - s * 0.05, y - s * 0.22, s * 0.1, s * 0.24);
+      ctx.fillStyle = '#3E8E56';
+      ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x - s * 0.3, y - s * 0.28); ctx.lineTo(x + s * 0.3, y - s * 0.28); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#57A96B';
+      ctx.beginPath(); ctx.moveTo(x, y - s * 1.22); ctx.lineTo(x - s * 0.22, y - s * 0.62); ctx.lineTo(x + s * 0.22, y - s * 0.62); ctx.closePath(); ctx.fill();
+    }
+    function chip(x, y, text, big, h, sub){
+      var fs = Math.max(9, h * (big ? 0.045 : 0.03));
+      var fs2 = fs * 0.6;
+      var f1 = (big ? '600 ' : '500 ') + fs + 'px "Afacad Flux",sans-serif';
+      var f2 = '500 ' + fs2 + 'px "Afacad Flux",sans-serif';
+      ctx.font = f1;
+      var tw = ctx.measureText(text).width, sw = 0;
+      var twoLine = !!(big && sub);
+      if(twoLine){ ctx.font = f2; sw = ctx.measureText(sub.toUpperCase()).width; }
+      var cw = Math.max(tw, sw), px = fs * 0.75, py = fs * 0.46;
+      var ch2 = fs + py * 2 + (twoLine ? fs2 * 1.5 : 0);
+      var top = y - ch2;
+      ctx.fillStyle = big ? '#2B2B28' : 'rgba(43,43,40,.82)';
+      rround(x - cw / 2 - px, top, cw + px * 2, ch2, twoLine ? fs * 0.55 : ch2 / 2);
+      ctx.fill();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFF8E7';
+      ctx.font = f1;
+      ctx.fillText(text, x, top + py + fs / 2);
+      if(twoLine){
+        ctx.fillStyle = 'rgba(255,248,231,.72)';
+        ctx.font = f2;
+        ctx.fillText(sub.toUpperCase(), x, top + py + fs + fs2 * 0.85);
+      }
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    }
+    function plaque(x, y, text, h){
+      if(window.__ogClean) return;
+      var fs = Math.max(10, h * 0.038);
+      ctx.font = '600 ' + fs + 'px "Afacad Flux",sans-serif';
+      var tw = ctx.measureText(text).width, px = fs * 1.1, py = fs * 0.55;
+      ctx.fillStyle = '#FFF6DF';
+      rround(x - tw / 2 - px, y, tw + px * 2, fs + py * 2, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#C9B98F'; ctx.lineWidth = 1.5;
+      rround(x - tw / 2 - px, y, tw + px * 2, fs + py * 2, 4);
+      ctx.stroke();
+      ctx.fillStyle = '#6B5B33';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y + py + fs * 0.52);
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    }
+
+    function draw(){
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      if(w <= 0 || h <= 0) return;
+      ctx.clearRect(0, 0, w, h);
+      var sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+      sky.addColorStop(0, '#A9DFF0'); sky.addColorStop(1, '#E6F7FC');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.55);
+      ctx.fillStyle = '#FFE9A8';
+      ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, Math.min(w, h) * 0.05, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#FFD670';
+      ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, Math.min(w, h) * 0.032, 0, TAU); ctx.fill();
+      cloud(w * 0.16, h * 0.13, w * 0.052);
+      cloud(w * 0.44, h * 0.09, w * 0.038);
+      cloud(w * 0.68, h * 0.17, w * 0.03);
+      var sea = ctx.createLinearGradient(0, h * 0.42, 0, h);
+      sea.addColorStop(0, '#2E93AC'); sea.addColorStop(1, '#57C7DD');
+      ctx.fillStyle = sea; ctx.fillRect(0, h * 0.42, w, h * 0.58);
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.4; ctx.setLineDash([9, 14]);
+      [0.50, 0.62, 0.78, 0.92].forEach(function(f, i){
+        ctx.beginPath(); ctx.moveTo(w * (i % 2 ? 0.06 : 0.02), h * f); ctx.lineTo(w * (i % 2 ? 0.96 : 0.9), h * f); ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      var cx = w * 0.5, cy = h * 0.62;
+      var rx = Math.min(w * 0.30, 400), ry = h * 0.15, YAW = 0.62;
+
+      function ground(phi, r){
+        var a = phi - rot;
+        return { x: cx + rx * r * Math.sin(a),
+                 y: cy + ry * r * Math.cos(a),
+                 depth: Math.cos(a) };
+      }
+      var drawables = [];
+      hitZones = [];
+      /* every tool floats on its own little voxel island, like the projects */
+      cfg.tools.forEach(function(p, i){
+        var g = ground(i * (TAU / cfg.tools.length), 1);
+        var depth01 = (g.depth + 1) / 2;
+        var s = h * (0.15 + 0.19 * depth01);
+        var ik = h * (0.30 + 0.18 * depth01);
+        hitZones.push({ i: i, x: g.x, gy: g.y, s: s, d: g.depth });
+        drawables.push({ d: g.depth, run: function(){
+          ctx.fillStyle = 'rgba(0,0,0,.12)';
+          ctx.beginPath(); ctx.ellipse(g.x, g.y + ik * 0.52, ik * 0.55, ik * 0.09, 0, 0, TAU); ctx.fill();
+          if(window.__vox){
+            var V = window.__vox, vprj = V.mkProj(g.x, g.y, ik, YAW), vfaces = [];
+            [[0.62, 0.00, 0.00, -0.09, 0, '#7CC96F', '#5CA455'],
+             [0.30, 0.48, -0.30, -0.09, 0, '#7CC96F', '#5CA455'],
+             [0.46, 0.02, 0.02, -0.26, -0.09, '#8B5A3C', '#8B5A3C'],
+             [0.24, -0.02, 0.03, -0.40, -0.26, '#8C9096', '#8C9096']]
+            .forEach(function(q){
+              V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
+              vfaces[vfaces.length - 1].col = q[5];
+            });
+            V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
+          }
+          tree(g.x + ik * 0.42, g.y + ik * 0.06, h * 0.05);
+          p.draw(ctx, g.x, g.y, s, i * (TAU / cfg.tools.length) - rot);
+          chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h, p.dash ? null : 'coming soon');
+        }});
+      });
+      drawables.sort(function(a, b){ return a.d - b.d; });
+      drawables.forEach(function(o){ o.run(); });
+      plaque(cx, h * 0.058, cfg.plaque, h);
+    }
+
+    var dashBtn = document.getElementById(cfg.dash), tutBtn = document.getElementById(cfg.tut);
+    function setOpt(btn, url, liveNote){
+      if(!btn) return;
+      if(url){
+        btn.setAttribute('href', url);
+        btn.removeAttribute('aria-disabled');
+        btn.querySelector('small').textContent = liveNote;
+      } else {
+        btn.setAttribute('href', '#');
+        btn.setAttribute('aria-disabled', 'true');
+        btn.querySelector('small').textContent = 'coming soon';
+      }
+    }
+    function syncBanner(){
+      var t = cfg.tools[idx];
+      nameEl.textContent = t.chip.toUpperCase();
+      setOpt(dashBtn, t.dash, 'open the tool');
+      setOpt(tutBtn, t.tut, 'start learning');
+    }
+    function targetRot(){ return idx * (TAU / cfg.tools.length); }
+    function goTo(i){
+      idx = (i % cfg.tools.length + cfg.tools.length) % cfg.tools.length;
+      syncBanner();
+      rotFrom = rot; rotTo = targetRot();
+      while(rotTo - rotFrom > Math.PI) rotTo -= TAU;
+      while(rotTo - rotFrom < -Math.PI) rotTo += TAU;
+      if(reduced){ rot = rotTo; draw(); return; }
+      animT = 0; requestAnimationFrame(step);
+    }
+    function step(){
+      animT = Math.min(1, animT + 1 / 26);
+      var e = 1 - Math.pow(1 - animT, 3);
+      rot = rotFrom + (rotTo - rotFrom) * e;
+      draw();
+      if(animT < 1) requestAnimationFrame(step);
+    }
+    document.getElementById(cfg.prev).addEventListener('click', function(){ goTo(idx - 1); });
+    document.getElementById(cfg.next).addEventListener('click', function(){ goTo(idx + 1); });
+    stage.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); goTo(idx - 1); }
+      if(e.key === 'ArrowRight'){ e.preventDefault(); goTo(idx + 1); }
+    });
+    var downX = null;
+    canvas.addEventListener('pointerdown', function(e){ downX = e.clientX; });
+    canvas.addEventListener('pointerup', function(e){
+      if(downX === null) return;
+      var dx = e.clientX - downX; downX = null;
+      if(Math.abs(dx) > 40){ goTo(idx + (dx < 0 ? 1 : -1)); return; }
+      var r = canvas.getBoundingClientRect();
+      var px = e.clientX - r.left, py = e.clientY - r.top;
+      var hit = null;
+      hitZones.forEach(function(z){
+        if(Math.abs(px - z.x) < z.s * 0.42 && py > z.gy - z.s * 1.05 && py < z.gy + z.s * 0.12){
+          if(!hit || z.d > hit.d) hit = z;
+        }
+      });
+      if(hit && hit.i !== idx) goTo(hit.i);
+    });
+    stage.querySelectorAll('.sel-opt').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        if(btn.getAttribute('aria-disabled') !== 'true') return;
+        e.preventDefault();
+        btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope');
+      });
+    });
+    function resize(){
+      var w = stage.clientWidth;
+      var h = Math.max(250, Math.min(400, Math.round(w * 0.42)));
+      var dpr = window.devicePixelRatio || 1;
+      canvas.style.height = h + 'px';
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+    syncBanner();
+    resize();
+  }
+
+  makeToolIsland({
+    stage: 'topoStage', canvas: 'topoCanvas', prev: 'topoPrev', next: 'topoNext',
+    name: 'topoName', dash: 'topoDash', tut: 'topoTut',
+    plaque: 'THE TOPOGRAPHY TOOLKIT', hilly: true,
+    tools: [
+      { chip: 'TopoForge',           draw: drawTopoForge, shadow: 0.50, dash: 'topoforge.html' },
+      { chip: 'Align to Topography', draw: drawFencePost, shadow: 0.30 },
+      { chip: 'Line to Fence',       draw: drawFenceLine, shadow: 0.52 }
+    ]
+  });
+  makeToolIsland({
+    stage: 'mepStage', canvas: 'mepCanvas', prev: 'mepPrev', next: 'mepNext',
+    name: 'mepName', dash: 'mepDash', tut: 'mepTut',
+    plaque: 'THE MEP TOOLKIT', hilly: false,
+    tools: [
+      { chip: 'Bulk Placement',  draw: drawManholes,  shadow: 0.50 },
+      { chip: 'Place Downpipes', draw: drawDownpipes, shadow: 0.42 }
+    ]
+  });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  /* Signups prefer /api/subscribe on this domain (a Cloudflare Pages
+     Function that relays to Mailchimp server-side, immune to ad-blockers).
+     If that endpoint isn't deployed, fall back to calling Mailchimp's
+     JSONP endpoint directly — ad-blockers may stop that hop, and the
+     note says so. */
+  var MC_FALLBACK = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-json?u=9a95e7b3013f3d844b00eb3f0&id=d15601aa5d&f_id=00cccae3f0&b_9a95e7b3013f3d844b00eb3f0_d15601aa5d=';
+  function subscribeJsonp(email, done){
+    var cb = 'mc' + Math.floor(Math.random() * 1e9);
+    var tag = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); done(false, ''); }, 8000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(tag.parentNode) tag.parentNode.removeChild(tag); }
+    window[cb] = function(res){ cleanup(); done(res && res.result === 'success', (res && res.msg) || ''); };
+    tag.onerror = function(){ cleanup(); done(false, '__blocked__'); };
+    tag.src = MC_FALLBACK + '&EMAIL=' + encodeURIComponent(email) + '&c=' + cb;
+    document.body.appendChild(tag);
+  }
+  function subscribe(email, done){
+    var called = false;
+    function once(ok, msg){ if(!called){ called = true; done(ok, msg); } }
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r){
+      return r.json().then(
+        function(res){ once(!!res.ok, res.msg || ''); },
+        function(){
+          if(r.status === 404 || r.status === 405) subscribeJsonp(email, once);
+          else once(false, '__http_' + r.status);
+        }
+      );
+    })
+    .catch(function(){ subscribeJsonp(email, once); });
+  }
+  function mcFail(msg){
+    if(msg === '__blocked__') return 'Blocked in this browser \u2014 pause the ad-blocker and retry, or <a href="https://eepurl.com/ieW19L" target="_blank" rel="noopener">sign up on the direct form</a>.';
+    if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
+    if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') \u2014 tell the site owner.';
+    var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
+    if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
+    if(!t && msg) return 'Mailchimp rejected the signup \u2014 no reason given.';
+    return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
+  }
+
+  /* news coupon in the Studio mosaic */
+  var form = document.getElementById('newsForm');
+  if(form) form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = document.getElementById('newsEmail');
+    if (!email.value || !email.checkValidity()){ email.focus(); return; }
+    subscribe(email.value, function(ok, msg){
+      var okEl = document.getElementById('newsOk');
+      if(ok){
+        form.style.display = 'none';
+        okEl.textContent = 'NOTED — THANK YOU';
+        try{ localStorage.setItem('ol-nl', JSON.stringify({ k:'done' })); }catch(err){}
+      } else {
+        okEl.innerHTML = mcFail(msg);
+      }
+      okEl.style.display = 'block';
+    });
+  });
+
+  /* ── newsletter popup: once per visitor, resurfaces after 30 days ── */
+  var pop = document.getElementById('nlPop');
+  var nlForm = document.getElementById('nlForm');
+  var nlEmail = document.getElementById('nlEmail');
+  var nlNote = document.getElementById('nlNote');
+  if(!pop) return;
+  function nlState(){
+    try{ return JSON.parse(localStorage.getItem('ol-nl') || 'null'); }catch(e){ return null; }
+  }
+  function nlSave(v){ try{ localStorage.setItem('ol-nl', JSON.stringify(v)); }catch(e){} }
+  function closePop(remember){
+    pop.hidden = true;
+    if(remember) nlSave({ k:'later', t: Date.now() });
+  }
+  var st = nlState();
+  var due = !st || (st.k === 'later' && Date.now() - (st.t || 0) > 30 * 864e5);
+  if(due){
+    setTimeout(function(){
+      pop.hidden = false;
+      try{ nlEmail.focus({ preventScroll: true }); }catch(e){ nlEmail.focus(); }
+    }, 7000);
+  }
+  document.getElementById('nlClose').addEventListener('click', function(){ closePop(true); });
+  pop.addEventListener('click', function(e){ if(e.target === pop) closePop(true); });
+  window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !pop.hidden) closePop(true); });
+  nlForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!nlEmail.value || !nlEmail.checkValidity()){ nlEmail.focus(); return; }
+    nlNote.textContent = 'Subscribing…'; nlNote.classList.add('show');
+    subscribe(nlEmail.value, function(ok, msg){
+      if(ok){
+        nlSave({ k:'done' });
+        nlNote.textContent = 'Noted — thank you.';
+        setTimeout(function(){ closePop(false); }, 1600);
+      } else {
+        nlNote.innerHTML = mcFail(msg);
+      }
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  /* ── the playground hero: the Gherkin from the dashboard export, alone.
+     At rest it sits at the sparse settings — 6 diagrid points, 10 m
+     levels. Hovering the box fades in two unlabelled sliders that play
+     one after the other: levels to 8 m, then points to 22; the diagrid
+     densifies as they move, and everything eases home on leave.
+     Perpetual dots climb the diagonals. ── */
+  var hero = document.getElementById('pgHero');
+  var cv = document.getElementById('pgHeroCanvas');
+  if(!hero || !cv) return;
+  var ctx = cv.getContext('2d');
+  var TAU = Math.PI * 2;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
+  var LINES = [], DOTS = [], KNOBS = [];
+
+  var GK = {
+    pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
+    twist: 2.5, hMax: 600, rMax: 150
+  };
+  function gbez(t){
+    var q = GK.pts.map(function(p){ return { x: p.x, y: p.y }; });
+    for(var k = q.length - 1; k > 0; k--)
+      for(var i = 0; i < k; i++){
+        q[i].x += (q[i+1].x - q[i].x) * t;
+        q[i].y += (q[i+1].y - q[i].y) * t;
+      }
+    return q[0];
+  }
+  /* radius lookup by model height — y is monotonic on this spline */
+  var GBS = [];
+  for(var gi = 0; gi <= 200; gi++) GBS.push(gbez(gi / 200));
+  function grad(y){
+    for(var j = 1; j < GBS.length; j++)
+      if(GBS[j].y >= y){
+        var a = GBS[j-1], b = GBS[j], f = (y - a.y) / ((b.y - a.y) || 1);
+        return a.x + (b.x - a.x) * f;
+      }
+    return GBS[GBS.length - 1].x;
+  }
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111'; }
+  function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
+  function paper(){ return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#FFFFFF'; }
+
+  function addLine(pts, lw, base, alpha, dots){
+    var cum = [0];
+    for(var i = 1; i < pts.length; i++)
+      cum.push(cum[i-1] + Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y));
+    var L = { pts: pts, lw: lw, base: base, alpha: alpha == null ? 1 : alpha, cum: cum, len: cum[cum.length-1] };
+    LINES.push(L);
+    (dots || []).forEach(function(d){ d.line = L; DOTS.push(d); });
+    return L;
+  }
+  function arcPoint(L, u){
+    var target = Math.max(0, Math.min(1, u)) * L.len;
+    var i = 1;
+    while(i < L.cum.length - 1 && L.cum[i] < target) i++;
+    var seg = L.cum[i] - L.cum[i-1] || 1;
+    var f = (target - L.cum[i-1]) / seg;
+    return { x: L.pts[i-1].x + (L.pts[i].x - L.pts[i-1].x) * f,
+             y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
+  }
+  /* box hover: the sliders play one by one, hold, then ease home */
+  var HOV = { gk: { h: 0, run: 1, ph: 'peak', wait: 0 } }, DT = 0;
+  window.__heroHov = HOV;
+  window.__heroState = function(){ return { lines: LINES.length, knobs: KNOBS.length }; };
+  function hov(st, auto){
+    var active = auto || !!cursor;
+    st.h += ((active ? 1 : 0) - st.h) * 0.1;
+    if(active){
+      /* the settings cycle, starting from the dense look: a long pause at
+         the peak, down to the sparse export settings, a short pause at
+         the base, and back up. Phones run it on their own; desktop runs
+         it while hovered */
+      if(st.ph === 'peak'){
+        st.wait += DT;
+        if(st.wait > 2.6){ st.ph = 'down'; }
+      } else if(st.ph === 'down'){
+        st.run = Math.max(0, st.run - DT / 1.6);
+        if(st.run <= 0){ st.ph = 'base'; st.wait = 0; }
+      } else if(st.ph === 'base'){
+        st.wait += DT;
+        if(st.wait > 0.9){ st.ph = 'up'; }
+      } else {
+        st.run = Math.min(1, st.run + DT / 2.2);
+        if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
+      }
+    } else {
+      /* idle: settle back to the dense look */
+      st.run = Math.min(1, st.run + DT / 1.1);
+      st.ph = 'peak'; st.wait = 0;
+    }
+    return st;
+  }
+
+  function geom(){
+    LINES = []; DOTS = []; KNOBS = [];
+    var slim = W < 720;
+    var k = (H * 0.94) / GK.hMax;
+    var half = GK.rMax * k;
+    var cx = Math.max(half + 12, W * (slim ? 0.16 : 0.12));
+    var yTop = H * 0.03;
+    var sg = hov(HOV.gk, slim);
+    var p1 = Math.max(0, Math.min(1, sg.run / 0.45));
+    var p2 = Math.max(0, Math.min(1, (sg.run - 0.55) / 0.45));
+    var LH = 10 - 2 * p1;          /* level height: 10 m → 8 m */
+    var NP = 6 + 16 * p2;          /* diagrid points: 6 → 22 */
+    var mpy = GK.hMax / 180;
+    var fam, i, s, t;
+
+    /* levels every LH metres up to the 2 m top offset — these are the
+       diagrid's node heights, so the level slider re-meshes the frame */
+    var Ls = [];
+    for(var hM = 0; ; hM += LH){
+      var hh = Math.min(hM, 178);
+      var my = GK.hMax - hh * mpy;
+      Ls.push({ my: my, r: grad(my) * k, y: yTop + my * k });
+      if(hh === 178) break;
+    }
+    var NlR = Ls.length;                 /* ring levels */
+    Ls.push({ my: 0, r: 0, y: yTop });   /* the apex: braces close the dome */
+
+    /* diagrid like the dashboard: one node grid — every level, NPi
+       azimuth slots. The brace families step one slot per level from the
+       even nodes, and ring beams tie each level node to node. Between
+       nodes the members follow the shell, keeping the weave smooth */
+    var NPi = Math.max(4, 2 * Math.round(NP / 2)), Nl = Ls.length;
+    function nodePt(lf, j){
+      var s0 = Math.max(0, Math.min(Nl - 2, Math.floor(lf)));
+      var f = lf - s0;
+      var my = Ls[s0].my + (Ls[s0 + 1].my - Ls[s0].my) * f;
+      return { x: cx + grad(my) * k * Math.sin(TAU * j / NPi), y: yTop + my * k };
+    }
+    for(fam = -1; fam <= 1; fam += 2){
+      for(i = 0; i < NPi; i += 2){
+        var pts = [];
+        for(s = 0; s < Nl; s++){
+          pts.push(nodePt(s, i + fam * s));
+          if(s < Nl - 1){
+            pts.push(nodePt(s + 1/3, i + fam * (s + 1/3)));
+            pts.push(nodePt(s + 2/3, i + fam * (s + 2/3)));
+          }
+        }
+        addLine(pts, 0.8, 'ink', 0.6,
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / NPi }] : null);
+      }
+    }
+    /* horizontal diagrid lines — the ring beams, node to node around each
+       level; they project to a chord between the extreme nodes, so their
+       reach breathes with the points slider */
+    var sMax = 0;
+    for(i = 0; i < NPi; i++) sMax = Math.max(sMax, Math.abs(Math.sin(TAU * i / NPi)));
+    for(s = 0; s < NlR; s++){
+      addLine([{ x: cx - Ls[s].r * sMax, y: Ls[s].y },
+               { x: cx + Ls[s].r * sMax, y: Ls[s].y }], 0.8, 'ink', 0.45);
+    }
+    for(i = 0; i < NPi; i++){
+      var bp = nodePt(0, i);
+      KNOBS.push({ x: bp.x, y: bp.y, r: 2.6, hollow: true });   /* base node */
+    }
+    var sl = [], sr = [];
+    for(s = 0; s <= 26; s++){
+      t = s / 26;
+      var pp = gbez(t);
+      sl.push({ x: cx - pp.x * k, y: yTop + pp.y * k });
+      sr.push({ x: cx + pp.x * k, y: yTop + pp.y * k });
+    }
+    addLine(sl, 1.5, 'ink', 1);
+    addLine(sr, 1.5, 'ink', 1);
+    addLine([sl[26], sr[26]], 1, 'muted', 0.5);   /* ground chord under the base nodes */
+
+    /* the two sliders, unlabelled: levels first, then points. Desktop puts
+       them beside the gherkin (hopping right of the lockup when narrow);
+       phones tuck them low beneath the lockup while the loop autoplays */
+    if(sg.h > 0.02){
+      var sx0, sx1, sy1, sy2;
+      if(slim){
+        sx0 = W * 0.40; sx1 = W * 0.62;
+        sy1 = H * 0.84; sy2 = H * 0.94;
+      } else {
+        var sLen = Math.min(120, W * 0.09);
+        sx0 = cx + half + 34;
+        var cenL = W * 0.5 - Math.min(W * 0.25, 330);
+        if(sx0 + sLen > cenL - 10){
+          sx0 = W * 0.5 + Math.min(W * 0.25, 330);
+          sLen = Math.max(50, Math.min(sLen, W - 16 - sx0));
+        }
+        sx1 = sx0 + sLen;
+        sy1 = H * 0.40; sy2 = H * 0.54;
+      }
+      [ { y: sy1, u: p1 }, { y: sy2, u: p2 } ].forEach(function(sd){
+        addLine([{ x: sx0, y: sd.y }, { x: sx1, y: sd.y }], 2, 'muted', 0.8 * sg.h);
+        KNOBS.push({ x: sx0 + (sx1 - sx0) * sd.u, y: sd.y, r: 5, a: sg.h });
+      });
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = muted();
+    ctx.globalAlpha = 0.35;
+    for(var y = 23; y < H; y += 46)
+      for(var x = 23; x < W; x += 46)
+        ctx.fillRect(x - 0.75, y - 0.75, 1.5, 1.5);
+    ctx.globalAlpha = 1;
+    var IK = ink(), MT = muted();
+    LINES.forEach(function(L){
+      ctx.strokeStyle = L.base === 'ink' ? IK : MT;
+      ctx.lineWidth = L.lw;
+      ctx.globalAlpha = L.alpha;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath();
+      for(var i = 0; i < L.pts.length; i++)
+        i ? ctx.lineTo(L.pts[i].x, L.pts[i].y) : ctx.moveTo(L.pts[i].x, L.pts[i].y);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+    DOTS.forEach(function(d){
+      var u = d.u != null ? d.u : T * d.sp * (d.dir || 1) + d.off;
+      u = ((u % 1) + 1) % 1;
+      var p = arcPoint(d.line, u);
+      ctx.globalAlpha = Math.min(1, d.line.alpha / 0.6);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU);
+      ctx.fillStyle = paper(); ctx.fill();
+      ctx.strokeStyle = IK; ctx.lineWidth = 1; ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = IK;
+    KNOBS.forEach(function(kb){
+      ctx.globalAlpha = kb.a == null ? 1 : Math.min(1, kb.a);
+      ctx.beginPath(); ctx.arc(kb.x, kb.y, kb.r, 0, TAU);
+      if(kb.hollow){
+        ctx.fillStyle = paper(); ctx.fill();
+        ctx.strokeStyle = IK; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = IK;
+      } else ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function frame(){ geom(); draw(); }
+  function loop(){
+    var now = (performance.now() - t0) / 1000;
+    DT = Math.min(0.05, Math.max(0, now - T)); T = now;
+    frame();
+    requestAnimationFrame(loop);
+  }
+  hero.addEventListener('pointermove', function(e){
+    var r = cv.getBoundingClientRect();
+    cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
+  });
+  hero.addEventListener('pointerleave', function(){ cursor = null; });
+  function resize(){
+    var w = hero.clientWidth;
+    if(!w) return;
+    var h = Math.max(190, Math.min(270, Math.round(w * 0.175)));
+    var dpr = window.devicePixelRatio || 1;
+    cv.style.height = h + 'px';
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    W = w; H = h;
+    frame();
+  }
+  window.addEventListener('resize', resize);
+  new MutationObserver(frame).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  resize();
+  if(!reduced) requestAnimationFrame(loop);
+})();
+</script>
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

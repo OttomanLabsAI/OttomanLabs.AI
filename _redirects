@@ -1,0 +1,3 @@
+# Old URLs live on: the Gherkin dashboard moved to /gherkin
+/dashboard /gherkin 301
+/dashboard.html /gherkin 301

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<title>Fadil’s Stock Picks · OttomanLabs.AI</title>
+<meta name="description" content="The watchlist, annotated — what each company does and why I’m in. 63 companies across 13 categories.">
+<link rel="canonical" href="https://ottomanlabs.ai/stocks.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="Stock Picks — OttomanLabs.AI">
+<meta property="og:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta property="og:url" content="https://ottomanlabs.ai/stocks.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stock Picks — OttomanLabs.AI">
+<meta name="twitter:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  .intro{ gap:.55rem; padding:2.3rem 1.5rem 2.1rem; margin-bottom:var(--gap); }
+  .intro p{ font-family:var(--font-serif); font-size:1.02rem; line-height:1.55; }
+
+  /* ── ticker tape ── */
+  .tape{ border:1px solid var(--hair); overflow:hidden; margin-bottom:var(--gap); }
+  .tape-track{ display:inline-flex; white-space:nowrap; padding:.6rem 0;
+    animation:tape 80s linear infinite; will-change:transform; }
+  .tape-track > div{ display:inline-flex; align-items:center; }
+  .tape span{ font-family:var(--font-brand); font-weight:600; font-size:.72rem; letter-spacing:.26em; padding:0 .2rem 0 .9rem; }
+  .tape i{ font-style:normal; color:var(--ink-60); }
+  @keyframes tape{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  @media (prefers-reduced-motion:reduce){ .tape-track{ animation:none; } }
+
+  /* ── pulse ── */
+  .pulse-box{ align-items:stretch; text-align:left; padding:1.3rem 1.3rem 1.1rem; margin-bottom:var(--gap); }
+  .pulse-wrap{ height:200px; margin-top:.9rem; border-top:1px solid var(--hair); }
+  canvas.pulse, canvas.spark{ display:block; width:100%; height:100%; }
+
+  /* ── category boxes in newspaper columns ── */
+  .cats{ columns:2; column-gap:var(--gap); }
+  .cat{ display:flex; break-inside:avoid; margin-bottom:var(--gap);
+    align-items:stretch; text-align:left; padding:1.35rem 1.3rem 1.2rem; }
+  .cat-head{ display:flex; align-items:baseline; justify-content:space-between; gap:.7rem; width:100%; }
+  .chip{ font-family:var(--font-brand); font-weight:500; font-size:.6rem; letter-spacing:.2em;
+    color:var(--ink); border:1px solid var(--ink); padding:.16rem .55rem .1rem; white-space:nowrap; }
+  .spark-wrap{ height:48px; margin:.85rem 0 .2rem; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+  .co{ display:flex; flex-direction:column; align-items:flex-start; gap:.2rem;
+    padding-top:.85rem; margin-top:.85rem; border-top:1px dashed #D6D6D2; }
+  .co:first-child{ border-top:none; margin-top:.1rem; }
+  .co-top{ display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; }
+  .co .tk{ font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.22em;
+    border:1px solid var(--ink); padding:.14rem .5rem .08rem; }
+  .co .nm{ font-family:var(--font-serif); font-weight:600; font-size:1.06rem; }
+  .co .meta{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-60); }
+  .co .what{ font-family:var(--font-serif); font-size:.96rem; line-height:1.5; }
+  .co .why{ font-style:italic; color:var(--ink-60); font-size:.92rem; }
+  @media (max-width:900px){ .cats{ columns:1; } }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
+</head>
+<body>
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html" aria-current="page">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- ════════ TICKER TAPE ════════ -->
+  <div class="tape" aria-hidden="true">
+    <div class="tape-track">
+      <div><span>MU</span><i>·</i><span>SMSN</span><i>·</i><span>HY9H</span><i>·</i><span>LITE</span><i>·</i><span>COHR</span><i>·</i><span>ARM</span><i>·</i><span>NVDA</span><i>·</i><span>AMD</span><i>·</i><span>INTC</span><i>·</i><span>QCOM</span><i>·</i><span>AVGO</span><i>·</i><span>TSM</span><i>·</i><span>WDC</span><i>·</i><span>SNDK</span><i>·</i><span>RMBS</span><i>·</i><span>MRVL</span><i>·</i><span>CRDO</span><i>·</i><span>NOK</span><i>·</i><span>ZS</span><i>·</i><span>ENR</span><i>·</i><span>MIELY</span><i>·</i><span>BWXT</span><i>·</i><span>RR</span><i>·</i><span>NNE</span><i>·</i><span>CEG</span><i>·</i><span>RIVN</span><i>·</i><span>SAF</span><i>·</i><span>UBER</span><i>·</i><span>RACE</span><i>·</i><span>BYDDY</span><i>·</i><span>TM</span><i>·</i><span>TSLA</span><i>·</i><span>LCID</span><i>·</i><span>XPEV</span><i>·</i><span>SOUN</span><i>·</i><span>TTWO</span><i>·</i><span>EA</span><i>·</i><span>CRWV</span><i>·</i><span>CRWD</span><i>·</i><span>ADBE</span><i>·</i><span>MSTR</span><i>·</i><span>ORCL</span><i>·</i><span>DSY</span><i>·</i><span>ADSK</span><i>·</i><span>U</span><i>·</i><span>IREN</span><i>·</i><span>STM</span><i>·</i><span>ADI</span><i>·</i><span>CMG</span><i>·</i><span>SMCI</span><i>·</i><span>LUMN</span><i>·</i><span>DELL</span><i>·</i><span>RPI</span><i>·</i><span>GOOGL</span><i>·</i><span>AAPL</span><i>·</i><span>AMZN</span><i>·</i><span>META</span><i>·</i><span>IBM</span><i>·</i><span>MSFT</span><i>·</i><span>QUBT</span><i>·</i><span>BTC</span><i>·</i><span>XAUUSD</span><i>·</i><span>XAGUSD</span></div>
+      <div><span>MU</span><i>·</i><span>SMSN</span><i>·</i><span>HY9H</span><i>·</i><span>LITE</span><i>·</i><span>COHR</span><i>·</i><span>ARM</span><i>·</i><span>NVDA</span><i>·</i><span>AMD</span><i>·</i><span>INTC</span><i>·</i><span>QCOM</span><i>·</i><span>AVGO</span><i>·</i><span>TSM</span><i>·</i><span>WDC</span><i>·</i><span>SNDK</span><i>·</i><span>RMBS</span><i>·</i><span>MRVL</span><i>·</i><span>CRDO</span><i>·</i><span>NOK</span><i>·</i><span>ZS</span><i>·</i><span>ENR</span><i>·</i><span>MIELY</span><i>·</i><span>BWXT</span><i>·</i><span>RR</span><i>·</i><span>NNE</span><i>·</i><span>CEG</span><i>·</i><span>RIVN</span><i>·</i><span>SAF</span><i>·</i><span>UBER</span><i>·</i><span>RACE</span><i>·</i><span>BYDDY</span><i>·</i><span>TM</span><i>·</i><span>TSLA</span><i>·</i><span>LCID</span><i>·</i><span>XPEV</span><i>·</i><span>SOUN</span><i>·</i><span>TTWO</span><i>·</i><span>EA</span><i>·</i><span>CRWV</span><i>·</i><span>CRWD</span><i>·</i><span>ADBE</span><i>·</i><span>MSTR</span><i>·</i><span>ORCL</span><i>·</i><span>DSY</span><i>·</i><span>ADSK</span><i>·</i><span>U</span><i>·</i><span>IREN</span><i>·</i><span>STM</span><i>·</i><span>ADI</span><i>·</i><span>CMG</span><i>·</i><span>SMCI</span><i>·</i><span>LUMN</span><i>·</i><span>DELL</span><i>·</i><span>RPI</span><i>·</i><span>GOOGL</span><i>·</i><span>AAPL</span><i>·</i><span>AMZN</span><i>·</i><span>META</span><i>·</i><span>IBM</span><i>·</i><span>MSFT</span><i>·</i><span>QUBT</span><i>·</i><span>BTC</span><i>·</i><span>XAUUSD</span><i>·</i><span>XAGUSD</span></div>
+    </div>
+  </div>
+
+  <!-- ════════ INTRO ════════ -->
+  <section class="box intro">
+    <span class="caps">Fadil&rsquo;s Stock Picks</span>
+    <span class="ital">what each company does &mdash; and why I&rsquo;m in</span>
+    <p style="max-width:34rem">The watchlist, filed by category. The company notes are mine and get
+    written over time; the moving charts are decorative ink, not live market data.</p>
+    <span class="caps caps-tight muted" style="font-size:.62rem">63 companies &middot; 13 categories</span>
+  </section>
+
+  <!-- ════════ MARKET PULSE ════════ -->
+  <section class="box pulse-box">
+    <div class="cat-head">
+      <span class="caps">Market pulse</span>
+      <span class="caps caps-tight muted" style="font-size:.58rem">decorative &middot; not live data</span>
+    </div>
+    <div class="pulse-wrap"><canvas class="pulse" id="pulse"></canvas></div>
+  </section>
+
+  <!-- ════════ CATEGORIES ════════ -->
+  <section class="cats">
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">RAM</span>
+        <span class="chip">3</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">MU</span><span class="nm">Micron Technology</span></div>
+          <span class="meta">NASDAQ · United States · spotted 01/02/2026</span>
+          <p class="what">DRAM and NAND memory chips, riding the AI memory cycle.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">SMSN</span><span class="nm">Samsung Electronics</span></div>
+          <span class="meta">LSE · South Korea · spotted 01/02/2026</span>
+          <p class="what">Memory, phones, displays — the everything conglomerate.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">HY9H</span><span class="nm">SK hynix</span></div>
+          <span class="meta">Gettex · South Korea · spotted 01/02/2026</span>
+          <p class="what">DRAM and the HBM stacks inside AI accelerators.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Optical</span>
+        <span class="chip">2</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">LITE</span><span class="nm">Lumentum Holdings</span></div>
+          <span class="meta">NASDAQ · United States · spotted 03/21/2026</span>
+          <p class="what">Lasers and optical components for datacom.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">COHR</span><span class="nm">Coherent Corp.</span></div>
+          <span class="meta">NYSE · United States · spotted 03/21/2026</span>
+          <p class="what">Photonics, lasers and optical networking.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Chips</span>
+        <span class="chip">7</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">ARM</span><span class="nm">ARM Holdings</span></div>
+          <span class="meta">NASDAQ · United Kingdom</span>
+          <p class="what">The CPU architecture licensed across the whole industry.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">NVDA</span><span class="nm">Nvidia</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">GPUs — the engine of the AI buildout.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">AMD</span><span class="nm">Advanced Micro Devices</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">CPUs and GPUs; the perennial challenger.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">INTC</span><span class="nm">Intel</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">x86 chips and a foundry turnaround bet.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">QCOM</span><span class="nm">Qualcomm</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Mobile silicon and a wireless patent moat.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">AVGO</span><span class="nm">Broadcom</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Networking silicon and custom AI accelerators.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">TSM</span><span class="nm">Taiwan Semiconductor</span></div>
+          <span class="meta">NYSE · Taiwan</span>
+          <p class="what">The foundry that makes everyone’s chips.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">RAM II</span>
+        <span class="chip">3</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">WDC</span><span class="nm">Western Digital</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Hard drives and storage platforms at scale.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">SNDK</span><span class="nm">Sandisk</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">NAND flash storage, newly independent again.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">RMBS</span><span class="nm">Rambus</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Memory-interface IP and chips.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Network Infrastructure</span>
+        <span class="chip">3</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">MRVL</span><span class="nm">Marvell Technology</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Data-centre interconnect and custom silicon.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">CRDO</span><span class="nm">Credo Technology</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">High-speed connectivity for AI clusters.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">NOK</span><span class="nm">Nokia</span></div>
+          <span class="meta">NYSE · Finland</span>
+          <p class="what">Telecom networks and optical infrastructure.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Cybersecurity</span>
+        <span class="chip">1</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">ZS</span><span class="nm">Zscaler</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Cloud-native zero-trust security.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Energy</span>
+        <span class="chip">6</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">ENR</span><span class="nm">Siemens Energy</span></div>
+          <span class="meta">XETRA · Germany</span>
+          <p class="what">Grid technology and gas turbines.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">MIELY</span><span class="nm">Mitsubishi Electric</span></div>
+          <span class="meta">OTC · Japan</span>
+          <p class="what">Power systems, factory automation, HVAC.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">BWXT</span><span class="nm">BWX Technologies</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Nuclear components and naval reactors.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">RR</span><span class="nm">Rolls-Royce</span></div>
+          <span class="meta">LSE · United Kingdom</span>
+          <p class="what">Jet engines and small modular reactors.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">NNE</span><span class="nm">NANO Nuclear Energy</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Early-stage microreactor developer.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">CEG</span><span class="nm">Constellation Energy</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">America’s largest nuclear fleet.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Transport</span>
+        <span class="chip">9</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">RIVN</span><span class="nm">Rivian Automotive</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Electric trucks and delivery vans.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">SAF</span><span class="nm">Safran</span></div>
+          <span class="meta">Euronext Paris · France</span>
+          <p class="what">Aircraft engines and aerospace systems.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">UBER</span><span class="nm">Uber Technologies</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Rides, delivery and a logistics network.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">RACE</span><span class="nm">Ferrari</span></div>
+          <span class="meta">NYSE · Italy</span>
+          <p class="what">Luxury sports cars, luxury margins.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">BYDDY</span><span class="nm">BYD</span></div>
+          <span class="meta">OTC · China</span>
+          <p class="what">China’s vertically integrated EV giant.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">TM</span><span class="nm">Toyota Motor</span></div>
+          <span class="meta">NYSE · Japan</span>
+          <p class="what">Hybrids at global scale.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">TSLA</span><span class="nm">Tesla</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">EVs, energy storage and robotaxi ambitions.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">LCID</span><span class="nm">Lucid</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Luxury EVs and drivetrain technology.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">XPEV</span><span class="nm">XPeng</span></div>
+          <span class="meta">NYSE · China</span>
+          <p class="what">Chinese smart EVs and driver assistance.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Software</span>
+        <span class="chip">11</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">SOUN</span><span class="nm">SoundHound AI</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Voice AI for cars and restaurants.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">TTWO</span><span class="nm">Take-Two Interactive</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">GTA and a deep games catalogue.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">EA</span><span class="nm">Electronic Arts</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Sports franchises and live services.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">CRWV</span><span class="nm">CoreWeave</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">GPU cloud built for AI workloads.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">CRWD</span><span class="nm">Crowdstrike</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">The endpoint-security platform.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">ADBE</span><span class="nm">Adobe</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Creative software and the document cloud.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">MSTR</span><span class="nm">Strategy</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">A software shell around a Bitcoin treasury.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">ORCL</span><span class="nm">Oracle</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Databases and a fast-growing AI cloud.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">DSY</span><span class="nm">Dassault Systemes</span></div>
+          <span class="meta">Euronext Paris · France</span>
+          <p class="what">3D design and product-lifecycle software.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">ADSK</span><span class="nm">Autodesk</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">AutoCAD, Revit and the BIM toolchain.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">U</span><span class="nm">Unity Software</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Real-time 3D engine for games and industry.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Tech Hardware</span>
+        <span class="chip">8</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">IREN</span><span class="nm">IREN</span></div>
+          <span class="meta">NASDAQ · Australia</span>
+          <p class="what">Renewable-powered data centres and Bitcoin mining.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">STM</span><span class="nm">STMicroelectronics</span></div>
+          <span class="meta">NYSE · Switzerland</span>
+          <p class="what">Analog, sensors and automotive chips.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">ADI</span><span class="nm">Analog Devices</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">High-performance analog semiconductors.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">CMG</span><span class="nm">Chipotle Mexican Grill</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Fast-casual burritos — the category’s outlier.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">SMCI</span><span class="nm">Super Micro Computer</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">AI server racks, built fast.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">LUMN</span><span class="nm">Lumen Technologies</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Fibre backbone for the AI era.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">DELL</span><span class="nm">Dell Technologies</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Servers, storage and AI infrastructure.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">RPI</span><span class="nm">Raspberry PI</span></div>
+          <span class="meta">LSE · United Kingdom</span>
+          <p class="what">Tiny computers for makers and industry.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Technology</span>
+        <span class="chip">6</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">GOOGL</span><span class="nm">Alphabet</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Search, YouTube, Cloud and DeepMind.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">AAPL</span><span class="nm">Apple</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">The iPhone economy and its services arm.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">AMZN</span><span class="nm">Amazon</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Commerce out front, AWS underneath.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">META</span><span class="nm">Meta Platforms</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Social platforms funding a frontier AI lab.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">IBM</span><span class="nm">IBM</span></div>
+          <span class="meta">NYSE · United States</span>
+          <p class="what">Enterprise software, consulting and quantum research.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">MSFT</span><span class="nm">Microsoft</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Azure, Office and the OpenAI stake.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Quantum</span>
+        <span class="chip">1</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">QUBT</span><span class="nm">Quantum Computing</span></div>
+          <span class="meta">NASDAQ · United States</span>
+          <p class="what">Photonic quantum-computing hopeful.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="box cat">
+      <div class="cat-head">
+        <span class="caps">Precious Metals</span>
+        <span class="chip">3</span>
+      </div>
+      <div class="spark-wrap"><canvas class="spark"></canvas></div>
+      <div class="co-list">
+        <div class="co">
+          <div class="co-top"><span class="tk">BTC</span><span class="nm">Bitcoin</span></div>
+          <span class="meta">Spot</span>
+          <p class="what">Digital scarcity — filed with the metals.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">XAUUSD</span><span class="nm">Gold</span></div>
+          <span class="meta">Spot</span>
+          <p class="what">The ancient store of value.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+        <div class="co">
+          <div class="co-top"><span class="tk">XAGUSD</span><span class="nm">Silver</span></div>
+          <span class="meta">Spot</span>
+          <p class="what">Monetary metal with industrial demand.</p>
+          <p class="why">Why I’m in — notes to follow.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+<div class="band" style="margin-top:calc(var(--gap)*1.6)">
+    <div>
+      <a class="caps" href="gherkin.html">The Gherkin</a>
+      <small>the parametric board</small>
+      <span class="caps caps-tight muted" style="font-size:.6rem">drawn live</span>
+    </div>
+    <div>
+      <a class="caps" href="stocks.html">Stock Picks</a>
+      <small>the watchlist, annotated</small>
+      <span class="caps caps-tight muted" style="font-size:.6rem">63 companies &middot; 13 categories</span>
+    </div>
+    <div>
+      <span class="caps">OttomanLabs.AI</span>
+      <a href="mailto:fid_kk@proton.me?subject=OttomanLabs.AI" style="font-family:var(--font-brand);font-size:.84rem">fid_kk@proton.me</a>
+      <small>formerly RevitTurboCharger</small>
+    </div>
+    <div>
+      <a class="caps" href="reading.html">Reading Room</a>
+      <small>47 volumes on the shelf</small>
+      <span class="caps caps-tight muted" style="font-size:.6rem">2006 — present</span>
+    </div>
+    <div>
+      <span class="caps muted">Empty</span>
+      <small>this box intentionally left blank</small>
+    </div>
+  </div>
+
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+
+<script>
+/* ---- decorative ink charts: gentle random walks, paused for reduced motion ---- */
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function walkNext(v, amp){
+    v += (Math.random() - 0.5) * amp;
+    if(v < 0.08) v = 0.08 + Math.random() * amp;
+    if(v > 0.92) v = 0.92 - Math.random() * amp;
+    return v;
+  }
+
+  function setup(canvas, lines, withGrid){
+    var ctx = canvas.getContext('2d'), w = 0, h = 0, data = [];
+
+    function draw(){
+      ctx.clearRect(0, 0, w, h);
+      if(withGrid){
+        ctx.strokeStyle = '#EFEFEC'; ctx.lineWidth = 1;
+        for(var gy = 1; gy < 4; gy++){
+          var y = h * gy / 4;
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+        for(var gx = 1; gx < 8; gx++){
+          var x = w * gx / 8;
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+      }
+      for(var li = 0; li < data.length; li++){
+        var L = data[li];
+        ctx.strokeStyle = L.c; ctx.lineWidth = L.w2; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        var n = L.v.length;
+        for(var i = 0; i < n; i++){
+          var x = i / (n - 1) * w;
+          var y = h * 0.08 + h * 0.84 * (1 - L.v[i]);
+          if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    function resize(){
+      var box = canvas.parentElement;
+      w = box.clientWidth; h = box.clientHeight;
+      if(w <= 0 || h <= 0) return;
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.max(24, Math.floor(w / 5));
+      data = lines.map(function(spec){
+        var arr = [], v = 0.35 + Math.random() * 0.3;
+        for(var i = 0; i < n; i++){ v = walkNext(v, spec.amp); arr.push(v); }
+        return { v: arr, c: spec.c, w2: spec.w2, amp: spec.amp };
+      });
+      draw();
+    }
+
+    function tick(){
+      for(var li = 0; li < data.length; li++){
+        var L = data[li];
+        L.v.shift();
+        L.v.push(walkNext(L.v[L.v.length - 1], L.amp));
+      }
+      draw();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    return tick;
+  }
+
+  var movers = [];
+  var pulse = document.getElementById('pulse');
+  if(pulse) movers.push(setup(pulse, [
+    { c: '#B9B9B5', w2: 1.2, amp: 0.05 },
+    { c: '#6B6B68', w2: 1.3, amp: 0.06 },
+    { c: '#111111', w2: 1.8, amp: 0.07 }
+  ], true));
+  var sparks = document.querySelectorAll('canvas.spark');
+  for(var i = 0; i < sparks.length; i++) movers.push(setup(sparks[i], [
+    { c: '#B9B9B5', w2: 1.1, amp: 0.06 },
+    { c: '#111111', w2: 1.5, amp: 0.07 }
+  ], false));
+
+  if(reduce || !movers.length) return;
+  var last = 0;
+  function loop(t){
+    if(!document.hidden && t - last > 110){
+      last = t;
+      for(var i = 0; i < movers.length; i++) movers[i]();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

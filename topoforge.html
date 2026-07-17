@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<title>TopoForge — Create Topography — OttomanLabs.AI</title>
+<meta name="description" content="TopoForge by OttomanLabs.AI — create topography in the browser: draw spline extents, build a TIN surface, sculpt it, and export CSV, OBJ or DXF for Revit and Civil 3D.">
+<link rel="canonical" href="https://ottomanlabs.ai/topoforge.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="TopoForge — Create Topography — OttomanLabs.AI">
+<meta property="og:description" content="Draw spline extents, build a TIN surface, sculpt it, and export CSV, OBJ or DXF.">
+<meta property="og:url" content="https://ottomanlabs.ai/topoforge.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
+<style>
+  /* ── OttomanLabs.AI boxed-mosaic design system — black on white ── */
+  :root{
+    --paper:#FFFFFF; --ink:#111111; --ink-60:#5A5A5A; --ink-35:#A9A9A9; --hair:#111111;
+    --font-brand:'Afacad Flux',sans-serif;
+    --font-serif:'Newsreader',Georgia,serif;
+    --font-display:'Prata',Georgia,serif;
+    --wrap:1880px; --gap:14px;
+    /* canvas tokens — read by the drawing code so themes invert cleanly */
+    --accent:#111111; --muted:#8A8A86; --burgundy:#7a2230;
+    --c-ink:#111111; --c-paper:#FFFFFF;
+    --c-grid:#ECECEA; --c-grid-strong:#D2D2CE;
+  }
+  [data-theme="dark"]{
+    --paper:#111111; --ink:#FFFFFF; --ink-60:#A9A9A9; --ink-35:#5A5A5A; --hair:#FFFFFF;
+    --accent:#FFFFFF; --muted:#9A9A9A; --burgundy:#e08a96;
+    --c-ink:#FFFFFF; --c-paper:#111111;
+    --c-grid:#2A2A2A; --c-grid-strong:#3A3A3A;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--font-serif); font-size:1rem; line-height:1.62;
+    font-optical-sizing:auto; -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--ink); color:var(--paper); }
+  :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+  .wrap{ max-width:var(--wrap); margin:0 auto; padding:0 clamp(14px,2.5vw,48px) 2rem; }
+
+  /* voices */
+  .caps{ font-family:var(--font-brand); font-weight:500; letter-spacing:.32em; text-transform:uppercase; font-size:.72rem; line-height:1.9; }
+  .caps-tight{ letter-spacing:.2em; }
+  .ital{ font-family:var(--font-serif); font-style:italic; font-weight:400; font-size:1.35rem; line-height:1.2; }
+  .muted{ color:var(--ink-60); }
+
+  .title-strip{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:.5rem 1.3rem; border:1px solid var(--hair);
+    padding:.8rem 1rem; margin:clamp(16px,2.4vw,26px) 0 var(--gap); text-align:center;
+  }
+  .title-strip .name{ font-family:var(--font-display); font-size:1.35rem; }
+
+  .settings-bar{ display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+    border:1px solid var(--hair); padding:.5rem .8rem; margin-bottom:var(--gap); }
+  .settings-bar .sb-label{ font-family:var(--font-brand); font-weight:600; font-size:.7rem;
+    letter-spacing:.28em; text-transform:uppercase; }
+  .settings-bar button{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.34rem .7rem; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+  .settings-bar button:hover{ background:var(--ink); color:var(--paper); }
+  #themeToggle .th-dot{ width:.7rem; height:.7rem; border:1px solid currentColor; border-radius:50%;
+    background:linear-gradient(90deg, currentColor 0 50%, transparent 50% 100%); }
+  .settings-bar .sb-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-60); margin-left:auto; }
+  .settings-bar .sb-actions{ display:flex; align-items:center; gap:.5rem; }
+  .settings-bar .sb-div{ width:1px; align-self:stretch; background:var(--hair); opacity:.35; }
+  .settings-bar .toggle{ font-size:.7rem; }
+  .settings-bar button.active{ background:var(--ink); color:var(--paper); }
+  .sbctl{ font-family:var(--font-brand); font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-60); display:inline-flex; align-items:center; gap:.45rem; }
+  .sbctl b{ color:var(--ink); font-variant-numeric:tabular-nums; min-width:44px; }
+  .sbctl input[type=range]{ width:110px; flex:none; accent-color:var(--ink); height:3px; }
+
+  .panel-grid{ display:block; }
+  .rail{ display:flex; flex-direction:column; gap:var(--gap); }
+  .card{ border:1px solid var(--hair); padding:1rem 1.05rem 1.1rem; background:var(--paper); }
+  .card h2{
+    font-family:var(--font-brand); font-weight:500; font-size:.68rem;
+    letter-spacing:.3em; text-transform:uppercase; text-align:center;
+    border-bottom:1px solid var(--hair); padding-bottom:.55rem; margin-bottom:.75rem;
+  }
+  .row{ display:flex; align-items:center; gap:.6rem; margin:.5rem 0; }
+  .row label{ flex:0 0 82px; font-family:var(--font-brand); font-size:.72rem;
+    letter-spacing:.08em; color:var(--ink-60); }
+  .row .val{ min-width:44px; text-align:right; font-family:var(--font-brand);
+    font-size:.8rem; font-variant-numeric:tabular-nums; }
+  .row .unit{ font-family:var(--font-brand); font-size:.7rem; color:var(--ink-60);
+    letter-spacing:.06em; min-width:1.1rem; }
+  input[type=range]{ flex:1; min-width:0; accent-color:var(--ink); height:3px; }
+  input[type=number]{
+    width:66px; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-size:.8rem; font-variant-numeric:tabular-nums;
+    padding:.32rem .35rem; border-radius:0;
+  }
+  input[type=number]:focus{ outline:2px solid var(--ink); outline-offset:1px; }
+  .toggles{ display:grid; grid-template-columns:1fr 1fr; gap:.35rem .8rem; margin:.5rem 0 .1rem; }
+  .toggle{ display:flex; align-items:center; gap:.45rem; cursor:pointer; user-select:none;
+    font-family:var(--font-brand); font-size:.76rem; letter-spacing:.05em; color:var(--ink-60); }
+  .toggle input{ width:14px; height:14px; accent-color:var(--ink); }
+  .btns{ display:flex; gap:.6rem; margin-top:.6rem; }
+  .btns button, .btn{
+    flex:1; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-weight:500; font-size:.66rem;
+    letter-spacing:.18em; text-transform:uppercase; cursor:pointer;
+    padding:.55rem .4rem .48rem;
+  }
+  .btns button:hover, .btn:hover{ background:var(--ink); color:var(--paper); }
+  .btn-solid{ background:var(--ink); color:var(--paper); }
+  .btn-solid:hover{ background:var(--paper); color:var(--ink); }
+  .btn-block{ display:block; width:100%; margin-top:.6rem; }
+  .seg2{ display:grid; grid-template-columns:1fr 1fr; gap:.45rem; margin:.5rem 0 .2rem; }
+  .seg2 button.active{ background:var(--ink); color:var(--paper); }
+  .statline{ font-family:var(--font-serif); font-style:italic; font-size:.9rem;
+    color:var(--ink-60); margin-top:.5rem; line-height:1.55; }
+  .statline b{ font-family:var(--font-brand); font-style:normal; color:var(--ink);
+    font-variant-numeric:tabular-nums; }
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+  .stat{ border:1px solid var(--hair); padding:.5rem .6rem .55rem; text-align:left; }
+  .stat .k{ font-family:var(--font-brand); font-size:.58rem; font-weight:500;
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink-60); }
+  .stat .v{ font-family:var(--font-brand); font-size:1.02rem; margin-top:.1rem;
+    font-variant-numeric:tabular-nums; }
+  .stat .v small{ font-size:.62rem; color:var(--ink-60); margin-left:.15rem; }
+
+  /* views */
+  .views{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:var(--gap); min-width:0;
+  }
+  .view{ border:1px solid var(--hair); background:var(--paper);
+    display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .view.slot-big{ grid-column:1 / span 2; grid-row:1; height:min(88vh,900px); }
+  .view.slot-a{ grid-column:1; grid-row:2; aspect-ratio:1/1; align-self:start; }
+  .view.slot-b{ grid-column:2; grid-row:2; aspect-ratio:1/1; align-self:start; }
+  .view-cap{ display:flex; justify-content:space-between; align-items:baseline; gap:.8rem;
+    padding:.6rem .8rem .5rem; border-bottom:1px solid var(--hair); }
+  .view-cap b{ font-family:var(--font-brand); font-weight:500; font-size:.68rem;
+    letter-spacing:.28em; text-transform:uppercase; }
+  .view-cap span{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60); }
+  .view-sel{
+    font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.24rem .4rem; border-radius:0; cursor:pointer; align-self:center;
+  }
+  .view-sel:focus{ outline:2px solid var(--ink); outline-offset:1px; }
+  .view .view-sel{ display:none; }
+  .view.slot-big .view-sel{ display:inline-block; }
+  .plot-wrap{ flex:1; min-height:0; min-width:0; position:relative; background:var(--paper); }
+  .plot-wrap canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  #boardExt, #boardWire{ cursor:crosshair; }
+  .board-actions{ position:absolute; top:.5rem; right:.5rem; display:flex; gap:.4rem; z-index:2; }
+  .board-actions button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.3rem .55rem; cursor:pointer; opacity:.92; touch-action:manipulation; }
+  .board-actions button:hover, .board-actions button.active{ background:var(--ink); color:var(--paper); }
+  .draw-hint{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; padding:1rem; text-align:center; z-index:1; }
+  .draw-hint.is-hidden{ display:none; }
+  .draw-hint-inner{ display:flex; flex-direction:column; align-items:center; gap:.5rem;
+    color:var(--ink-60); max-width:18rem; }
+  .draw-hint-inner b{ font-family:var(--font-brand); font-weight:600; font-size:.8rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink); }
+  .draw-hint-inner span{ font-family:var(--font-serif); font-style:italic; font-size:.84rem; line-height:1.4; }
+  #hud3d{ position:absolute; left:.5rem; bottom:.5rem; z-index:2;
+    font-family:var(--font-brand); font-size:.62rem; letter-spacing:.1em; color:var(--ink-60);
+    border:1px solid var(--hair); background:var(--paper); padding:.22rem .5rem; }
+  #legend3d{ position:absolute; inset:auto; right:.55rem; top:50%; transform:translateY(-50%);
+    width:64px; height:250px; z-index:2; pointer-events:none; display:none; }
+  .vbody{ display:flex; flex:1 1 auto; min-height:0; min-width:0; }
+  .vside{ flex:0 0 168px; display:flex; flex-direction:column; gap:.55rem;
+    padding:.55rem; border-right:1px solid var(--hair); background:var(--paper);
+    overflow-y:auto; min-height:0; }
+  .vbox{ border:1px solid var(--hair); background:var(--paper);
+    padding:.5rem .55rem .55rem; display:flex; flex-direction:column; gap:.45rem; }
+  .vbox-h{ font-family:var(--font-brand); font-weight:500; font-size:.55rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60); border-bottom:1px solid var(--hair);
+    padding-bottom:.35rem; margin-bottom:.1rem; }
+  .vbox label{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.1em; white-space:nowrap;
+    text-transform:uppercase; color:var(--ink-60); display:flex; align-items:center;
+    justify-content:space-between; gap:.4rem; }
+  .vbox label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  .vbox input[type=number]{ width:60px; padding:.22rem .3rem; font-size:.74rem; }
+  .vbox input[type=range]{ flex:1; min-width:0; }
+  .vbox .toggle{ font-size:.64rem; justify-content:flex-start; }
+  .vbox button{ font-family:var(--font-brand); font-weight:500; font-size:.6rem; letter-spacing:.12em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.32rem .5rem; cursor:pointer; width:100%; }
+  .vbox button:hover, .vbox button.active{ background:var(--ink); color:var(--paper); }
+  .vbox button.solid{ background:var(--ink); color:var(--paper); }
+  .vbox button.solid:hover{ background:var(--paper); color:var(--ink); }
+  #shapeSeg{ display:grid; grid-template-columns:1fr 1fr; gap:.35rem; }
+  #hudExt{ position:absolute; left:.5rem; bottom:.5rem; z-index:2;
+    font-family:var(--font-brand); font-size:.62rem; letter-spacing:.1em; color:var(--ink-60);
+    border:1px solid var(--hair); background:var(--paper); padding:.22rem .5rem; }
+  #hudExt b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  #sbStats{ font-family:var(--font-brand); font-size:.64rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-60); white-space:nowrap; }
+  #sbStats b{ color:var(--ink); font-variant-numeric:tabular-nums; font-weight:500; }
+  @media (max-width:980px){
+    .vbody{ flex-direction:column; }
+    .vside{ flex:0 0 auto; flex-direction:row; flex-wrap:wrap; border-right:none;
+      border-bottom:1px solid var(--hair); }
+    .vside .vbox{ flex:1 1 150px; }
+  }
+
+  .estab{ text-align:center; padding:1.4rem 0 .4rem;
+    font-family:var(--font-brand); font-size:.66rem; font-weight:500;
+    letter-spacing:.26em; text-transform:uppercase; color:var(--ink-60); }
+
+  @media (max-width:980px){
+    .panel-grid{ grid-template-columns:1fr; }
+    .views{ grid-template-columns:1fr; grid-template-rows:none; height:auto; }
+    .view, .view.slot-big, .view.slot-a, .view.slot-b{ grid-column:auto; grid-row:auto; }
+    .view{ height:82vw; max-height:480px; }
+    .view.slot-big{ height:88vw; max-height:540px; }
+    .settings-bar .sb-info{ width:100%; margin-left:0; }
+    .board-actions{ top:auto; bottom:.5rem; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="title-strip">
+    <span class="ital">The</span>
+    <span class="name">TOPOFORGE</span>
+    <span class="caps caps-tight muted" style="font-size:.62rem">Spline extents → TIN surface → sculpt → export</span>
+  </div>
+
+  <div class="settings-bar">
+    <span class="sb-label">Settings</span>
+    <div class="sb-actions" id="unitSeg" role="group" aria-label="Display units">
+      <button class="active" data-u="m">Metric</button>
+      <button data-u="ft">Imperial</button>
+    </div>
+    <span class="sb-div" aria-hidden="true"></span>
+    <div class="sb-actions">
+      <button id="cfgExport">Export</button>
+      <button id="cfgImport">Import</button>
+      <input type="file" id="cfgFile" accept="application/json,.json" hidden>
+    </div>
+    <span class="sb-div" aria-hidden="true"></span>
+    <div class="sb-actions">
+      <button id="bCsv" title="Surface points X,Y,Z">CSV</button>
+      <button id="bObj" title="Triangulated mesh · Z-up">OBJ</button>
+      <button id="bDxf" title="3DFACE mesh for CAD / Civil 3D">DXF</button>
+      <label class="sbctl" title="Units written into the exported files">as
+        <select id="expUnits">
+          <option value="m" selected>m</option>
+          <option value="mm">mm</option>
+          <option value="ft">ft</option>
+        </select>
+      </label>
+    </div>
+    <span class="sb-div" aria-hidden="true"></span>
+    <label class="toggle"><input type="checkbox" id="chFill" checked> Fill</label>
+    <label class="toggle"><input type="checkbox" id="chColour" checked> Colour</label>
+    <label class="toggle"><input type="checkbox" id="chWire" checked> Wireframe</label>
+    <label class="toggle"><input type="checkbox" id="chCont" checked> Contours</label>
+
+    <span class="sb-div" aria-hidden="true"></span>
+    <span id="sbStats">PTS <b id="stPts">—</b> · TRI <b id="stTris">—</b> · AREA <b id="stArea">—</b> · Z <b id="stZ">—</b></span>
+    <span class="sb-info">Export saves the whole model to JSON · Import restores it.</span>
+  </div>
+
+  <div class="settings-bar" id="sculptBar">
+    <span class="sb-label">Sculpt</span>
+    <div class="sb-actions" id="modeSeg">
+      <button class="active" data-mode="raise">Pull up</button>
+      <button data-mode="lower">Push in</button>
+      <button data-mode="smooth">Smooth</button>
+      <button data-mode="flatten">Flatten</button>
+    </div>
+    <span class="sb-div" aria-hidden="true"></span>
+    <label class="sbctl">Radius <input type="range" id="iRad" min="1" max="40" step="0.5" value="8"> <b id="vRad">8.0 m</b></label>
+    <label class="sbctl">Strength <input type="range" id="iStr" min="0.01" max="0.4" step="0.01" value="0.08"> <b id="vStr">0.08</b></label>
+    <span class="sb-div" aria-hidden="true"></span>
+    <button id="bUndo">Undo stroke</button>
+    <span class="sb-info">Two fingers orbit + pinch · Shift inverts · MMB pan · RMB orbit · wheel zoom · [ ] radius · Ctrl+Z undo · plan view always sculpts</span>
+  </div>
+
+  <div class="panel-grid">
+
+    <div class="views">
+
+      <div class="view vext slot-big">
+        <div class="view-cap"><b>Extents</b><span>spline board · tap to add · drag to move</span><select class="view-sel" title="Choose the main view" aria-label="Main view"><option value="3d">3D · Sculpt</option><option value="ext" selected>Extents</option><option value="wire">Wireframe</option></select></div>
+        <div class="vbody">
+          <div class="vside">
+            <div class="vbox">
+              <span class="vbox-h">Board</span>
+              <label>W (<span class="uu">m</span>) <input type="number" id="iBW" min="20" max="1000" step="10" value="120"></label>
+              <input type="range" id="iBWs" min="20" max="1000" step="10" value="120" aria-label="Board width">
+              <label>D (<span class="uu">m</span>) <input type="number" id="iBD" min="20" max="1000" step="10" value="90"></label>
+              <input type="range" id="iBDs" min="20" max="1000" step="10" value="90" aria-label="Board depth">
+            </div>
+            <div class="vbox">
+              <span class="vbox-h">Shape</span>
+              <span id="shapeSeg">
+                <button class="active" data-shape="spline">Spline</button>
+                <button data-shape="circle">Circle</button>
+              </span>
+              <label id="degRow">Deg <input type="range" id="splineDegree" min="0" max="5" step="1" value="0"> <b id="splineDegreeVal">0</b></label>
+              <label id="cirRow" style="display:none">R (<span class="uu">m</span>) <input type="number" id="iCR" min="1" step="1" value="30"></label>
+            </div>
+            <div class="vbox">
+              <span class="vbox-h">Options</span>
+              <label class="toggle" id="togClosed"><input type="checkbox" id="splineClosed" checked> Closed</label>
+              <label class="toggle" id="togPoly"><input type="checkbox" id="splinePoly" checked> Polygon</label>
+              <label class="toggle"><input type="checkbox" id="splineGrid" checked> Grid</label>
+              <label class="toggle"><input type="checkbox" id="splineSnap" checked> Snap</label>
+            </div>
+            <div class="vbox">
+              <span class="vbox-h">Terrain</span>
+              <label>TIN (<span class="uu">m</span>) <input type="number" id="iSpace" min="0.25" max="25" step="0.25" value="2"></label>
+              <label>Base Z (<span class="uu">m</span>) <input type="number" id="iBase" step="0.5" value="0"></label>
+              <button id="bGen" class="solid" title="Re-run after editing the boundary — regenerating resets sculpting">Generate</button>
+            </div>
+          </div>
+          <div class="plot-wrap" id="wrapExt">
+            <canvas id="boardExt"></canvas>
+            <div class="board-actions">
+              <button id="splineUndo2" type="button">Undo</button>
+              <button id="splineClear2" type="button">Clear</button>
+              <button id="splineSample" type="button">Sample</button>
+            </div>
+            <div id="hudExt">CELL <b id="cellOut">6</b> <span class="uu">m</span><span id="statSpline"> · PTS <b id="splinePts">0</b></span><span id="statCircle" style="display:none"> · Ø <b id="cdOut">–</b> <span class="uu">m</span> · E <b id="ceOut">–</b> · N <b id="cnOut">–</b></span></div>
+            <div class="draw-hint" id="drawHint">
+              <div class="draw-hint-inner">
+                <b id="hintB">Draw the site extents</b>
+                <span id="hintS">Tap points around the boundary — the closed B-spline becomes the topo edge. Drag any point to adjust, right-click to delete.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view v3d slot-a">
+        <div class="view-cap"><b>3D · Sculpt</b><span>pills set the drag mode · push / pull</span><select class="view-sel" title="Choose the main view" aria-label="Main view"><option value="3d">3D · Sculpt</option><option value="ext" selected>Extents</option><option value="wire">Wireframe</option></select></div>
+        <div class="vbody">
+          <div class="plot-wrap" id="wrap3d">
+          <div class="draw-hint" id="hint3d">
+            <div class="draw-hint-inner">
+              <b>Generate terrain</b>
+              <span>Close a spline boundary on the extents board, then generate the TIN to start sculpting.</span>
+            </div>
+          </div>
+          <div class="board-actions" id="tmode">
+            <button class="active" data-t="sculpt">Sculpt</button>
+            <button data-t="orbit">Orbit</button>
+            <button data-t="pan">Pan</button>
+          </div>
+          <div id="hud3d">E — · N — · Z —</div>
+          <canvas id="legend3d"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="view vwire slot-b">
+        <div class="view-cap"><b>Wireframe — live</b><span>plan · north up · brush sculpts here too</span><select class="view-sel" title="Choose the main view" aria-label="Main view"><option value="3d">3D · Sculpt</option><option value="ext" selected>Extents</option><option value="wire">Wireframe</option></select></div>
+        <div class="plot-wrap" id="wrapWire">
+          <canvas id="boardWire"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="estab">Drawn live in the browser · tap the board to add points, drag to move, right-click to delete · TopoForge for OttomanLabs.AI</div>
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/delaunator/5.0.0/delaunator.min.js"></script>
+<script>
+'use strict';
+/* ═══════════════ helpers ═══════════════ */
+function el(id){ return document.getElementById(id); }
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+let planDirty = true;
+
+var cssCache = {};
+function getCSS(name){
+  if(cssCache[name]) return cssCache[name];
+  var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  cssCache[name] = v || '#888'; return cssCache[name];
+}
+function hex2rgb(h){
+  h = h.replace('#','');
+  if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function inkA(a){ const c = hex2rgb(getCSS('--c-ink')); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+/* diverging cut/fill ramp — green at the base level, reds above, blues below */
+const DIV = [
+  [-1.00,  26,  52, 120],
+  [-0.50,  58, 122, 190],
+  [-0.22,  74, 158, 146],
+  [ 0.00,  66, 156,  88],
+  [ 0.22, 150, 172,  64],
+  [ 0.50, 224, 172,  58],
+  [ 0.75, 216, 116,  50],
+  [ 1.00, 170,  32,  40]
+];
+function divRamp(s){
+  s = Math.max(-1, Math.min(1, s));
+  for(let i = 1; i < DIV.length; i++){
+    if(s <= DIV[i][0]){
+      const a = DIV[i - 1], b = DIV[i], u = (s - a[0]) / (b[0] - a[0] || 1);
+      return [a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u];
+    }
+  }
+  const l = DIV[DIV.length - 1]; return [l[1], l[2], l[3]];
+}
+function divT(z){
+  const m = Math.max(Math.abs(S.zmax - S.baseZ), Math.abs(S.zmin - S.baseZ));
+  if(m < 1e-9) return 0;
+  return Math.max(-1, Math.min(1, (z - S.baseZ) / m));
+}
+function isDark(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
+/* display units — the model stays metric throughout; imperial converts at
+   the skin (readouts, rulers, inputs). Export units are chosen separately. */
+let IMP = false;
+try{ IMP = localStorage.getItem('tf-units') === 'imperial'; }catch(e){}
+const FT = 3.280839895, FT2 = 10.76391042;
+function uL(v){ return IMP ? v * FT : v; }
+function uLin(v){ return IMP ? v / FT : v; }
+function uA(v){ return IMP ? v * FT2 : v; }
+function uName(){ return IMP ? 'ft' : 'm'; }
+function uA2(){ return IMP ? 'ft²' : 'm²'; }
+function fmtUnit(v){ return (Math.round(uL(v) * 1000) / 1000).toString(); }
+function niceStep(x){
+  if(!(x > 0)) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(x)));
+  const m = x / p;
+  return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+}
+function inPoly(x, y, poly){
+  let c = false;
+  for(let i = 0, j = poly.length - 1; i < poly.length; j = i++){
+    const a = poly[i], b = poly[j];
+    if(((a.y > y) !== (b.y > y)) && (x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x)) c = !c;
+  }
+  return c;
+}
+function polyArea(poly){
+  let s = 0;
+  for(let i = 0, j = poly.length - 1; i < poly.length; j = i++) s += (poly[j].x + poly[i].x) * (poly[j].y - poly[i].y);
+  return Math.abs(s / 2);
+}
+
+/* ═══════════════ state ═══════════════ */
+const S = {
+  boardW: 120, boardD: 90,        // drawing canvas extents (m)
+  spacing: 2, baseZ: 0,
+  polyB: [],                      // boundary polygon (resampled spline, world m)
+  curveGen: [],                   // smooth curve captured at generate time
+  P: [], h: null, tris: [], nbr: [],
+  cx: 0, cy: 0, zmin: 0, zmax: 0,
+  generated: false, sculpted: false,
+  undo: [],
+  mode: 'raise', radius: 8, strength: 0.08,
+  show: { fill: true, colour: true, wire: true, cont: true },
+};
+const cellSize = () => S.boardW / 20;   // 20 grid cells across, gherkin-style
+
+/* ═══════════════ B-spline — de Boor engine from ottomanlabs.ai/gherkin ═══════════════ */
+const P = { pts: [], sel: -1, degree: 0, closed: true, showPoly: true, showGrid: true, snap: true, undoStack: [] };
+const CIR = { c: null, undo: [] };   // c = { x, y, r } — standard circle boundary
+let shapeMode = 'spline';
+function pushCircleUndo(){ CIR.undo.push(CIR.c ? { x: CIR.c.x, y: CIR.c.y, r: CIR.c.r } : null); if(CIR.undo.length > 200) CIR.undo.shift(); }
+function snapR(r){
+  const c = cellSize();
+  if(P.snap){ let rs = Math.round(r / c) * c; if(rs < c) rs = c; return rs; }
+  return Math.max(0.25, Math.round(r * 100) / 100);
+}
+
+function clonePts(a){ return a.map(p => ({ x: p.x, y: p.y })); }
+function pushSplineUndo(){ P.undoStack.push(clonePts(P.pts)); if(P.undoStack.length > 200) P.undoStack.shift(); }
+function clampX(v){ return v < 0 ? 0 : (v > S.boardW ? S.boardW : v); }
+function clampY(v){ return v < 0 ? 0 : (v > S.boardD ? S.boardD : v); }
+function snapX(v){ const c = cellSize(); return clampX(P.snap ? Math.round(v / c) * c : Math.round(v * 100) / 100); }
+function snapY(v){ const c = cellSize(); return clampY(P.snap ? Math.round(v / c) * c : Math.round(v * 100) / 100); }
+function dist2d(ax, ay, bx, by){ const dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
+
+// de Boor evaluation of a B-spline of degree p at parameter u
+function deBoor(ctrl, p, knots, u){
+  var n = ctrl.length - 1;
+  var k = p;
+  while(k < n && u >= knots[k + 1]) k++;
+  var d = [], j;
+  for(j = 0; j <= p; j++){ var c = ctrl[k - p + j]; d[j] = { x: c.x, y: c.y }; }
+  for(var r = 1; r <= p; r++){
+    for(j = p; j >= r; j--){
+      var i = k - p + j;
+      var den = knots[i + p - r + 1] - knots[i];
+      var a = (den === 0) ? 0 : (u - knots[i]) / den;
+      d[j] = { x: (1 - a) * d[j - 1].x + a * d[j].x,
+               y: (1 - a) * d[j - 1].y + a * d[j].y };
+    }
+  }
+  return d[p];
+}
+// Build a clamped (open) or periodic (closed) B-spline polyline from the control points.
+function buildCurve(){
+  var n = P.pts.length;
+  if(n < 2) return [];
+  var ctrl, knots = [], uStart, uEnd, p, i;
+  if(P.closed){
+    p = Math.min(P.degree, n); if(p < 1) p = 1;
+    ctrl = P.pts.concat(P.pts.slice(0, p));
+    var m = ctrl.length;
+    for(i = 0; i <= m + p; i++) knots.push(i);
+    uStart = knots[p]; uEnd = knots[m];
+  } else {
+    p = Math.min(P.degree, n - 1); if(p < 1) p = 1;
+    ctrl = P.pts.slice();
+    var nn = ctrl.length;
+    for(i = 0; i <= p; i++) knots.push(0);
+    var interior = nn - 1 - p;
+    for(i = 1; i <= interior; i++) knots.push(i / (interior + 1));
+    for(i = 0; i <= p; i++) knots.push(1);
+    uStart = 0; uEnd = 1;
+  }
+  if(p === 1) return ctrl.map(c => ({ x: c.x, y: c.y }));
+  var steps = Math.max(80, Math.min(600, 24 * ctrl.length));
+  var out = [];
+  for(var s = 0; s <= steps; s++){
+    var u = uStart + (uEnd - uStart) * s / steps;
+    out.push(deBoor(ctrl, p, knots, u));
+  }
+  return out;
+}
+var curve = [];
+
+/* ═══════════════ extents board ═══════════════ */
+const cvE = el('boardExt'), ctxE = cvE.getContext('2d');
+let extW = 0, extH = 0, bScale = 1, bOX = 0, bOY = 0;
+function fitBoard(){
+  const inset = Math.max(12, Math.round(Math.min(extW, extH) * 0.05));
+  bScale = Math.min((extW - 2 * inset) / S.boardW, (extH - 2 * inset) / S.boardD);
+  if(!(bScale > 0)) bScale = 1;
+  bOX = (extW - S.boardW * bScale) / 2;
+  bOY = (extH - S.boardD * bScale) / 2;
+}
+const wx2px = x => bOX + x * bScale;
+const wy2px = y => bOY + (S.boardD - y) * bScale;
+function eventWorld(e){
+  const r = cvE.getBoundingClientRect();
+  return { x: (e.clientX - r.left - bOX) / bScale,
+           y: S.boardD - (e.clientY - r.top - bOY) / bScale };
+}
+function hitPoint(wx, wy){
+  const basePx = (window.matchMedia && window.matchMedia('(pointer:coarse)').matches) ? 26 : 10;
+  const tol = basePx / bScale;
+  for(let i = P.pts.length - 1; i >= 0; i--){
+    if(dist2d(wx, wy, P.pts[i].x, P.pts[i].y) <= tol) return i;
+  }
+  return -1;
+}
+function paintBoard(){
+  const ctx = ctxE;
+  ctx.clearRect(0, 0, extW, extH);
+  fitBoard();
+  const spanX = S.boardW * bScale, spanY = S.boardD * bScale;
+  ctx.save();
+  ctx.translate(bOX, bOY);
+
+  // board frame
+  ctx.strokeStyle = getCSS('--c-grid-strong'); ctx.lineWidth = 1;
+  ctx.strokeRect(0, 0, spanX, spanY);
+
+  if(P.showGrid){
+    const c = cellSize();
+    ctx.lineWidth = 1;
+    let gi = 0;
+    for(let gx = 0; gx <= S.boardW + 1e-6; gx += c, gi++){
+      const sp = gx * bScale;
+      ctx.strokeStyle = (gi % 5 === 0) ? getCSS('--c-grid-strong') : getCSS('--c-grid');
+      ctx.beginPath(); ctx.moveTo(sp, 0); ctx.lineTo(sp, spanY); ctx.stroke();
+    }
+    gi = 0;
+    for(let gy = 0; gy <= S.boardD + 1e-6; gy += c, gi++){
+      const sp = spanY - gy * bScale;
+      ctx.strokeStyle = (gi % 5 === 0) ? getCSS('--c-grid-strong') : getCSS('--c-grid');
+      ctx.beginPath(); ctx.moveTo(0, sp); ctx.lineTo(spanX, sp); ctx.stroke();
+    }
+    ctx.fillStyle = getCSS('--muted');
+    ctx.font = '10px "Afacad Flux",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    for(let ux = 0; ux <= S.boardW + 1e-6; ux += c * 5){
+      const lx = Math.max(10, Math.min(spanX - 10, ux * bScale));
+      ctx.fillText(fmtUnit(ux), lx, spanY - 2);
+    }
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    for(let uy = c * 5; uy <= S.boardD + 1e-6; uy += c * 5){
+      const ly = Math.max(8, Math.min(spanY - 8, spanY - uy * bScale));
+      ctx.fillText(fmtUnit(uy), 3, ly);
+    }
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+
+  if(shapeMode === 'circle'){
+    if(CIR.c){
+      const ccx = CIR.c.x * bScale, ccy = (S.boardD - CIR.c.y) * bScale, rr = CIR.c.r * bScale;
+      ctx.strokeStyle = getCSS('--muted'); ctx.lineWidth = 1.25; ctx.setLineDash([5, 5]);
+      ctx.beginPath(); ctx.moveTo(ccx, ccy); ctx.lineTo(ccx + rr, ccy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = getCSS('--accent'); ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(ccx, ccy, rr, 0, Math.PI * 2); ctx.stroke();
+      for(const q of [[ccx, ccy], [ccx + rr, ccy]]){
+        ctx.beginPath(); ctx.arc(q[0], q[1], 5, 0, Math.PI * 2);
+        ctx.fillStyle = getCSS('--c-paper'); ctx.fill();
+        ctx.lineWidth = 1.25; ctx.strokeStyle = getCSS('--c-ink'); ctx.stroke();
+      }
+    }
+  } else {
+  const n = P.pts.length;
+  if(P.showPoly && n >= 2){
+    ctx.strokeStyle = getCSS('--muted');
+    ctx.lineWidth = 1.25;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(P.pts[0].x * bScale, (S.boardD - P.pts[0].y) * bScale);
+    for(let cp = 1; cp < n; cp++) ctx.lineTo(P.pts[cp].x * bScale, (S.boardD - P.pts[cp].y) * bScale);
+    if(P.closed) ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if(curve.length){
+    ctx.strokeStyle = getCSS('--accent');
+    ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(curve[0].x * bScale, (S.boardD - curve[0].y) * bScale);
+    for(let ci = 1; ci < curve.length; ci++) ctx.lineTo(curve[ci].x * bScale, (S.boardD - curve[ci].y) * bScale);
+    ctx.stroke();
+  }
+  for(let j = 0; j < n; j++){
+    const px = P.pts[j].x * bScale, py = (S.boardD - P.pts[j].y) * bScale;
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fillStyle = (j === P.sel) ? getCSS('--c-ink') : getCSS('--c-paper');
+    ctx.fill();
+    ctx.lineWidth = 1.25; ctx.strokeStyle = getCSS('--c-ink'); ctx.stroke();
+  }
+  }
+  ctx.restore();
+}
+function drawBoardAll(){
+  const has = shapeMode === 'circle' ? !!CIR.c : P.pts.length > 0;
+  el('drawHint').classList.toggle('is-hidden', has);
+  curve = (P.pts.length >= 2) ? buildCurve() : [];
+  paintBoard();
+  el('splinePts').textContent = P.pts.length;
+  if(CIR.c){
+    el('iCR').value = fmtUnit(CIR.c.r);
+    el('cdOut').textContent = fmtUnit(CIR.c.r * 2);
+    el('ceOut').textContent = fmtUnit(CIR.c.x);
+    el('cnOut').textContent = fmtUnit(CIR.c.y);
+  } else {
+    el('cdOut').textContent = '–'; el('ceOut').textContent = '–'; el('cnOut').textContent = '–';
+  }
+}
+
+/* pointer handling — document-level drag, no pointer capture (avoids scroll jump) */
+(function attachBoardPointer(){
+  let drag = null;         // spline point drag
+  let cDrag = null;        // circle drag: { kind: 'new' | 'centre' | 'radius', snapped }
+  function tol(){ return ((window.matchMedia && window.matchMedia('(pointer:coarse)').matches) ? 26 : 10) / bScale; }
+  function onDocMove(e){
+    e.preventDefault();
+    const p = eventWorld(e);
+    if(cDrag && CIR.c){
+      if(!cDrag.snapped){ pushCircleUndo(); cDrag.snapped = true; }
+      if(cDrag.kind === 'centre'){ CIR.c.x = snapX(p.x); CIR.c.y = snapY(p.y); }
+      else {
+        const d = dist2d(p.x, p.y, CIR.c.x, CIR.c.y);
+        CIR.c.r = P.snap ? snapR(d) : Math.max(0.25, Math.round(d * 100) / 100);
+      }
+      drawBoardAll(); return;
+    }
+    if(!drag || P.sel < 0) return;
+    if(!drag.snapped){ pushSplineUndo(); drag.snapped = true; }
+    P.pts[P.sel] = { x: snapX(p.x), y: snapY(p.y) };
+    drawBoardAll();
+  }
+  function endDrag(){
+    if(cDrag && cDrag.kind === 'new' && CIR.c && CIR.c.r < cellSize() * 0.5){
+      CIR.c.r = snapR(cellSize() * 2);
+      drawBoardAll();
+    }
+    drag = null; cDrag = null;
+    document.removeEventListener('pointermove', onDocMove);
+    document.removeEventListener('pointerup', endDrag);
+    document.removeEventListener('pointercancel', endDrag);
+  }
+  function listen(){
+    document.addEventListener('pointermove', onDocMove);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+  }
+  cvE.addEventListener('pointerdown', function(e){
+    if(e.button === 2) return;
+    e.preventDefault();
+    const p = eventWorld(e);
+    if(shapeMode === 'circle'){
+      const t = tol();
+      if(CIR.c){
+        const hx = CIR.c.x + CIR.c.r, hy = CIR.c.y;
+        if(dist2d(p.x, p.y, hx, hy) <= t){ cDrag = { kind: 'radius', snapped: false }; listen(); return; }
+        if(dist2d(p.x, p.y, CIR.c.x, CIR.c.y) <= t){ cDrag = { kind: 'centre', snapped: false }; listen(); return; }
+      }
+      pushCircleUndo();
+      CIR.c = { x: snapX(p.x), y: snapY(p.y), r: 0 };
+      cDrag = { kind: 'new', snapped: true };
+      listen(); drawBoardAll(); return;
+    }
+    const hi = hitPoint(p.x, p.y);
+    if(hi >= 0){
+      P.sel = hi; drag = { snapped: false };
+      listen(); drawBoardAll(); return;
+    }
+    pushSplineUndo();
+    P.pts.push({ x: snapX(p.x), y: snapY(p.y) });
+    P.sel = P.pts.length - 1;
+    drag = null;
+    listen();
+    drawBoardAll();
+  });
+  cvE.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    const p = eventWorld(e);
+    if(shapeMode === 'circle'){
+      if(!CIR.c) return;
+      const t = tol();
+      const hx = CIR.c.x + CIR.c.r, hy = CIR.c.y;
+      if(dist2d(p.x, p.y, CIR.c.x, CIR.c.y) <= t || dist2d(p.x, p.y, hx, hy) <= t){
+        pushCircleUndo(); CIR.c = null; drawBoardAll();
+      }
+      return;
+    }
+    const hi = hitPoint(p.x, p.y);
+    if(hi >= 0){
+      pushSplineUndo();
+      P.pts.splice(hi, 1);
+      if(P.sel === hi) P.sel = -1; else if(P.sel > hi) P.sel--;
+      drawBoardAll();
+    }
+  });
+})();
+
+function boardUndo(){
+  if(shapeMode === 'circle'){
+    if(!CIR.undo.length) return;
+    CIR.c = CIR.undo.pop(); drawBoardAll(); return;
+  }
+  if(!P.undoStack.length) return;
+  P.pts = P.undoStack.pop(); P.sel = -1; drawBoardAll();
+}
+function boardClear(){
+  if(shapeMode === 'circle'){
+    if(CIR.c) pushCircleUndo();
+    CIR.c = null; drawBoardAll(); return;
+  }
+  if(P.pts.length) pushSplineUndo();
+  P.pts = []; P.sel = -1; drawBoardAll();
+}
+[el('splineUndo'), el('splineUndo2')].filter(Boolean).forEach(b => b.onclick = boardUndo);
+[el('splineClear'), el('splineClear2')].filter(Boolean).forEach(b => b.onclick = boardClear);
+el('iCR').onchange = e => {
+  const r = Math.max(0.5, uLin(+e.target.value) || 0);
+  if(!r) return;
+  pushCircleUndo();
+  if(!CIR.c) CIR.c = { x: snapX(S.boardW / 2), y: snapY(S.boardD / 2), r: r };
+  else CIR.c.r = r;
+  drawBoardAll();
+};
+function setShape(m){
+  shapeMode = m;
+  document.querySelectorAll('#shapeSeg button').forEach(b => b.classList.toggle('active', b.dataset.shape === m));
+  const cir = m === 'circle';
+  el('degRow').style.display = cir ? 'none' : '';
+  el('togClosed').style.display = cir ? 'none' : '';
+  el('togPoly').style.display = cir ? 'none' : '';
+  el('cirRow').style.display = cir ? '' : 'none';
+  el('statSpline').style.display = cir ? 'none' : '';
+  el('statCircle').style.display = cir ? '' : 'none';
+  el('hintB').textContent = cir ? 'Place the site circle' : 'Draw the site extents';
+  el('hintS').textContent = cir
+    ? 'Tap the centre and drag out to the radius. Drag the centre to move, the edge handle to resize — or type a radius.'
+    : 'Tap points around the boundary — the closed B-spline becomes the topo edge. Drag any point to adjust, right-click to delete.';
+  drawBoardAll();
+}
+document.querySelectorAll('#shapeSeg button').forEach(b => { b.onclick = () => setShape(b.dataset.shape); });
+el('splineSample').onclick = () => {
+  if(shapeMode === 'circle'){
+    pushCircleUndo();
+    CIR.c = { x: snapX(S.boardW / 2), y: snapY(S.boardD / 2), r: snapR(Math.min(S.boardW, S.boardD) * 0.32) };
+    drawBoardAll(); return;
+  }
+  pushSplineUndo();
+  const f = [[.18,.30],[.42,.12],[.78,.22],[.88,.58],[.62,.88],[.28,.80]];
+  P.pts = f.map(q => ({ x: snapX(q[0] * S.boardW), y: snapY(q[1] * S.boardD) }));
+  P.sel = -1;
+  P.closed = true; el('splineClosed').checked = true;
+  drawBoardAll();
+};
+el('splineDegree').addEventListener('input', function(){
+  var v = parseInt(this.value, 10);
+  if(isNaN(v)) v = P.degree;
+  P.degree = Math.max(0, Math.min(5, v));
+  el('splineDegreeVal').textContent = P.degree;
+  drawBoardAll();
+});
+function bindT(id, key){
+  el(id).addEventListener('change', function(){ P[key] = this.checked; drawBoardAll(); });
+}
+bindT('splineClosed', 'closed');
+bindT('splinePoly', 'showPoly');
+bindT('splineGrid', 'showGrid');
+bindT('splineSnap', 'snap');
+
+/* ═══════════════ boundary from the spline ═══════════════ */
+function activeBoundarySource(){
+  if(shapeMode === 'circle'){
+    if(!CIR.c || CIR.c.r <= 0.01) return null;
+    const n = 160, out = [];
+    for(let i = 0; i < n; i++){
+      const a = i / n * Math.PI * 2;
+      out.push({ x: CIR.c.x + CIR.c.r * Math.cos(a), y: CIR.c.y + CIR.c.r * Math.sin(a) });
+    }
+    out.push({ x: out[0].x, y: out[0].y });
+    return out;
+  }
+  if(!P.closed || P.pts.length < 3) return null;
+  const c = buildCurve();
+  return c.length >= 3 ? c : null;
+}
+function resampleBoundary(c){
+  const step = Math.max(0.25, S.spacing);
+  const out = [{ x: c[0].x, y: c[0].y }];
+  let ax = c[0].x, ay = c[0].y, acc = 0;
+  for(let i = 1; i < c.length; i++){
+    let bx = c[i].x, by = c[i].y;
+    let d = Math.hypot(bx - ax, by - ay);
+    while(acc + d >= step && d > 1e-9){
+      const t = (step - acc) / d;
+      ax = ax + (bx - ax) * t; ay = ay + (by - ay) * t;
+      out.push({ x: ax, y: ay });
+      d = Math.hypot(bx - ax, by - ay); acc = 0;
+    }
+    acc += d; ax = bx; ay = by;
+  }
+  const f = out[0], l = out[out.length - 1];
+  if(out.length > 1 && Math.hypot(f.x - l.x, f.y - l.y) < step * 0.5) out.pop();
+  if(out.length < 3) return null;
+  return out;
+}
+
+/* ═══════════════ TIN generation (Bowyer–Watson) ═══════════════ */
+function delaunay(pts){
+  const n = pts.length;
+  if(n < 3) return [];
+  let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
+  for(const p of pts){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+  const dm = Math.max(maxx - minx, maxy - miny) || 1, mx = (minx + maxx) / 2, my = (miny + maxy) / 2;
+  const PP = pts.concat([{ x: mx - 20 * dm, y: my - dm }, { x: mx, y: my + 20 * dm }, { x: mx + 20 * dm, y: my - dm }]);
+  function mk(a, b, c){
+    const A = PP[a], B = PP[b], C = PP[c];
+    const d = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+    let ux = 0, uy = 0, r2 = Infinity;
+    if(Math.abs(d) > 1e-12){
+      const a2 = A.x * A.x + A.y * A.y, b2 = B.x * B.x + B.y * B.y, c2 = C.x * C.x + C.y * C.y;
+      ux = (a2 * (B.y - C.y) + b2 * (C.y - A.y) + c2 * (A.y - B.y)) / d;
+      uy = (a2 * (C.x - B.x) + b2 * (A.x - C.x) + c2 * (B.x - A.x)) / d;
+      r2 = (A.x - ux) ** 2 + (A.y - uy) ** 2;
+    }
+    return { a, b, c, x: ux, y: uy, r2 };
+  }
+  let T = [mk(n, n + 1, n + 2)];
+  for(let i = 0; i < n; i++){
+    const p = PP[i], bad = [], good = [];
+    for(const t of T){
+      const dx = p.x - t.x, dy = p.y - t.y;
+      (dx * dx + dy * dy <= t.r2 * (1 + 1e-10)) ? bad.push(t) : good.push(t);
+    }
+    const em = new Map();
+    const addE = (u, v) => { const k = u < v ? u + '_' + v : v + '_' + u; const e = em.get(k); if(e) e.n++; else em.set(k, { u, v, n: 1 }); };
+    for(const t of bad){ addE(t.a, t.b); addE(t.b, t.c); addE(t.c, t.a); }
+    T = good;
+    for(const e of em.values()) if(e.n === 1) T.push(mk(e.u, e.v, i));
+  }
+  const out = [];
+  for(const t of T){ if(t.a < n && t.b < n && t.c < n) out.push([t.a, t.b, t.c]); }
+  return out;
+}
+/* Fast path: Delaunator (O(n log n)) when its CDN script loaded — winding
+   is normalised downstream in buildTerrain either way. */
+function triangulate(pts){
+  if(typeof Delaunator === 'undefined') return delaunay(pts);
+  const d = Delaunator.from(pts, p => p.x, p => p.y);
+  const T = d.triangles, out = new Array(T.length / 3);
+  for(let k = 0, o = 0; k < T.length; k += 3, o++) out[o] = [T[k], T[k + 1], T[k + 2]];
+  return out;
+}
+
+function samplePoints(poly){
+  const sp = S.spacing, pts = [];
+  for(let i = 0; i < poly.length; i++){
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    const n = Math.max(1, Math.round(d / sp));
+    for(let k = 0; k < n; k++){ const t = k / n; pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }); }
+  }
+  const nB = pts.length, prox2 = (0.45 * sp) ** 2;
+  /* hash the boundary points so only grid points beside the edge pay the
+     proximity test — interior points skip it entirely */
+  const near = new Map();
+  for(let j = 0; j < nB; j++){
+    const q = pts[j], cx = Math.round(q.x / sp), cy = Math.round(q.y / sp);
+    for(let dx = -1; dx <= 1; dx++) for(let dy = -1; dy <= 1; dy++){
+      const key = (cx + dx) + ':' + (cy + dy);
+      let l = near.get(key); if(!l){ l = []; near.set(key, l); }
+      l.push(j);
+    }
+  }
+  let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
+  for(const p of poly){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+  const x0 = Math.ceil(minx / sp) * sp, y0 = Math.ceil(miny / sp) * sp;
+  const nx = Math.floor((maxx - x0) / sp), ny = Math.floor((maxy - y0) / sp);
+  const jit = () => (Math.random() - 0.5) * 2e-4;
+  const m = poly.length;
+  for(let iy = 0; iy <= ny; iy++){
+    const y = y0 + iy * sp;
+    /* scanline: polygon crossings at this row -> inside spans */
+    const xs = [];
+    for(let i = 0; i < m; i++){
+      const a = poly[i], b = poly[(i + 1) % m];
+      if((a.y > y) !== (b.y > y)) xs.push(a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x));
+    }
+    xs.sort((p, q) => p - q);
+    for(let sx = 0; sx + 1 < xs.length; sx += 2){
+      const ix0 = Math.max(0, Math.ceil((xs[sx] - x0) / sp));
+      const ix1 = Math.min(nx, Math.floor((xs[sx + 1] - x0) / sp));
+      for(let ix = ix0; ix <= ix1; ix++){
+        const x = x0 + ix * sp;
+        let ok = true;
+        const bucket = near.get(Math.round(x / sp) + ':' + Math.round(y / sp));
+        if(bucket){
+          for(const j of bucket){ const q = pts[j]; if((q.x - x) ** 2 + (q.y - y) ** 2 < prox2){ ok = false; break; } }
+        }
+        if(ok) pts.push({ x: x + jit(), y: y + jit() });
+      }
+    }
+  }
+  return pts;
+}
+function computeZ(){
+  let a = Infinity, b = -Infinity;
+  for(let i = 0; i < S.h.length; i++){ if(S.h[i] < a) a = S.h[i]; if(S.h[i] > b) b = S.h[i]; }
+  S.zmin = a; S.zmax = b;
+}
+function buildTerrain(){
+  const src = activeBoundarySource();
+  if(!src){ alert('Draw a boundary first — a closed spline (3+ points) or a circle.'); return; }
+  const poly = resampleBoundary(src);
+  if(!poly){ alert('Boundary too small for this TIN spacing.'); return; }
+  const FASTTRI = (typeof Delaunator !== 'undefined');
+  const cap = FASTTRI ? 220000 : 20000;
+  const est = polyArea(poly) / (S.spacing * S.spacing);
+  if(est > cap){
+    /* don't dead-end — offer the coarsest spacing that fits */
+    const need = Math.sqrt(polyArea(poly) / cap);
+    const ladder = [0.25, 0.5, 1, 1.5, 2, 2.5, 5, 10, 15, 20, 25, 50, 100];
+    const fit = ladder.find(v => v >= need) || Math.ceil(need);
+    const fitPts = Math.round(polyArea(poly) / (fit * fit));
+    if(confirm('≈' + Math.round(est).toLocaleString('en') + ' grid points at ' + S.spacing + ' m TIN — more than the browser can sculpt smoothly. Set spacing to ' + fit + ' m (≈' + fitPts.toLocaleString('en') + ' points) and generate?')){
+      S.spacing = fit;
+      syncUnitInputs();
+      buildTerrain();
+    }
+    return;
+  }
+  if(S.sculpted && !confirm('Regenerating rebuilds the grid and resets sculpting. Continue?')) return;
+  const pts = samplePoints(poly);
+  if(pts.length > (FASTTRI ? 80000 : 9000) && !confirm(pts.length.toLocaleString('en') + ' points — generation may take a few seconds. Continue?')) return;
+  let tris = triangulate(pts).filter(t => {
+    const cx = (pts[t[0]].x + pts[t[1]].x + pts[t[2]].x) / 3;
+    const cy = (pts[t[0]].y + pts[t[1]].y + pts[t[2]].y) / 3;
+    return inPoly(cx, cy, poly);
+  });
+  const map = new Int32Array(pts.length).fill(-1); const PW = [];
+  for(const t of tris) for(let k = 0; k < 3; k++){ const i = t[k]; if(map[i] < 0){ map[i] = PW.length; PW.push(pts[i]); } }
+  tris = tris.map(t => [map[t[0]], map[t[1]], map[t[2]]]);
+  for(const t of tris){
+    const A = PW[t[0]], B = PW[t[1]], C = PW[t[2]];
+    if((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x) < 0){ const tmp = t[1]; t[1] = t[2]; t[2] = tmp; }
+  }
+  const nbr = PW.map(() => new Set());
+  for(const t of tris){
+    nbr[t[0]].add(t[1]); nbr[t[0]].add(t[2]);
+    nbr[t[1]].add(t[0]); nbr[t[1]].add(t[2]);
+    nbr[t[2]].add(t[0]); nbr[t[2]].add(t[1]);
+  }
+  let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
+  for(const p of PW){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+  S.polyB = poly; S.curveGen = src.slice();
+  S.P = PW; S.tris = tris; S.nbr = nbr.map(s => [...s]);
+  S.h = new Float32Array(PW.length).fill(S.baseZ);
+  S.cx = (minx + maxx) / 2; S.cy = (miny + maxy) / 2;
+  S.generated = true; S.sculpted = false; S.undo = [];
+  computeZ();
+  if(THREE_OK){
+    buildMesh(minx, miny, maxx, maxy);
+    fitCam(maxx - minx, maxy - miny);
+    el('hint3d').classList.add('is-hidden');
+  }
+  planDirty = true; statsAll();
+}
+el('bGen').onclick = buildTerrain;
+
+/* ═══════════════ 3D — sculpt view ═══════════════ */
+let THREE_OK = (typeof THREE !== 'undefined');
+let scene = null, cam = null, renderer = null, cv3 = null;
+let grid3 = null, grid3Size = 0, mesh = null, meshW = null, geo = null, ring = null;
+let ray = null, ndc = null;
+let touchMode = 'sculpt';
+const ctrl = { theta: -Math.PI / 3, phi: 0.95, dist: 160, tx: 0, ty: 0, tz: 0 };
+let dragMode = 'none', lastPX = 0, lastPY = 0, strokeH = 0;
+const ptrs = new Map(); let pinch = null;
+
+function applyCam(){
+  const sp = Math.sin(ctrl.phi), cp = Math.cos(ctrl.phi);
+  cam.position.set(
+    ctrl.tx + ctrl.dist * sp * Math.cos(ctrl.theta),
+    ctrl.ty + ctrl.dist * cp,
+    ctrl.tz + ctrl.dist * sp * Math.sin(ctrl.theta)
+  );
+  cam.lookAt(ctrl.tx, ctrl.ty, ctrl.tz);
+}
+function fitCam(w, h){
+  ctrl.tx = 0; ctrl.tz = 0; ctrl.ty = S.baseZ;
+  ctrl.dist = Math.max(Math.hypot(w, h) * 1.25, 20);
+}
+function rebuildGrid(){
+  if(!THREE_OK || !grid3Size) return;
+  if(grid3) scene.remove(grid3);
+  grid3 = new THREE.GridHelper(grid3Size, Math.max(2, grid3Size / 5),
+    new THREE.Color(getCSS('--c-grid-strong')), new THREE.Color(getCSS('--c-grid')));
+  grid3.position.y = S.baseZ - 0.02;
+  scene.add(grid3);
+}
+function buildMesh(minx, miny, maxx, maxy){
+  if(!THREE_OK) return;
+  if(mesh){ scene.remove(mesh); scene.remove(meshW); geo.dispose(); mesh.material.dispose(); meshW.material.dispose(); }
+  geo = new THREE.BufferGeometry();
+  const n = S.P.length;
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+  for(let i = 0; i < n; i++){
+    pos[3 * i] = S.P[i].x - S.cx;
+    pos[3 * i + 1] = S.h[i];
+    pos[3 * i + 2] = S.cy - S.P[i].y;
+  }
+  const posAttr = new THREE.BufferAttribute(pos, 3); posAttr.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('position', posAttr);
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const idx = new (n < 65535 ? Uint16Array : Uint32Array)(S.tris.length * 3);
+  for(let i = 0; i < S.tris.length; i++){ idx[3 * i] = S.tris[i][0]; idx[3 * i + 1] = S.tris[i][1]; idx[3 * i + 2] = S.tris[i][2]; }
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  geo.computeVertexNormals();
+  mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: 0.95, metalness: 0,
+    polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+  }));
+  scene.add(mesh);
+  meshW = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    wireframe: true, color: new THREE.Color(getCSS('--c-ink')), transparent: true, opacity: 0.22 }));
+  meshW.visible = S.show.wire;
+  scene.add(meshW);
+  grid3Size = Math.ceil(Math.max(maxx - minx, maxy - miny) * 1.4 / 10) * 10;
+  rebuildGrid();
+  updateColors();
+}
+function updateColors(){
+  if(!geo) return;
+  const rng = (S.zmax - S.zmin) || 1;
+  const flat = (S.zmax - S.zmin) < 1e-6;
+  const ca = geo.attributes.color;
+  if(S.show.colour){
+    for(let i = 0; i < S.h.length; i++){
+      const c = divRamp(divT(S.h[i]));
+      ca.array[3 * i] = c[0] / 255; ca.array[3 * i + 1] = c[1] / 255; ca.array[3 * i + 2] = c[2] / 255;
+    }
+  } else {
+    const dark = isDark();
+    const lo = dark ? 0.16 : 0.94, hi = dark ? 0.68 : 0.44;
+    for(let i = 0; i < S.h.length; i++){
+      const t = flat ? 0.35 : (S.h[i] - S.zmin) / rng;
+      const v = lo + (hi - lo) * t;
+      ca.array[3 * i] = v; ca.array[3 * i + 1] = v; ca.array[3 * i + 2] = v;
+    }
+  }
+  ca.needsUpdate = true;
+}
+function updateHeights(){
+  computeZ();
+  if(geo){
+    const pa = geo.attributes.position;
+    for(let i = 0; i < S.h.length; i++) pa.array[3 * i + 1] = S.h[i];
+    pa.needsUpdate = true;
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    updateColors();
+  }
+  planDirty = true;
+  statsZ();
+}
+function pick(e){
+  if(!mesh) return null;
+  const r = cv3.getBoundingClientRect();
+  ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  ndc.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  ray.setFromCamera(ndc, cam);
+  const hits = ray.intersectObject(mesh);
+  return hits.length ? hits[0] : null;
+}
+function pushUndo(){ S.undo.push(S.h.slice()); if(S.undo.length > 25) S.undo.shift(); }
+function doUndo(){
+  if(!S.generated || !S.undo.length) return;
+  S.h.set(S.undo.pop());
+  updateHeights();
+}
+el('bUndo').onclick = doUndo;
+
+function heightAt(wx, wy){
+  let best = -1, bd = Infinity;
+  for(let i = 0; i < S.P.length; i++){
+    const dx = S.P[i].x - wx, dy = S.P[i].y - wy, d2 = dx * dx + dy * dy;
+    if(d2 < bd){ bd = d2; best = i; }
+  }
+  return best >= 0 ? S.h[best] : S.baseZ;
+}
+function brushAt(wx, wy, e){
+  const r = S.radius, r2 = r * r, str = S.strength;
+  const dir = (S.mode === 'lower' ? -1 : 1) * (e.shiftKey ? -1 : 1);
+  const PW = S.P, h = S.h;
+  for(let i = 0; i < PW.length; i++){
+    const dx = PW[i].x - wx, dy = PW[i].y - wy, d2 = dx * dx + dy * dy;
+    if(d2 >= r2) continue;
+    const t = Math.sqrt(d2) / r, f = (1 - t * t) ** 2;
+    if(S.mode === 'raise' || S.mode === 'lower') h[i] += dir * str * f;
+    else if(S.mode === 'smooth'){
+      const nb = S.nbr[i];
+      if(nb.length){ let s = 0; for(const j of nb) s += h[j]; h[i] += (s / nb.length - h[i]) * Math.min(0.85, f * (0.25 + str * 2.2)); }
+    } else if(S.mode === 'flatten'){
+      h[i] += (strokeH - h[i]) * Math.min(0.85, f * (0.25 + str * 2.2));
+    }
+  }
+  S.sculpted = true;
+  updateHeights();
+}
+function applyBrush(hit, e){
+  brushAt(hit.point.x + S.cx, S.cy - hit.point.z, e);
+}
+
+if(THREE_OK){
+  try {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(getCSS('--c-paper'));
+    cam = new THREE.PerspectiveCamera(50, 1, 0.1, 10000);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(dpr());
+    cv3 = renderer.domElement;
+    cv3.style.cursor = 'crosshair';
+    el('wrap3d').insertBefore(cv3, el('wrap3d').firstChild);
+    cv3.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab';
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9a9a, 0.9));
+    const dl3 = new THREE.DirectionalLight(0xffffff, 0.5); dl3.position.set(120, 200, 90); scene.add(dl3);
+    ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.9, 1.0, 48),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(getCSS('--burgundy')), transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthTest: false })
+    );
+    ring.rotation.x = -Math.PI / 2; ring.visible = false; ring.renderOrder = 10; scene.add(ring);
+    ray = new THREE.Raycaster();
+    ndc = new THREE.Vector2();
+
+    function gInfo(){
+      const v = [...ptrs.values()];
+      return { d: Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y) || 1, cx: (v[0].x + v[1].x) / 2, cy: (v[0].y + v[1].y) / 2 };
+    }
+    cv3.addEventListener('contextmenu', e => e.preventDefault());
+    cv3.addEventListener('pointerdown', e => {
+      cv3.setPointerCapture(e.pointerId);
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      lastPX = e.clientX; lastPY = e.clientY;
+      if(ptrs.size === 2){ dragMode = 'gesture'; pinch = gInfo(); return; }
+      if(ptrs.size > 2) return;
+      let act;
+      if(e.pointerType === 'touch') act = touchMode;
+      else if(e.button === 2) act = 'orbit';
+      else if(e.button === 1) act = 'pan';
+      else if(e.button === 0) act = touchMode;
+      else act = null;
+      if(act === 'sculpt'){
+        const hit = pick(e);
+        if(hit){ dragMode = 'sculpt'; pushUndo(); strokeH = hit.point.y; applyBrush(hit, e); }
+        else dragMode = 'none';
+      } else if(act === 'orbit') dragMode = 'orbit';
+      else if(act === 'pan'){ dragMode = 'pan'; e.preventDefault(); }
+    });
+    cv3.addEventListener('pointermove', e => {
+      if(ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if(dragMode === 'gesture' && ptrs.size >= 2){
+        const g = gInfo();
+        ctrl.dist = Math.max(4, Math.min(4000, ctrl.dist * pinch.d / g.d));
+        ctrl.theta += (g.cx - pinch.cx) * 0.005;
+        ctrl.phi = Math.max(0.06, Math.min(1.5, ctrl.phi + (g.cy - pinch.cy) * 0.005));
+        pinch = g;
+        return;
+      }
+      const dx = e.clientX - lastPX, dy = e.clientY - lastPY;
+      lastPX = e.clientX; lastPY = e.clientY;
+      if(dragMode === 'orbit'){
+        ctrl.theta += dx * 0.005;
+        ctrl.phi = Math.max(0.06, Math.min(1.5, ctrl.phi + dy * 0.005));
+        return;
+      }
+      if(dragMode === 'pan'){
+        const right = new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1);
+        const k = ctrl.dist * 0.0014;
+        ctrl.tx += -right.x * dx * k + up.x * dy * k;
+        ctrl.ty += -right.y * dx * k + up.y * dy * k;
+        ctrl.tz += -right.z * dx * k + up.z * dy * k;
+        return;
+      }
+      const hit = pick(e);
+      if(hit){
+        ring.visible = (touchMode === 'sculpt' || dragMode === 'sculpt');
+        ring.position.set(hit.point.x, hit.point.y + 0.15, hit.point.z);
+        ring.scale.set(S.radius, S.radius, S.radius);
+        const wx = hit.point.x + S.cx, wy = S.cy - hit.point.z;
+        el('hud3d').textContent = `E ${uL(wx).toFixed(2)} · N ${uL(wy).toFixed(2)} · Z ${uL(hit.point.y).toFixed(2)} ${uName()}`;
+        if(dragMode === 'sculpt') applyBrush(hit, e);
+      } else {
+        ring.visible = false;
+        el('hud3d').textContent = 'E — · N — · Z —';
+      }
+    });
+    function endPtr(e){
+      ptrs.delete(e.pointerId);
+      if(ptrs.size < 2){ pinch = null; if(dragMode === 'gesture') dragMode = 'none'; }
+      if(ptrs.size === 0) dragMode = 'none';
+    }
+    cv3.addEventListener('pointerup', endPtr);
+    cv3.addEventListener('pointercancel', endPtr);
+    cv3.addEventListener('wheel', e => {
+      e.preventDefault();
+      ctrl.dist = Math.max(4, Math.min(4000, ctrl.dist * Math.exp(e.deltaY * 0.0011)));
+    }, { passive: false });
+  } catch(err){
+    THREE_OK = false;
+    console.error('3D init failed:', err);
+  }
+}
+if(!THREE_OK){
+  el('hint3d').innerHTML = '<div class="draw-hint-inner"><b>3D unavailable here</b><span>The plan views and exports still work — open in a desktop browser for full sculpting.</span></div>';
+}
+document.querySelectorAll('#tmode button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#tmode button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    touchMode = b.dataset.t;
+    if(cv3) cv3.style.cursor = touchMode === 'sculpt' ? 'crosshair' : (touchMode === 'pan' ? 'move' : 'grab');
+  };
+});
+window.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); doUndo(); return; }
+  if(e.key === '[' || e.key === ']'){
+    S.radius = Math.max(1, Math.min(40, S.radius + (e.key === ']' ? 1 : -1)));
+    el('iRad').value = S.radius; el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName();
+    if(ring && ring.visible) ring.scale.set(S.radius, S.radius, S.radius);
+  }
+});
+
+/* ═══════════════ live wireframe plan ═══════════════ */
+const cvW = el('boardWire'), ctxW = cvW.getContext('2d');
+let wirW = 0, wirH = 0, wireT = null, planHover = null;
+function drawWire(){
+  const ctx = ctxW;
+  ctx.clearRect(0, 0, wirW, wirH);
+  if(!S.generated){
+    wireT = null;
+    ctx.fillStyle = getCSS('--muted');
+    ctx.font = 'italic 13px Newsreader,Georgia,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('generate terrain to see the live wireframe', wirW / 2, wirH / 2);
+    return;
+  }
+  let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
+  for(const p of S.P){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+  const pad = 26;
+  const s = Math.min((wirW - 2 * pad) / (maxx - minx || 1), (wirH - 2 * pad) / (maxy - miny || 1));
+  const ox = (wirW - (maxx - minx) * s) / 2, oy = (wirH - (maxy - miny) * s) / 2;
+  const X = x => ox + (x - minx) * s;
+  const Y = y => wirH - oy - (y - miny) * s;
+  wireT = { ox, oy, s, minx, miny };
+  const zmin = S.zmin, zmax = S.zmax, rng = (zmax - zmin) || 1;
+  const flat = (zmax - zmin) < 1e-6;
+  const PW = S.P, h = S.h;
+  const ink = hex2rgb(getCSS('--c-ink'));
+  if(S.show.fill){
+    /* batched fills: quantise the ramp into buckets and fill one Path2D per
+       bucket — per-triangle paths made big boards take minutes to paint */
+    const NB = 48, CHUNK = 4000, buckets = new Array(NB);
+    /* chunked: Skia fill time explodes on paths with huge subpath counts,
+       so no Path2D carries more than CHUNK triangles */
+    for(const t of S.tris){
+      const havg = (h[t[0]] + h[t[1]] + h[t[2]]) / 3;
+      const tt = flat ? 0.3 : (havg - zmin) / rng;
+      const bi = Math.max(0, Math.min(NB - 1, (tt * (NB - 1)) | 0));
+      let arr = buckets[bi]; if(!arr) arr = buckets[bi] = [{ P: new Path2D(), n: 0 }];
+      let cur = arr[arr.length - 1];
+      if(cur.n >= CHUNK){ cur = { P: new Path2D(), n: 0 }; arr.push(cur); }
+      cur.P.moveTo(X(PW[t[0]].x), Y(PW[t[0]].y));
+      cur.P.lineTo(X(PW[t[1]].x), Y(PW[t[1]].y));
+      cur.P.lineTo(X(PW[t[2]].x), Y(PW[t[2]].y));
+      cur.P.closePath();
+      cur.n++;
+    }
+    ctx.lineWidth = 0.6;
+    const seams = S.tris.length <= 12000;   /* stroking is quadratic in Skia */
+    for(let bi = 0; bi < NB; bi++){
+      const arr = buckets[bi]; if(!arr) continue;
+      const tt = bi / (NB - 1);
+      let style;
+      if(S.show.colour){
+        const c = divRamp(divT(flat ? zmin : zmin + tt * rng));
+        style = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+      } else {
+        const a = 0.05 + 0.38 * (flat ? 0.3 : tt);
+        style = `rgba(${ink[0]},${ink[1]},${ink[2]},${a})`;
+      }
+      ctx.fillStyle = style; ctx.strokeStyle = style;
+      for(const c of arr){ ctx.fill(c.P); if(seams) ctx.stroke(c.P); }
+    }
+  }
+  const wireOk = S.tris.length <= 12000;
+  if(S.show.wire && wireOk){
+    ctx.strokeStyle = inkA(S.show.fill ? 0.32 : 0.45);
+    ctx.lineWidth = 0.7; ctx.beginPath();
+    for(const t of S.tris){
+      ctx.moveTo(X(PW[t[0]].x), Y(PW[t[0]].y));
+      ctx.lineTo(X(PW[t[1]].x), Y(PW[t[1]].y));
+      ctx.lineTo(X(PW[t[2]].x), Y(PW[t[2]].y));
+      ctx.closePath();
+    }
+    ctx.stroke();
+  }
+  let step = 0;
+  if(S.show.cont && !flat){
+    step = niceStep(rng / 8);
+    ctx.strokeStyle = getCSS('--burgundy'); ctx.lineWidth = 1; ctx.beginPath();
+    const lv0 = Math.ceil(zmin / step) * step;
+    for(let lv = lv0; lv <= zmax + 1e-9; lv += step){
+      for(const t of S.tris){
+        const hh = [h[t[0]], h[t[1]], h[t[2]]];
+        const seg = [];
+        for(let e2 = 0; e2 < 3; e2++){
+          const a = e2, b = (e2 + 1) % 3;
+          if((hh[a] - lv) * (hh[b] - lv) < 0){
+            const u = (lv - hh[a]) / (hh[b] - hh[a]);
+            const pa = PW[t[a]], pb = PW[t[b]];
+            seg.push([pa.x + (pb.x - pa.x) * u, pa.y + (pb.y - pa.y) * u]);
+          }
+        }
+        if(seg.length === 2){ ctx.moveTo(X(seg[0][0]), Y(seg[0][1])); ctx.lineTo(X(seg[1][0]), Y(seg[1][1])); }
+      }
+    }
+    ctx.stroke();
+  }
+  // smooth spline boundary
+  const bc = S.curveGen;
+  if(bc.length){
+    ctx.strokeStyle = getCSS('--c-ink'); ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.beginPath();
+    ctx.moveTo(X(bc[0].x), Y(bc[0].y));
+    for(let i = 1; i < bc.length; i++) ctx.lineTo(X(bc[i].x), Y(bc[i].y));
+    ctx.stroke();
+  }
+  if(planHover){
+    ctx.strokeStyle = getCSS('--burgundy'); ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(X(planHover.x), Y(planHover.y), S.radius * s, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = getCSS('--muted');
+  ctx.font = '10px "Afacad Flux",sans-serif'; ctx.textAlign = 'left';
+  let leg = `Z ${uL(zmin).toFixed(2)} – ${uL(zmax).toFixed(2)} ${uName()}`;
+  if(step) leg += `   ·   contours @ ${fmtUnit(step)} ${uName()}`;
+  if(S.show.wire && !wireOk) leg += '   ·   wire hidden above 12k triangles';
+  ctx.fillText(leg, 10, wirH - 10);
+}
+
+/* plan-view sculpting — brush directly on the live wireframe */
+function wireWorld(e){
+  if(!wireT || !S.generated) return null;
+  const r = cvW.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  return { x: wireT.minx + (px - wireT.ox) / wireT.s,
+           y: wireT.miny + (wirH - wireT.oy - py) / wireT.s };
+}
+(function attachPlanSculpt(){
+  let stroking = false;
+  function onDocMove(e){
+    if(!stroking) return;
+    e.preventDefault();
+    const w = wireWorld(e);
+    planHover = w; planDirty = true;
+    if(w) brushAt(w.x, w.y, e);
+  }
+  function endStroke(){
+    stroking = false;
+    document.removeEventListener('pointermove', onDocMove);
+    document.removeEventListener('pointerup', endStroke);
+    document.removeEventListener('pointercancel', endStroke);
+  }
+  cvW.addEventListener('pointerdown', e => {
+    if(e.button !== 0 && e.pointerType !== 'touch') return;
+    const w = wireWorld(e);
+    if(!w) return;
+    e.preventDefault();
+    stroking = true;
+    pushUndo();
+    strokeH = heightAt(w.x, w.y);
+    planHover = w;
+    brushAt(w.x, w.y, e);
+    document.addEventListener('pointermove', onDocMove);
+    document.addEventListener('pointerup', endStroke);
+    document.addEventListener('pointercancel', endStroke);
+  });
+  cvW.addEventListener('pointermove', e => {
+    if(stroking) return;
+    const w = wireWorld(e);
+    planHover = w; planDirty = true;
+  });
+  cvW.addEventListener('pointerleave', () => { if(!stroking){ planHover = null; planDirty = true; } });
+})();
+
+/* ═══════════════ exports ═══════════════ */
+function dl(name, content, mime){
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+function needTerrain(){ if(!S.generated){ alert('Generate terrain first.'); return true; } return false; }
+/* export units — independent of the display toggle */
+const EXP_SC = { m: 1, mm: 1000, ft: FT };
+try{ const u = localStorage.getItem('tf-units-exp'); if(u && EXP_SC[u]) el('expUnits').value = u; }catch(e){}
+el('expUnits').onchange = () => { try{ localStorage.setItem('tf-units-exp', el('expUnits').value); }catch(e){} };
+function expU(){ return el('expUnits').value; }
+function expScale(){ return EXP_SC[expU()] || 1; }
+function expDec(d){ return expU() === 'mm' ? 1 : d; }
+el('bCsv').onclick = () => {
+  if(needTerrain()) return;
+  const sc = expScale(), u = expU(), d = expDec(3);
+  let s = `X (${u}),Y (${u}),Z (${u})\n`;
+  for(let i = 0; i < S.P.length; i++) s += `${(S.P[i].x * sc).toFixed(d)},${(S.P[i].y * sc).toFixed(d)},${(S.h[i] * sc).toFixed(d)}\n`;
+  dl(`topo_points_${u}.csv`, s, 'text/csv');
+};
+el('bObj').onclick = () => {
+  if(needTerrain()) return;
+  const sc = expScale(), u = expU(), d = expDec(4);
+  let s = `# TopoForge triangulated surface — units ${u === 'ft' ? 'feet' : (u === 'mm' ? 'millimetres' : 'metres')}, Z up\no topo\n`;
+  for(let i = 0; i < S.P.length; i++) s += `v ${(S.P[i].x * sc).toFixed(d)} ${(S.P[i].y * sc).toFixed(d)} ${(S.h[i] * sc).toFixed(d)}\n`;
+  for(const t of S.tris) s += `f ${t[0] + 1} ${t[1] + 1} ${t[2] + 1}\n`;
+  dl(`topo_mesh_${u}.obj`, s, 'text/plain');
+};
+el('bDxf').onclick = () => {
+  if(needTerrain()) return;
+  const sc = expScale(), u = expU(), d = expDec(4);
+  /* $INSUNITS so CAD reads the units straight off the file: 6 m · 4 mm · 2 ft */
+  const ins = u === 'mm' ? 4 : (u === 'ft' ? 2 : 6);
+  let s = `0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n${ins}\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n`;
+  const c = (i, k) => ((k === 2 ? S.h[i] : (k === 0 ? S.P[i].x : S.P[i].y)) * sc).toFixed(d);
+  for(const t of S.tris){
+    s += '0\n3DFACE\n8\nTOPO\n';
+    s += `10\n${c(t[0],0)}\n20\n${c(t[0],1)}\n30\n${c(t[0],2)}\n`;
+    s += `11\n${c(t[1],0)}\n21\n${c(t[1],1)}\n31\n${c(t[1],2)}\n`;
+    s += `12\n${c(t[2],0)}\n22\n${c(t[2],1)}\n32\n${c(t[2],2)}\n`;
+    s += `13\n${c(t[2],0)}\n23\n${c(t[2],1)}\n33\n${c(t[2],2)}\n`;
+  }
+  s += '0\nENDSEC\n0\nEOF\n';
+  dl(`topo_mesh_${u}.dxf`, s, 'application/dxf');
+};
+
+/* whole-model save / restore — same pattern as the gherkin settings bar */
+function clearTerrain(){
+  S.generated = false; S.sculpted = false; S.undo = [];
+  S.P = []; S.tris = []; S.nbr = []; S.h = null; S.polyB = []; S.curveGen = [];
+  if(THREE_OK && mesh){
+    scene.remove(mesh); scene.remove(meshW);
+    geo.dispose(); mesh.material.dispose(); meshW.material.dispose();
+    mesh = null; meshW = null; geo = null;
+  }
+  if(THREE_OK && grid3){ scene.remove(grid3); grid3 = null; grid3Size = 0; }
+  el('hint3d').classList.remove('is-hidden');
+  el('stPts').textContent = '—'; el('stTris').textContent = '—';
+  el('stArea').innerHTML = '—<small>' + uA2() + '</small>'; el('stZ').textContent = '—';
+  drawLegend(); planDirty = true;
+}
+function restoreTerrain(t){
+  S.P = t.P.map(p => ({ x: +p.x, y: +p.y }));
+  S.tris = t.tris.map(a => [a[0] | 0, a[1] | 0, a[2] | 0]);
+  S.h = new Float32Array(t.h);
+  S.polyB = (t.polyB || []).map(p => ({ x: +p.x, y: +p.y }));
+  S.curveGen = (t.curveGen || t.polyB || []).map(p => ({ x: +p.x, y: +p.y }));
+  S.cx = +t.cx; S.cy = +t.cy;
+  const nbr = S.P.map(() => new Set());
+  for(const tr of S.tris){
+    nbr[tr[0]].add(tr[1]); nbr[tr[0]].add(tr[2]);
+    nbr[tr[1]].add(tr[0]); nbr[tr[1]].add(tr[2]);
+    nbr[tr[2]].add(tr[0]); nbr[tr[2]].add(tr[1]);
+  }
+  S.nbr = nbr.map(s => [...s]);
+  S.generated = true; S.sculpted = !!t.sculpted; S.undo = [];
+  computeZ();
+  if(THREE_OK){
+    let minx = 1e18, miny = 1e18, maxx = -1e18, maxy = -1e18;
+    for(const p of S.P){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); }
+    buildMesh(minx, miny, maxx, maxy);
+    fitCam(maxx - minx, maxy - miny);
+    el('hint3d').classList.add('is-hidden');
+  }
+  statsAll(); planDirty = true;
+}
+function exportModel(){
+  const m = {
+    app: 'topoforge', v: 1,
+    board: { w: S.boardW, d: S.boardD },
+    shape: shapeMode,
+    spline: { pts: P.pts, degree: P.degree, closed: P.closed, showPoly: P.showPoly, showGrid: P.showGrid, snap: P.snap },
+    circle: CIR.c,
+    terrainSettings: { spacing: S.spacing, baseZ: S.baseZ },
+    display: { fill: S.show.fill, colour: S.show.colour, wire: S.show.wire, cont: S.show.cont },
+    theme: dark ? 'dark' : 'light',
+    terrain: S.generated ? {
+      P: S.P, tris: S.tris, h: Array.from(S.h),
+      polyB: S.polyB, curveGen: S.curveGen,
+      cx: S.cx, cy: S.cy, sculpted: S.sculpted
+    } : null
+  };
+  dl('topoforge_model.json', JSON.stringify(m), 'application/json');
+}
+function importModel(m){
+  if(!m || m.app !== 'topoforge') throw new Error('not a topoforge model');
+  S.boardW = Math.max(20, +((m.board || {}).w) || 120);
+  S.boardD = Math.max(20, +((m.board || {}).d) || 90);
+  syncUnitInputs();
+  const ts = m.terrainSettings || {};
+  S.spacing = Math.max(0.25, +ts.spacing || 2);
+  S.baseZ = (typeof ts.baseZ === 'number') ? ts.baseZ : 0;
+  syncUnitInputs();
+  const sp = m.spline || {};
+  P.pts = Array.isArray(sp.pts) ? sp.pts.map(q => ({ x: +q.x, y: +q.y })) : [];
+  P.degree = Math.max(0, Math.min(5, sp.degree | 0));
+  P.closed = sp.closed !== false;
+  P.showPoly = sp.showPoly !== false;
+  P.showGrid = sp.showGrid !== false;
+  P.snap = sp.snap !== false;
+  P.sel = -1; P.undoStack = [];
+  el('splineDegree').value = P.degree; el('splineDegreeVal').textContent = P.degree;
+  el('splineClosed').checked = P.closed;
+  el('splinePoly').checked = P.showPoly;
+  el('splineGrid').checked = P.showGrid;
+  el('splineSnap').checked = P.snap;
+  CIR.c = m.circle ? { x: +m.circle.x, y: +m.circle.y, r: +m.circle.r } : null;
+  CIR.undo = [];
+  const dsp = m.display || {};
+  S.show.fill = dsp.fill !== false;
+  S.show.colour = dsp.colour !== false;
+  S.show.wire = dsp.wire !== false;
+  S.show.cont = dsp.cont !== false;
+  el('chFill').checked = S.show.fill;
+  el('chColour').checked = S.show.colour;
+  el('chWire').checked = S.show.wire;
+  el('chCont').checked = S.show.cont;
+  if((m.theme === 'dark') !== dark) el('themeToggle').click();
+  setShape(m.shape === 'circle' ? 'circle' : 'spline');
+  if(m.terrain && Array.isArray(m.terrain.P) && m.terrain.P.length) restoreTerrain(m.terrain);
+  else clearTerrain();
+  boardChanged();
+}
+el('cfgExport').onclick = exportModel;
+el('cfgImport').onclick = () => el('cfgFile').click();
+el('cfgFile').onchange = function(){
+  const f = this.files && this.files[0];
+  this.value = '';
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { importModel(JSON.parse(rd.result)); }
+    catch(err){ console.error(err); alert('Could not import that file — it does not look like a TopoForge model.'); }
+  };
+  rd.readAsText(f);
+};
+
+/* ═══════════════ stats ═══════════════ */
+function statsZ(){
+  el('stZ').textContent = S.generated ? `${uL(S.zmin).toFixed(2)} – ${uL(S.zmax).toFixed(2)} ${uName()}` : '—';
+  drawLegend();
+}
+const cvL = el('legend3d'), ctxL = cvL.getContext('2d');
+function drawLegend(){
+  if(!S.generated){ cvL.style.display = 'none'; return; }
+  cvL.style.display = 'block';
+  const W = 64, H = 250;
+  const d = dpr();
+  cvL.width = Math.round(W * d); cvL.height = Math.round(H * d);
+  ctxL.setTransform(d, 0, 0, d, 0, 0);
+  ctxL.clearRect(0, 0, W, H);
+  const by = 26, bw = 12, bx = W - bw - 2, bh = H - by - 22;
+  const g = ctxL.createLinearGradient(0, by, 0, by + bh);
+  if(S.show.colour){
+    const N = 32, spanG = (S.zmax - S.zmin) || 1;
+    for(let k = 0; k <= N; k++){
+      const z = S.zmax - spanG * k / N;
+      const c = divRamp(divT(z));
+      g.addColorStop(k / N, `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`);
+    }
+  } else {
+    const dark = isDark();
+    const lo = dark ? 0.16 : 0.94, hi = dark ? 0.68 : 0.44;
+    const gc = v => { const q = Math.round(v * 255); return `rgb(${q},${q},${q})`; };
+    g.addColorStop(0, gc(hi)); g.addColorStop(1, gc(lo));
+  }
+  ctxL.fillStyle = g; ctxL.fillRect(bx, by, bw, bh);
+  ctxL.strokeStyle = getCSS('--c-ink'); ctxL.lineWidth = 1;
+  ctxL.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+  ctxL.font = '10px "Afacad Flux",sans-serif';
+  ctxL.textAlign = 'right'; ctxL.textBaseline = 'alphabetic';
+  ctxL.fillStyle = getCSS('--c-ink');
+  ctxL.fillText('Z ' + uName(), W - 2, 12);
+  ctxL.fillStyle = getCSS('--muted');
+  ctxL.textBaseline = 'middle';
+  const spanZ = S.zmax - S.zmin;
+  const baseIn = spanZ > 1e-9 && S.baseZ >= S.zmin - 1e-9 && S.baseZ <= S.zmax + 1e-9;
+  const midY = baseIn ? by + bh * (S.zmax - S.baseZ) / spanZ : by + bh / 2;
+  const midV = baseIn ? S.baseZ : (S.zmax + S.zmin) / 2;
+  ctxL.fillText(uL(S.zmax).toFixed(2), bx - 6, by);
+  if(Math.abs(midY - by) > 10 && Math.abs(midY - (by + bh)) > 10) ctxL.fillText(uL(midV).toFixed(2), bx - 6, midY);
+  ctxL.fillText(uL(S.zmin).toFixed(2), bx - 6, by + bh);
+  ctxL.strokeStyle = getCSS('--muted');
+  for(const yy of [by, midY, by + bh]){
+    ctxL.beginPath(); ctxL.moveTo(bx - 3, yy + 0.5); ctxL.lineTo(bx, yy + 0.5); ctxL.stroke();
+  }
+  ctxL.textBaseline = 'alphabetic';
+  ctxL.fillText('Δ ' + uL(S.zmax - S.zmin).toFixed(2), W - 2, H - 6);
+}
+function statsAll(){
+  el('stPts').textContent = S.P.length;
+  el('stTris').textContent = S.tris.length;
+  el('stArea').innerHTML = uA(polyArea(S.polyB)).toFixed(0) + '<small>' + uA2() + '</small>';
+  statsZ();
+}
+
+/* ═══════════════ ui wiring ═══════════════ */
+function boardChanged(){
+  el('cellOut').textContent = fmtUnit(cellSize());
+  P.pts = P.pts.map(p => ({ x: clampX(p.x), y: clampY(p.y) }));
+  if(CIR.c){ CIR.c.x = clampX(CIR.c.x); CIR.c.y = clampY(CIR.c.y); }
+  drawBoardAll();
+}
+el('iBW').onchange = e => { S.boardW = Math.max(20, uLin(+e.target.value) || 120); boardChanged(); syncUnitInputs(); };
+el('iBWs').oninput = e => { S.boardW = Math.max(20, +e.target.value || 120); boardChanged(); syncUnitInputs(); };
+el('iBDs').oninput = e => { S.boardD = Math.max(20, +e.target.value || 90); boardChanged(); syncUnitInputs(); };
+el('iBD').onchange = e => { S.boardD = Math.max(20, uLin(+e.target.value) || 90); boardChanged(); syncUnitInputs(); };
+el('iSpace').onchange = e => { S.spacing = Math.max(0.25, uLin(+e.target.value) || 2); syncUnitInputs(); };
+el('iBase').onchange = e => { S.baseZ = uLin(+e.target.value) || 0; if(geo) updateColors(); drawLegend(); planDirty = true; syncUnitInputs(); };
+el('iRad').oninput = e => { S.radius = +e.target.value; el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName(); if(ring && ring.visible) ring.scale.set(S.radius, S.radius, S.radius); };
+el('iStr').oninput = e => { S.strength = +e.target.value; el('vStr').textContent = S.strength.toFixed(2); };
+document.querySelectorAll('#modeSeg button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#modeSeg button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); S.mode = b.dataset.mode;
+  };
+});
+el('chFill').onchange = e => { S.show.fill = e.target.checked; planDirty = true; };
+el('chColour').onchange = e => { S.show.colour = e.target.checked; if(geo) updateColors(); drawLegend(); planDirty = true; };
+
+/* main-window selector — the big slot's dropdown swaps views; the displaced
+   view takes the slot the chosen one came from */
+const slotOf = { '3d': 'a', 'ext': 'big', 'wire': 'b' };
+const viewEls = {
+  '3d': document.querySelector('.view.v3d'),
+  'ext': document.querySelector('.view.vext'),
+  'wire': document.querySelector('.view.vwire')
+};
+function currentBig(){ for(const k in slotOf) if(slotOf[k] === 'big') return k; return '3d'; }
+function syncViewSel(){
+  const b = currentBig();
+  document.querySelectorAll('.view-sel').forEach(s => { s.value = b; });
+}
+function applySlots(){
+  for(const k in viewEls){
+    viewEls[k].classList.remove('slot-big', 'slot-a', 'slot-b');
+    viewEls[k].classList.add('slot-' + slotOf[k]);
+  }
+  syncViewSel();
+  resizeAll();
+}
+function setBig(v){
+  const cur = currentBig();
+  if(v === cur){ syncViewSel(); return; }
+  const freed = slotOf[v];
+  slotOf[v] = 'big';
+  slotOf[cur] = freed;
+  applySlots();
+}
+document.querySelectorAll('.view-sel').forEach(s => { s.onchange = () => setBig(s.value); });
+el('chWire').onchange = e => { S.show.wire = e.target.checked; if(meshW) meshW.visible = S.show.wire; planDirty = true; };
+el('chCont').onchange = e => { S.show.cont = e.target.checked; planDirty = true; };
+
+/* display units toggle — repaint every unit-aware readout */
+function syncUnitInputs(){
+  const f = v => +uL(v).toFixed(2);
+  el('iBW').value = f(S.boardW); el('iBD').value = f(S.boardD);
+  el('iBWs').value = S.boardW; el('iBDs').value = S.boardD;   /* sliders stay metric */
+  el('iSpace').value = f(S.spacing); el('iBase').value = f(S.baseZ);
+  if(CIR.c) el('iCR').value = fmtUnit(CIR.c.r);
+  [['iBW',20,1000,10],['iBD',20,1000,10]].forEach(q => {
+    el(q[0]).min = Math.round(uL(q[1])); el(q[0]).max = Math.round(uL(q[2])); el(q[0]).step = Math.round(uL(q[3]));
+  });
+  el('iSpace').step = IMP ? 1 : 0.25; el('iSpace').min = IMP ? 1 : 0.25;
+  el('iBase').step = IMP ? 2 : 0.5;
+}
+function applyUnits(){
+  document.querySelectorAll('#unitSeg button').forEach(b => b.classList.toggle('active', (b.dataset.u === 'ft') === IMP));
+  document.querySelectorAll('.uu').forEach(sp => { sp.textContent = uName(); });
+  syncUnitInputs();
+  el('vRad').textContent = uL(S.radius).toFixed(1) + ' ' + uName();
+  el('cellOut').textContent = fmtUnit(cellSize());
+  if(S.generated){ statsAll(); } else { el('stArea').innerHTML = '—<small>' + uA2() + '</small>'; }
+  drawLegend(); drawBoardAll(); planDirty = true;
+}
+document.querySelectorAll('#unitSeg button').forEach(b => b.onclick = () => {
+  if((b.dataset.u === 'ft') === IMP) return;
+  IMP = b.dataset.u === 'ft';
+  try{ localStorage.setItem('tf-units', IMP ? 'imperial' : 'metric'); }catch(e){}
+  applyUnits();
+});
+applyUnits();
+
+/* theme toggle (in the site masthead) — inverts the whole board, canvases
+   re-read the tokens; state persists site-wide via ol-theme */
+let dark = document.documentElement.getAttribute('data-theme') === 'dark';
+if(dark){
+  el('themeLabel').textContent = 'Light';
+  el('themeToggle').setAttribute('aria-pressed', 'true');
+}
+el('themeToggle').onclick = () => {
+  dark = !dark;
+  if(dark) document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+  el('themeLabel').textContent = dark ? 'Light' : 'Dark';
+  el('themeToggle').setAttribute('aria-pressed', dark ? 'true' : 'false');
+  try{ localStorage.setItem('ol-theme', dark ? 'dark' : 'light'); }catch(e){}
+  window.dispatchEvent(new Event('themechange'));
+};
+window.addEventListener('themechange', () => {
+  cssCache = {};
+  if(THREE_OK){
+    scene.background = new THREE.Color(getCSS('--c-paper'));
+    if(ring) ring.material.color.set(getCSS('--burgundy'));
+    if(meshW) meshW.material.color.set(getCSS('--c-ink'));
+    rebuildGrid();
+    updateColors();
+  }
+  drawBoardAll();
+  drawLegend();
+  planDirty = true;
+});
+
+/* ═══════════════ resize + loop ═══════════════ */
+function sizeCanvas(cv, ctx){
+  const r = cv.parentElement.getBoundingClientRect();
+  const d = dpr();
+  cv.width = Math.max(2, Math.round(r.width * d));
+  cv.height = Math.max(2, Math.round(r.height * d));
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  return [r.width, r.height];
+}
+function resizeAll(){
+  [extW, extH] = sizeCanvas(cvE, ctxE);
+  [wirW, wirH] = sizeCanvas(cvW, ctxW);
+  if(THREE_OK){
+    const r = el('wrap3d').getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    cam.aspect = r.width / Math.max(1, r.height);
+    cam.updateProjectionMatrix();
+  }
+  drawBoardAll(); planDirty = true;
+}
+new ResizeObserver(resizeAll).observe(el('wrapExt'));
+new ResizeObserver(resizeAll).observe(el('wrapWire'));
+new ResizeObserver(resizeAll).observe(el('wrap3d'));
+
+let wireLast = 0;
+function loop(){
+  requestAnimationFrame(loop);
+  if(THREE_OK){ applyCam(); renderer.render(scene, cam); }
+  if(planDirty){
+    /* very large meshes repaint the plan at most 4x/s during sculpting */
+    const heavy = S.generated && S.tris.length > 60000;
+    const now = performance.now();
+    if(!heavy || now - wireLast > 250){ planDirty = false; wireLast = now; drawWire(); }
+  }
+}
+el('cellOut').textContent = fmtUnit(cellSize());
+resizeAll();
+drawBoardAll();
+drawWire();
+loop();
+</script>
+</body>
+</html>
