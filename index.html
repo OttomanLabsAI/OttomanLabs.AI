@@ -101,8 +101,7 @@
   .pg-hero canvas{ display:block; width:100%; height:auto; }
   .pg-hero-centre{ position:absolute; inset:0; display:flex; flex-direction:column; gap:.4rem;
     align-items:center; justify-content:center; text-align:center; pointer-events:none; }
-  .pg-hero-kicker{ font-family:var(--font-display); font-weight:700; font-size:1rem; letter-spacing:.01em; color:var(--ink-60); }
-  .pg-hero-title{ font-family:var(--font-display); font-weight:700; font-size:clamp(1.6rem,3.4vw,2.6rem); letter-spacing:.01em; line-height:1; }
+  .pg-hero-title{ font-family:var(--font-display); font-weight:700; font-size:clamp(1.3rem,2.6vw,2.4rem); letter-spacing:.01em; line-height:1; white-space:nowrap; }
   .pg-hero-btn{ font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.22em;
     text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
     padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
@@ -214,8 +213,7 @@
   <a class="pg-hero" id="pgHero" href="playground.html" aria-label="Enter the Computational AI Playground">
     <canvas id="pgHeroCanvas" aria-hidden="true"></canvas>
     <span class="pg-hero-centre">
-      <span class="pg-hero-kicker">The Computational</span>
-      <span class="pg-hero-title">AI Playground</span>
+      <span class="pg-hero-title">Computational AI Playground</span>
       <span class="pg-hero-btn">Enter</span>
     </span>
   </a>
@@ -713,17 +711,19 @@
   };
   /* island painter: stacked slabs differ in depth by noise-level amounts, so
      near-ties resolve by height (lower faces first) instead of raw depth */
-  var TEXPAT = null;
-  function texPattern(ctx){
-    if(TEXPAT) return TEXPAT;
+  /* minecraft tiles: an 8x8 quantized-noise tile per block colour (the
+     wool/grass/dirt look from the reference set), upscaled unsmoothed */
+  var TILES = {};
+  function texTile(ctx, col){
+    if(TILES[col]) return TILES[col];
     var t = document.createElement('canvas');
     t.width = 8; t.height = 8;
     var tc = t.getContext('2d');
+    var LV = [0.85, 0.93, 1, 1.09];
     for(var y = 0; y < 8; y++)
       for(var x = 0; x < 8; x++){
         var h1 = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; h1 -= Math.floor(h1);
-        var h2 = Math.sin(x * 269.5 + y * 183.3) * 28001.8384; h2 -= Math.floor(h2);
-        tc.fillStyle = 'rgba(' + (h1 < 0.5 ? '0,0,0' : '255,255,255') + ',' + (0.05 + 0.16 * h2).toFixed(3) + ')';
+        tc.fillStyle = shade(col, LV[Math.floor(h1 * 4) % 4]);
         tc.fillRect(x, y, 1, 1);
       }
     var big = document.createElement('canvas');
@@ -731,8 +731,8 @@
     var bc = big.getContext('2d');
     bc.imageSmoothingEnabled = false;
     bc.drawImage(t, 0, 0, 40, 40);
-    TEXPAT = ctx.createPattern(big, 'repeat');
-    return TEXPAT;
+    TILES[col] = ctx.createPattern(big, 'repeat');
+    return TILES[col];
   }
   function paintVox(ctx, faces, prj, yaw, lineCol){
     var out = faces.map(function(f){
@@ -754,7 +754,7 @@
                c:(pts[3].x-pts[0].x)/tv, d:(pts[3].y-pts[0].y)/tv,
                e:pts[0].x, f:pts[0].y, w:tu, h:tv };
       }
-      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), uv: uv };
+      return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), base: f.col, br: br, uv: uv };
     }).sort(function(a, b){
       var dd = b.d - a.d;
       if(Math.abs(dd) > 0.06) return dd;
@@ -771,13 +771,22 @@
         ctx.save(); ctx.clip();
         ctx.transform(o.a, o.b, o.c, o.d, o.e, o.f);
         ctx.translate(-ox, -oy);   /* per-face tile offset so blocks don't repeat */
-        ctx.fillStyle = texPattern(ctx);
+        ctx.fillStyle = texTile(ctx, f.base);
         ctx.fillRect(ox, oy, o.w, o.h);
+        /* bake the face light onto the tile */
+        if(f.br < 1){
+          ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.5, (1 - f.br) * 0.85).toFixed(3) + ')';
+          ctx.fillRect(ox, oy, o.w, o.h);
+        } else if(f.br > 1){
+          ctx.fillStyle = 'rgba(255,255,255,' + ((f.br - 1) * 0.4).toFixed(3) + ')';
+          ctx.fillRect(ox, oy, o.w, o.h);
+        }
         ctx.restore();
       }
       ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
     });
   }
+  window.__vox = { mkProj: mkProj, slab: slab, sq: sq, paintVox: paintVox };
   function voxIsland(ctx, x0, gy, sc, yaw, th){
     var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
     [ /* half, dx, dy, z0, z1 — the chunky stepped landmass */
@@ -1395,30 +1404,35 @@
       });
       ctx.setLineDash([]);
 
-      var cx = w * 0.5, cy = h * 0.68, rx = Math.min(w * 0.36, 460), ry = h * 0.185;
-      ctx.fillStyle = '#E8D6A0';
-      ctx.beginPath(); ctx.ellipse(cx, cy + h * 0.045, rx * 1.08, ry * 1.12, 0, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#4F8F4C';
-      ctx.beginPath(); ctx.ellipse(cx, cy + h * 0.02, rx, ry, 0, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#7CC96F';
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.fill();
-
-      if(cfg.hilly){
-        // a terraced central hill: each step is a contour, outlined like a
-        // topo map, with two extra contour rings on the lower slopes
-        ctx.strokeStyle = 'rgba(31,86,44,.5)'; ctx.lineWidth = Math.max(1.2, h * 0.006);
-        [[0.80, '#74C168', 0.020], [0.62, '#7FCC72', 0.028]].forEach(function(c){
-          ctx.beginPath(); ctx.ellipse(cx, cy - h * c[2] + h * 0.02, rx * c[0], ry * c[0], 0, 0, TAU); ctx.stroke();
+      var cx = w * 0.5, cy = h * 0.64, rx = Math.min(w * 0.36, 460), ry = h * 0.185;
+      /* the minecraft island — same voxel recipe as the project isles */
+      var vk = Math.min(rx * 1.4, h * 0.58), YAW = 0.62;
+      if(window.__vox){
+        var V = window.__vox, vprj = V.mkProj(cx, cy, vk, YAW), vfaces = [];
+        var TH = { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096' };
+        [[0.68, 0.00, 0.00, -0.075, 0, TH.top, TH.side],
+         [0.34, 0.52, -0.34, -0.075, 0, TH.top, TH.side],
+         [0.30, -0.54, 0.34, -0.075, 0, TH.top, TH.side],
+         [0.58, 0.02, 0.02, -0.21, -0.075, TH.dirt, TH.dirt],
+         [0.34, -0.28, -0.24, -0.21, -0.075, TH.dirt, TH.dirt],
+         [0.44, 0.02, -0.02, -0.34, -0.21, TH.dirt2, TH.dirt2],
+         [0.28, -0.02, 0.04, -0.46, -0.34, TH.stone, TH.stone],
+         [0.15, 0.04, -0.02, -0.55, -0.46, TH.stone, TH.stone]]
+        .forEach(function(q){
+          V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
+          vfaces[vfaces.length - 1].col = q[5];
         });
-        [[0.46, '#86D177', 0.052], [0.33, '#93DA82', 0.085], [0.21, '#A2E28F', 0.115]].forEach(function(t){
-          ctx.fillStyle = t[1];
-          ctx.beginPath(); ctx.ellipse(cx, cy - h * t[2], rx * t[0], ry * t[0], 0, 0, TAU); ctx.fill();
-          ctx.beginPath(); ctx.ellipse(cx, cy - h * t[2], rx * t[0], ry * t[0], 0, 0, TAU); ctx.stroke();
-        });
-      } else {
-        ctx.strokeStyle = 'rgba(255,248,231,.65)'; ctx.lineWidth = Math.max(2, h * 0.012);
-        ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.66, ry * 0.6, 0, 0, TAU); ctx.stroke();
+        if(cfg.hilly){
+          /* the terraced hill, in blocks */
+          [[0.30, -0.10, 0.08, 0, 0.07, '#86D177'],
+           [0.19, -0.08, 0.06, 0.07, 0.13, '#93DA82']].forEach(function(q){
+            V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[5]);
+          });
+        }
+        V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
       }
+      /* the carousel rides the island's top face */
+      rx = vk * 0.62; ry = vk * 0.26;
 
       function ground(phi, r){
         var a = phi - rot;
@@ -1747,30 +1761,42 @@
     var turns = GK.twist / 2, mpy = GK.hMax / 180;
     var fam, i, s, t;
 
-    /* levels every LH metres, up to the 2 m top offset */
+    /* levels every LH metres up to the 2 m top offset — these are the
+       diagrid's node heights, so the level slider re-meshes the frame */
+    var Ls = [];
     for(var hM = 0; ; hM += LH){
       var hh = Math.min(hM, 178);
       var my = GK.hMax - hh * mpy;
-      var rr = grad(my) * k, ly = yTop + my * k;
-      addLine([{ x: cx - rr, y: ly }, { x: cx + rr, y: ly }], 0.8, 'muted', 0.45);
+      Ls.push({ r: grad(my) * k, y: yTop + my * k, t: 1 - my / GK.hMax });
       if(hh === 178) break;
     }
+    Ls.forEach(function(L){
+      addLine([{ x: cx - L.r, y: L.y }, { x: cx + L.r, y: L.y }], 0.8, 'muted', 0.45);
+    });
 
-    /* diagrid: line count follows the points slider, newest line fades in */
+    /* diagrid: two helix families drawn node-to-node through the levels;
+       count follows the points slider, newest line fades in */
     var Nc = NP / 2;
     for(fam = -1; fam <= 1; fam += 2){
       for(i = 0; i < Math.ceil(Nc); i++){
         var pts = [];
-        for(s = 0; s <= 26; s++){
-          t = s / 26;
-          var p = gbez(t), ph = TAU * (fam * turns * t + i / Nc);
-          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yTop + p.y * k });
+        for(s = 0; s < Ls.length; s++){
+          var ph = TAU * (fam * turns * Ls[s].t + i / Nc);
+          pts.push({ x: cx + Ls[s].r * Math.sin(ph), y: Ls[s].y });
         }
         var la = (i < Math.floor(Nc) ? 1 : Nc - Math.floor(Nc)) * 0.6;
         addLine(pts, 0.8, 'ink', la,
-          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / Nc, dir: -1 }] : null);
-        KNOBS.push({ x: pts[26].x, y: pts[26].y, r: 2.6, hollow: true, a: la / 0.6 });   /* base node */
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / Nc }] : null);
+        KNOBS.push({ x: pts[0].x, y: pts[0].y, r: 2.6, hollow: true, a: la / 0.6 });   /* base node */
       }
+    }
+    /* the vertical elements — one mullion per diagrid point, riding the profile */
+    for(i = 0; i < Math.ceil(NP); i++){
+      var vp = [];
+      for(s = 0; s < Ls.length; s++)
+        vp.push({ x: cx + Ls[s].r * Math.sin(TAU * i / NP), y: Ls[s].y });
+      var va = (i < Math.floor(NP) ? 1 : NP - Math.floor(NP)) * 0.3;
+      addLine(vp, 0.7, 'ink', va);
     }
     var sl = [], sr = [];
     for(s = 0; s <= 26; s++){
@@ -1783,9 +1809,18 @@
     addLine(sr, 1.5, 'ink', 1);
     addLine([sl[26], sr[26]], 1, 'muted', 0.5);   /* ground chord under the base nodes */
 
-    /* the two sliders, unlabelled: levels first, then points */
+    /* the two sliders, unlabelled: levels first, then points. They sit in
+       the band left of the lockup, hopping to its right side when the
+       window narrows so they never run under the text */
     if(sg.h > 0.02){
-      var sx0 = cx + half + 34, sx1 = sx0 + Math.min(120, W * 0.09);
+      var sLen = Math.min(120, W * 0.09);
+      var sx0 = cx + half + 34;
+      var cenL = W * 0.5 - Math.min(W * 0.25, 330);
+      if(sx0 + sLen > cenL - 10){
+        sx0 = W * 0.5 + Math.min(W * 0.25, 330);
+        sLen = Math.max(50, Math.min(sLen, W - 16 - sx0));
+      }
+      var sx1 = sx0 + sLen;
       [ { y: H * 0.40, u: p1 }, { y: H * 0.54, u: p2 } ].forEach(function(sd){
         addLine([{ x: sx0, y: sd.y }, { x: sx1, y: sd.y }], 2, 'muted', 0.8 * sg.h);
         KNOBS.push({ x: sx0 + (sx1 - sx0) * sd.u, y: sd.y, r: 5, a: sg.h });
@@ -1813,15 +1848,17 @@
       ctx.stroke();
       ctx.globalAlpha = 1;
     });
-    ctx.fillStyle = IK;
     DOTS.forEach(function(d){
       var u = d.u != null ? d.u : T * d.sp * (d.dir || 1) + d.off;
       u = ((u % 1) + 1) % 1;
       var p = arcPoint(d.line, u);
       ctx.globalAlpha = Math.min(1, d.line.alpha / 0.6);
-      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU);
+      ctx.fillStyle = paper(); ctx.fill();
+      ctx.strokeStyle = IK; ctx.lineWidth = 1; ctx.stroke();
     });
     ctx.globalAlpha = 1;
+    ctx.fillStyle = IK;
     KNOBS.forEach(function(kb){
       ctx.globalAlpha = kb.a == null ? 1 : Math.min(1, kb.a);
       ctx.beginPath(); ctx.arc(kb.x, kb.y, kb.r, 0, TAU);
