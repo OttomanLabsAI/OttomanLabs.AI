@@ -112,8 +112,9 @@
     text-align:center; padding:0 1.5rem; font-family:var(--font-serif); font-style:italic;
     font-size:.95rem; color:var(--ink-35); pointer-events:none; }
   .t3-axeschk{ position:absolute; top:.45rem; right:.45rem; display:flex; align-items:center;
-    gap:.35rem; font-family:var(--font-brand); font-size:.54rem; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--ink-60); cursor:pointer; }
+    gap:.7rem; font-family:var(--font-brand); font-size:.54rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); }
+  .t3-axeschk label{ display:flex; align-items:center; gap:.35rem; cursor:pointer; }
   .t3-axeschk input{ accent-color:var(--ink); margin:0; }
 
   /* ── input tools card ── */
@@ -468,10 +469,13 @@
       <div class="pg-set" id="t3Set"></div>
       <div class="t3-viewwrap">
         <canvas id="t3View" aria-label="3D output — drag to orbit"></canvas>
-        <label class="t3-axeschk"><input type="checkbox" id="t3Axes" checked>Axes + grid</label>
+        <span class="t3-axeschk">
+          <label><input type="checkbox" id="t3Axes" checked>Axes</label>
+          <label><input type="checkbox" id="t3Grid" checked>Grid</label>
+        </span>
         <div class="t3-vnote" id="t3Note"></div>
       </div>
-      <div class="pg-hint">tap to add a point &middot; drag a point to move it, or grab the line to carry the whole thing &middot; right-click deletes &middot; drag the 3d view to orbit, click the cube&rsquo;s faces or corners</div>
+      <div class="pg-hint">tap to add a point &middot; drag a point to move it, or grab the line to carry the whole thing &middot; right-click deletes &middot; drag the 3d view to orbit, right-drag to pan, click the cube&rsquo;s faces or corners</div>
       <div class="t3-note">get creative &mdash; and ask your AI to rebuild this box with new line styles; the markup is all here for it to read</div>
     </div>
     <div class="draw-sec itools">
@@ -1732,12 +1736,18 @@
     var pp = rel(state.path, pathC);
     if(pp.length < 2) return null;
     var pts = samplePath2(pp, state.ptype).map(function(p){ return map2(p, F); });
-    var T = [];
-    for(var i = 0; i < pts.length; i++){
+    var T = [], SC = [], i;
+    for(i = 0; i < pts.length; i++){
       var a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
       T.push(norm3(sub3(b, a)));
     }
-    return { Q: pts, T: T };
+    for(i = 0; i < pts.length; i++){
+      if(i === 0 || i === pts.length - 1){ SC.push(1); continue; }
+      var din = norm3(sub3(pts[i], pts[i - 1])), dout = norm3(sub3(pts[i + 1], pts[i]));
+      var c = Math.max(-0.99, Math.min(1, dot3(din, dout)));
+      SC.push(Math.min(3, 1 / Math.sqrt((1 + c) / 2)));   /* mitre stretch at corners */
+    }
+    return { Q: pts, T: T, S: SC };
   }
   function rot2(p, th){
     var c = Math.cos(th), s = Math.sin(th);
@@ -1793,7 +1803,7 @@
           var lp = B2 ? { x: A2[j].x + (B2[j].x - A2[j].x)*t, y: A2[j].y + (B2[j].y - A2[j].y)*t }
                       : A2[j];
           if(tw) lp = rot2(lp, tw);
-          ring.push(add3(sp.Q[i], add3(mul3(b, lp.x), mul3(F.n, lp.y))));
+          ring.push(add3(sp.Q[i], add3(mul3(b, lp.x * sp.S[i]), mul3(F.n, lp.y))));
         }
         rings.push(ring);
       }
@@ -1835,14 +1845,15 @@
     var EDGES = [];
     Object.keys(emap).forEach(function(k2){
       var rec = emap[k2];
-      if(rec.fs.length === 2) EDGES.push({ a: rec.a, b: rec.b, f1: rec.fs[0], f2: rec.fs[1] });
+      if(rec.fs.length === 2) EDGES.push({ a: rec.a, b: rec.b, f1: rec.fs[0], f2: rec.fs[1],
+        cop: dot3(fnorm[rec.fs[0]], fnorm[rec.fs[1]]) >= 0.9999 });
     });
     MESH = { faces: FACES, edges: EDGES };
   }
 
   var _computeMesh = buildMesh;
   buildMesh = function(){ _computeMesh(); drawView(); };
-  var AXES = true, VIEW_R = 260;
+  var AXES = true, GRID = true, VIEW_R = 260, PAN = { x: 0, y: 0 };
   view.addEventListener('wheel', function(e){
     e.preventDefault();
     VIEW_R = Math.max(60, Math.min(2400, VIEW_R * (e.deltaY > 0 ? 1.12 : 0.9)));
@@ -1850,6 +1861,8 @@
   }, { passive: false });
   var axChk = document.getElementById('t3Axes');
   if(axChk) axChk.addEventListener('change', function(){ AXES = axChk.checked; drawView(); });
+  var grChk = document.getElementById('t3Grid');
+  if(grChk) grChk.addEventListener('change', function(){ GRID = grChk.checked; drawView(); });
 
   /* ---- 3d view: manual orbit, painter-sorted flat shading ---- */
   function drawView(){
@@ -1859,6 +1872,7 @@
     if(noteEl) noteEl.textContent = hasMesh ? '' : NOTE;
     var C = v3(0, 0, 0), R = VIEW_R;
     var S = 0.42 * Math.min(w, h) / R;
+    var CX = w / 2 + PAN.x, CY = h / 2 + PAN.y;
     var cy = Math.cos(state.yaw), sy = Math.sin(state.yaw);
     var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
     function tv(p){
@@ -1869,7 +1883,7 @@
     }
     var AXD = [[v3(1,0,0), 'X'], [v3(0,1,0), 'Y'], [v3(0,0,1), 'Z']];
     var axLen = R * 1.15, axO = tv(v3(0, 0, 0));
-    if(AXES){
+    if(GRID){
       /* the xy ground grid — same spacing as the sketch snap grid, through the origin */
       var gs = SNAP.g, km = Math.ceil(R * 1.05 / gs), G = km * gs;
       vcx.strokeStyle = muted(); vcx.globalAlpha = 0.18; vcx.lineWidth = 1;
@@ -1878,24 +1892,26 @@
         var go = gi * gs;
         var a1 = tv(v3(go, -G, 0)), a2 = tv(v3(go, G, 0));
         var b1 = tv(v3(-G, go, 0)), b2 = tv(v3(G, go, 0));
-        vcx.moveTo(w/2 + a1.x*S, h/2 - a1.z*S); vcx.lineTo(w/2 + a2.x*S, h/2 - a2.z*S);
-        vcx.moveTo(w/2 + b1.x*S, h/2 - b1.z*S); vcx.lineTo(w/2 + b2.x*S, h/2 - b2.z*S);
+        vcx.moveTo(CX + a1.x*S, CY - a1.z*S); vcx.lineTo(CX + a2.x*S, CY - a2.z*S);
+        vcx.moveTo(CX + b1.x*S, CY - b1.z*S); vcx.lineTo(CX + b2.x*S, CY - b2.z*S);
       }
       vcx.stroke();
       vcx.globalAlpha = 1;
+    }
+    if(AXES){
       AXD.forEach(function(ax){
         var tp = tv(mul3(ax[0], axLen)), tn = tv(mul3(ax[0], -axLen));
         vcx.strokeStyle = muted(); vcx.lineWidth = 1;
         vcx.globalAlpha = 0.75;
         vcx.beginPath();
-        vcx.moveTo(w/2 + axO.x*S, h/2 - axO.z*S);
-        vcx.lineTo(w/2 + tp.x*S, h/2 - tp.z*S);
+        vcx.moveTo(CX + axO.x*S, CY - axO.z*S);
+        vcx.lineTo(CX + tp.x*S, CY - tp.z*S);
         vcx.stroke();
         vcx.globalAlpha = 0.3;
         vcx.setLineDash([4, 4]);
         vcx.beginPath();
-        vcx.moveTo(w/2 + axO.x*S, h/2 - axO.z*S);
-        vcx.lineTo(w/2 + tn.x*S, h/2 - tn.z*S);
+        vcx.moveTo(CX + axO.x*S, CY - axO.z*S);
+        vcx.lineTo(CX + tn.x*S, CY - tn.z*S);
         vcx.stroke();
         vcx.setLineDash([]);
         vcx.globalAlpha = 1;
@@ -1908,12 +1924,12 @@
         vcx.beginPath();
         PREVIEW.pts.forEach(function(p, i){
           var q = tv(p);
-          i ? vcx.lineTo(w/2 + q.x*S, h/2 - q.z*S) : vcx.moveTo(w/2 + q.x*S, h/2 - q.z*S);
+          i ? vcx.lineTo(CX + q.x*S, CY - q.z*S) : vcx.moveTo(CX + q.x*S, CY - q.z*S);
         });
         if(PREVIEW.closed) vcx.closePath();
         vcx.stroke();
       }
-      if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+      if(AXES) axisLabels(AXD, axLen, S, CX, CY, tv);
       drawCube();
       return;
     }
@@ -1931,8 +1947,8 @@
     var fc = paper(), ec = ink();
     out.forEach(function(f){
       vcx.beginPath();
-      vcx.moveTo(w/2 + f.q[0].x*S, h/2 - f.q[0].z*S);
-      for(var k = 1; k < f.q.length; k++) vcx.lineTo(w/2 + f.q[k].x*S, h/2 - f.q[k].z*S);
+      vcx.moveTo(CX + f.q[0].x*S, CY - f.q[0].z*S);
+      for(var k = 1; k < f.q.length; k++) vcx.lineTo(CX + f.q[k].x*S, CY - f.q[k].z*S);
       vcx.closePath();
       vcx.fillStyle = fc; vcx.strokeStyle = fc; vcx.lineWidth = 1;
       vcx.fill(); vcx.stroke();
@@ -1941,21 +1957,21 @@
       for(var e = 0; e < f.q.length; e++){
         if(!f.crease[e]) continue;
         var A = f.q[e], B = f.q[(e+1) % f.q.length];
-        vcx.moveTo(w/2 + A.x*S, h/2 - A.z*S);
-        vcx.lineTo(w/2 + B.x*S, h/2 - B.z*S);
+        vcx.moveTo(CX + A.x*S, CY - A.z*S);
+        vcx.lineTo(CX + B.x*S, CY - B.z*S);
       }
       vcx.stroke();
     });
     vcx.strokeStyle = ec; vcx.lineWidth = 1.25;
     vcx.beginPath();
     MESH.edges.forEach(function(ed){
-      if(facing[ed.f1] === facing[ed.f2]) return;
+      if(ed.cop || facing[ed.f1] === facing[ed.f2]) return;
       var A = tv(ed.a), B = tv(ed.b);
-      vcx.moveTo(w/2 + A.x*S, h/2 - A.z*S);
-      vcx.lineTo(w/2 + B.x*S, h/2 - B.z*S);
+      vcx.moveTo(CX + A.x*S, CY - A.z*S);
+      vcx.lineTo(CX + B.x*S, CY - B.z*S);
     });
     vcx.stroke();
-    if(AXES) axisLabels(AXD, axLen, S, w, h, tv);
+    if(AXES) axisLabels(AXD, axLen, S, CX, CY, tv);
     drawCube();
   }
   /* ---- view cube: rotates with the view; click a face to snap to it ---- */
@@ -2032,6 +2048,7 @@
       if((px - cc.x)*(px - cc.x) + (py - cc.y)*(py - cc.y) < 81){
         state.yaw = Math.atan2(-cc.c.x, -cc.c.y);
         state.pitch = Math.atan2(cc.c.z, Math.hypot(cc.c.x, cc.c.y));
+        PAN.x = 0; PAN.y = 0;
         drawView();
         return true;
       }
@@ -2041,19 +2058,20 @@
         var f = CUBE_POLYS[i].f;
         if(f.yaw !== null) state.yaw = f.yaw;
         state.pitch = f.pitch;
+        PAN.x = 0; PAN.y = 0;
         drawView();
         return true;
       }
     }
     return false;
   }
-  function axisLabels(AXD, axLen, S, w, h, tv){
+  function axisLabels(AXD, axLen, S, CX, CY, tv){
     vcx.font = '10px sans-serif';
     vcx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ink-60').trim() || '#5A5A5A';
     vcx.textAlign = 'center'; vcx.textBaseline = 'middle';
     AXD.forEach(function(ax){
       var tp = tv(mul3(ax[0], axLen * 1.07));
-      vcx.fillText(ax[1], w/2 + tp.x*S, h/2 - tp.z*S);
+      vcx.fillText(ax[1], CX + tp.x*S, CY - tp.z*S);
     });
   }
 
@@ -2341,13 +2359,22 @@
   });
 
   /* ---- orbit ---- */
-  var orbiting = false, lx = 0, ly = 0, orbMoved = false;
+  var orbiting = false, panning = false, lx = 0, ly = 0, orbMoved = false;
   view.addEventListener('pointerdown', function(e){
-    orbiting = true; lx = e.clientX; ly = e.clientY; orbMoved = false;
+    lx = e.clientX; ly = e.clientY; orbMoved = false;
     view.setPointerCapture(e.pointerId);
+    if(e.button === 2){ panning = true; return; }
+    orbiting = true;
     view.style.cursor = 'grabbing';
   });
+  view.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   view.addEventListener('pointermove', function(e){
+    if(panning){
+      PAN.x += e.clientX - lx; PAN.y += e.clientY - ly;
+      lx = e.clientX; ly = e.clientY;
+      drawView();
+      return;
+    }
     if(!orbiting) return;
     if(Math.abs(e.clientX - lx) + Math.abs(e.clientY - ly) > 2) orbMoved = true;
     state.yaw += (e.clientX - lx) * 0.008;
@@ -2356,6 +2383,7 @@
     drawView();
   });
   view.addEventListener('pointerup', function(e){
+    if(e.button === 2){ panning = false; return; }
     orbiting = false; view.style.cursor = 'grab';
     if(!orbMoved){
       var r = view.getBoundingClientRect();
@@ -2550,7 +2578,8 @@
       var x = px / 100 * 88, y = (100 - py) / 100 * 88;
       pctx.strokeStyle = ink(); pctx.lineWidth = 1;
       pctx.beginPath(); pctx.moveTo(x, 0); pctx.lineTo(x, 88); pctx.moveTo(0, y); pctx.lineTo(88, y); pctx.stroke();
-      pctx.beginPath(); pctx.arc(x, y, 4, 0, TAU); pctx.fillStyle = ink(); pctx.fill();
+      var dx2 = Math.max(5, Math.min(83, x)), dy2 = Math.max(5, Math.min(83, y));
+      pctx.beginPath(); pctx.arc(dx2, dy2, 4, 0, TAU); pctx.fillStyle = ink(); pctx.fill();
     };
     var fromPad = function(e){
       var r = pad.getBoundingClientRect();
@@ -2647,7 +2676,9 @@
         mcx.stroke();
       }
       H.forEach(function(hd){
-        mcx.beginPath(); mcx.arc(sx(hd.x), sy(hd.y), 3.5, 0, TAU);
+        var hx = Math.max(4.5, Math.min(91.5, sx(hd.x)));
+        var hy = Math.max(4.5, Math.min(91.5, sy(hd.y)));
+        mcx.beginPath(); mcx.arc(hx, hy, 3.5, 0, TAU);
         mcx.fillStyle = ink(); mcx.fill();
       });
     };
@@ -3162,11 +3193,11 @@
         'Style: white board, thin grey grids, 2px black ink, uppercase micro-labels.'].join('\n');
       } },
     { sel:'.itools', title:'Input Tools', engines:['uiToolsEngine'], only:'IT_ONLY', file:'input-tools.html',
-      units:[ { id:'slider', label:'Number slider' }, { id:'stepper', label:'Number entry' },
+      units:[ { id:'stepper', label:'Number entry' }, { id:'slider', label:'Number slider' },
               { id:'dial', label:'Dial' }, { id:'toggle', label:'Toggle' }, { id:'seg', label:'Segmented' },
-              { id:'pad', label:'XY pad' }, { id:'pool', label:'Gene pool' }, { id:'mapper', label:'Graph mapper' },
-              { id:'domain', label:'Domain' }, { id:'list', label:'Value list' }, { id:'button', label:'Button' },
-              { id:'panel', label:'Text input' } ],
+              { id:'pad', label:'XY pad' }, { id:'mapper', label:'Graph mapper' }, { id:'domain', label:'Domain' },
+              { id:'list', label:'Value list' }, { id:'button', label:'Button' },
+              { id:'panel', label:'Text input' }, { id:'pool', label:'Gene pool' } ],
       prompt: function(){
         return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family, reimagined in white paper and black ink:',
         '',
