@@ -3753,7 +3753,7 @@
       '    int[] faceVertexIndices = [' + idx.join(', ') + ']\n' +
       '    point3f[] points = [' + pts.join(', ') + ']\n' +
       '}\n';
-    download(new Blob([usd], { type:'text/plain' }), fname('-column', 'usda'), note3d);
+    download(new Blob([usd], { type:'text/plain' }), fname('-column', 'usd'), note3d);
   }
   var noteSet = document.getElementById('csNoteSet');
   function exportSettings(){
@@ -4008,7 +4008,7 @@
         'Concrete comes rectangular or circular — circular standard sizes (Ø) in every nation, and the custom concrete form offers a shape choice with a diameter box.',
         'Draw the chosen section true to scale on a canvas: steel I-sections with web, flanges and sampled root-radius fillets; timber with grain rings clipped to the rectangle; concrete with a link outline and rebar dots (ringed bars on circular sections). Dashed centre lines behind, and a caption of the designation and dimensions.',
         'Below the section, a column height input (default 5 m) with unit options (m, mm, ft) that convert the value both ways, and an orbitable 3D view of the section extruded to that height, rendered hidden-line.',
-        'Export sets are separate: 2D — DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox), PNG and JSON (the section data); 3D — OBJ, STL and USD (usda Mesh prim, metersPerUnit 0.001, Z up) of the extruded column (ear-clipped caps, mm) and a PNG of the view. A Settings row exports the whole selection as JSON and imports it back.',
+        'Export sets are separate: 2D — DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox), PNG and JSON (the section data); 3D — OBJ, STL and USD (a .usd file with ASCII usda content: a Mesh prim, metersPerUnit 0.001, Z up) of the extruded column (ear-clipped caps, mm) and a PNG of the view. A Settings row exports the whole selection as JSON and imports it back.',
         '',
         'Reproduce the current state: nation ' + (s.nation || 'uk') + ', family ' + (s.fam || 'ub') +
         (s.custom ? ', custom dimensions ' + JSON.stringify(s.cd) : ', size index ' + (s.size || 0)) + '.',
