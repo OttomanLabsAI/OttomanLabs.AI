@@ -695,8 +695,16 @@
         <span class="pg-note">3D</span>
         <button id="csObj" type="button">OBJ</button>
         <button id="csStl" type="button">STL</button>
+        <button id="csUsd" type="button">USD</button>
         <button id="csPng3" type="button">PNG</button>
         <span class="pg-note" id="csNote3"></span>
+      </div>
+      <div class="pg-panel-row cs-exports">
+        <span class="pg-note">Settings</span>
+        <button id="csSetExp" type="button">Export</button>
+        <button id="csSetImp" type="button">Import</button>
+        <input type="file" id="csSetFile" accept="application/json,.json" hidden>
+        <span class="pg-note" id="csNoteSet"></span>
       </div>
       <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom; drag the column to orbit it</div>
     </div>
@@ -3357,7 +3365,24 @@
         ['16 × 16 in (406)',406,406], ['18 × 18 in (457)',457,457],
         ['12 × 18 in (305 × 457)',305,457], ['24 × 24 in (610)',610,610],
         ['Ø 12 in (305)',305,0,'c'], ['Ø 16 in (406)',406,0,'c'],
-        ['Ø 18 in (457)',457,0,'c'], ['Ø 24 in (610)',610,0,'c'] ] } ] }
+        ['Ø 18 in (457)',457,0,'c'], ['Ø 24 in (610)',610,0,'c'] ] } ] },
+    cn: { label:'China', fams: [
+      { id:'hw', label:'HW', kind:'i', sizes: [
+        ['HW 100×100',100,100,6,8,10], ['HW 125×125',125,125,6.5,9,10], ['HW 150×150',150,150,7,10,13],
+        ['HW 175×175',175,175,7.5,11,13], ['HW 200×200',200,200,8,12,16], ['HW 250×250',250,250,9,14,16],
+        ['HW 300×300',300,300,10,15,18], ['HW 350×350',350,350,12,19,20], ['HW 400×400',400,400,13,21,22] ] },
+      { id:'hn', label:'HN', kind:'i', sizes: [
+        ['HN 200×100',200,100,5.5,8,11], ['HN 250×125',250,125,6,9,12], ['HN 300×150',300,150,6.5,9,13],
+        ['HN 350×175',350,175,7,11,13], ['HN 400×200',400,200,8,13,16], ['HN 450×200',450,200,9,14,18],
+        ['HN 500×200',500,200,10,16,20], ['HN 600×200',600,200,11,17,22] ] },
+      { id:'timber', label:'Timber', kind:'timber', sizes: [
+        ['50 × 100',50,100], ['60 × 120',60,120], ['80 × 160',80,160], ['100 × 100',100,100],
+        ['120 × 120',120,120], ['140 × 140',140,140], ['160 × 160',160,160], ['200 × 200',200,200] ] },
+      { id:'conc', label:'Concrete', kind:'conc', sizes: [
+        ['300 × 300',300,300], ['350 × 350',350,350], ['400 × 400',400,400], ['400 × 600',400,600],
+        ['450 × 450',450,450], ['500 × 500',500,500], ['600 × 600',600,600],
+        ['Ø 300 circular',300,0,'c'], ['Ø 400 circular',400,0,'c'],
+        ['Ø 500 circular',500,0,'c'], ['Ø 600 circular',600,0,'c'] ] } ] }
   };
   var ONLY = (typeof window !== 'undefined' && window.CS_ONLY) || null;
   if(ONLY && ONLY.length){
@@ -3369,7 +3394,7 @@
 
   var state = { nation:'uk', fam:'ub', size:0, custom:false, h:5, hUnit:'m',
                 yaw:-0.7, pitch:0.42,
-                cd: { h:300, b:150, tw:8, tf:12, w:150, d:300, dia:400, shape:'rect' } };
+                cd: { h:300, b:150, tw:8, tf:12, r:10, w:150, d:300, dia:400, shape:'rect' } };
   window.__cs = state;
   var HF = { m:1000, mm:1, ft:304.8 };
   function heightMm(){ return Math.max(1, (+state.h || 5) * HF[state.hUnit]); }
@@ -3386,7 +3411,7 @@
     var f = fam();
     if(state.custom){
       if(f.kind === 'i') return { name:'Custom ' + f.label, h:state.cd.h, b:state.cd.b,
-                                  tw:state.cd.tw, tf:state.cd.tf, r:0, kind:'i' };
+                                  tw:state.cd.tw, tf:state.cd.tf, r:state.cd.r || 0, kind:'i' };
       if(f.kind === 'conc' && state.cd.shape === 'circ')
         return { name:'Custom concrete Ø' + state.cd.dia, dia:state.cd.dia, kind:'circ' };
       return { name:'Custom ' + f.label, b:state.cd.w, d:state.cd.d, kind:f.kind };
@@ -3707,6 +3732,60 @@
     L.push('endsolid');
     download(new Blob([L.join('\n')], { type:'model/stl' }), fname('-column', 'stl'), note3d);
   }
+  function exportUsd(){
+    var sec = section(), P = outline(sec), H = heightMm(), n = P.length;
+    var pts = [];
+    P.forEach(function(p){ pts.push('(' + p.x.toFixed(2) + ', ' + p.y.toFixed(2) + ', 0)'); });
+    P.forEach(function(p){ pts.push('(' + p.x.toFixed(2) + ', ' + p.y.toFixed(2) + ', ' + H.toFixed(2) + ')'); });
+    var counts = [], idx = [];
+    for(var i = 0; i < n; i++){
+      var j = (i + 1) % n;
+      counts.push(4);
+      idx.push(i, j, n + j, n + i);
+    }
+    triangulate2(P).forEach(function(t){
+      counts.push(3); idx.push(t[2], t[1], t[0]);
+      counts.push(3); idx.push(n + t[0], n + t[1], n + t[2]);
+    });
+    var usd = '#usda 1.0\n(\n    defaultPrim = "Column"\n    metersPerUnit = 0.001\n    upAxis = "Z"\n)\n\n' +
+      'def Mesh "Column"\n{\n' +
+      '    int[] faceVertexCounts = [' + counts.join(', ') + ']\n' +
+      '    int[] faceVertexIndices = [' + idx.join(', ') + ']\n' +
+      '    point3f[] points = [' + pts.join(', ') + ']\n' +
+      '}\n';
+    download(new Blob([usd], { type:'text/plain' }), fname('-column', 'usda'), note3d);
+  }
+  var noteSet = document.getElementById('csNoteSet');
+  function exportSettings(){
+    var data = { nation: state.nation, fam: state.fam, size: state.size, custom: state.custom,
+                 cd: state.cd, h: state.h, hUnit: state.hUnit };
+    download(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }),
+             'column-settings.json', noteSet);
+  }
+  function importSettings(file){
+    var rd = new FileReader();
+    rd.onload = function(){
+      try {
+        var d = JSON.parse(rd.result);
+        if(d.nation && DB[d.nation] && DB[d.nation].fams.length) state.nation = d.nation;
+        if(d.fam) state.fam = d.fam;
+        if(typeof d.size === 'number') state.size = d.size;
+        state.custom = !!d.custom;
+        if(d.cd) Object.keys(state.cd).forEach(function(k){
+          if(d.cd[k] !== undefined) state.cd[k] = d.cd[k];
+        });
+        if(d.h > 0) state.h = d.h;
+        if(d.hUnit && HF[d.hUnit]) state.hUnit = d.hUnit;
+        if(hIn) hIn.value = state.h;
+        if(hUnit) hUnit.value = state.hUnit;
+        fillNations(); fillFams(); fillSizes(); buildCustom(); redraw();
+        if(noteSet) noteSet.textContent = 'settings loaded';
+      } catch(e){
+        if(noteSet) noteSet.textContent = 'could not read that file';
+      }
+    };
+    rd.readAsText(file);
+  }
   function exportPng3d(){
     if(view) view.toBlob(function(b){ if(b) download(b, fname('-column', 'png'), note3d); });
   }
@@ -3715,7 +3794,14 @@
     if(el) el.addEventListener('click', fn);
   };
   hook('csDxf', exportDxf); hook('csSvg', exportSvg); hook('csPng', exportPng2d); hook('csJson', exportJson);
-  hook('csObj', exportObj); hook('csStl', exportStl); hook('csPng3', exportPng3d);
+  hook('csObj', exportObj); hook('csStl', exportStl); hook('csUsd', exportUsd); hook('csPng3', exportPng3d);
+  hook('csSetExp', exportSettings);
+  var setFile = document.getElementById('csSetFile');
+  hook('csSetImp', function(){ if(setFile) setFile.click(); });
+  if(setFile) setFile.addEventListener('change', function(){
+    if(setFile.files.length) importSettings(setFile.files[0]);
+    setFile.value = '';
+  });
 
   /* ---- selects ---- */
   function fillNations(){
@@ -3776,7 +3862,7 @@
     customHost.innerHTML = '';
     var f = fam();
     if(f.kind === 'i'){
-      [['h','Depth h'], ['b','Width b'], ['tw','Web tw'], ['tf','Flange tf']].forEach(function(fd){ numField(fd[0], fd[1]); });
+      [['h','Depth h'], ['b','Width b'], ['tw','Web tw'], ['tf','Flange tf'], ['r','Root r']].forEach(function(fd){ numField(fd[0], fd[1]); });
     } else if(f.kind === 'conc'){
       var lab = document.createElement('label');
       lab.textContent = 'Shape';
@@ -3812,7 +3898,7 @@
     if(selS.value === 'custom'){
       state.custom = true;
       var f = fam(), s0 = f.sizes[Math.min(state.size, f.sizes.length - 1)];
-      if(f.kind === 'i'){ state.cd.h = s0[1]; state.cd.b = s0[2]; state.cd.tw = s0[3]; state.cd.tf = s0[4]; }
+      if(f.kind === 'i'){ state.cd.h = s0[1]; state.cd.b = s0[2]; state.cd.tw = s0[3]; state.cd.tf = s0[4]; state.cd.r = s0[5]; }
       else if(s0[3] === 'c'){ state.cd.shape = 'circ'; state.cd.dia = s0[1]; }
       else { state.cd.w = s0[1]; state.cd.d = s0[2]; }
     } else {
@@ -3911,17 +3997,18 @@
       } },
     { sel:'.csec', title:'Column Sections', engines:['csecEngine'], only:'CS_ONLY', file:'column-sections.html',
       units:[ { id:'ub', label:'UB' }, { id:'uc', label:'UC' }, { id:'ipe', label:'IPE' },
-              { id:'heb', label:'HE' }, { id:'w', label:'W shapes' }, { id:'timber', label:'Timber' },
+              { id:'heb', label:'HE' }, { id:'w', label:'W shapes' }, { id:'hw', label:'HW' },
+              { id:'hn', label:'HN' }, { id:'timber', label:'Timber' },
               { id:'conc', label:'Concrete' }, { id:'custom', label:'Custom sizes' } ],
       prompt: function(){
         var s = window.__cs || {};
         return ['Build a "Column Sections" browser as one self-contained HTML file with no libraries.',
         '',
-        'The user picks a nation first (United Kingdom, Europe, United States), then a section family from that nation’s catalogue — UK: UB, UC, timber, concrete; Europe: IPE, HE, timber, concrete; US: W shapes, timber, concrete — then a size from the family’s standard sizes, or Custom… which reveals dimension boxes (depth, width, web and flange for steel; width and depth for timber and concrete), all in millimetres.',
+        'The user picks a nation first (United Kingdom, Europe, United States, China), then a section family from that nation’s catalogue — UK: UB, UC; Europe: IPE, HE; US: W shapes; China: HW, HN; every nation also carries timber and concrete — then a size from the family’s standard sizes, or Custom… which reveals dimension boxes (depth, width, web, flange AND root radius for steel — every measurement editable; width and depth for timber and concrete), all in millimetres.',
         'Concrete comes rectangular or circular — circular standard sizes (Ø) in every nation, and the custom concrete form offers a shape choice with a diameter box.',
         'Draw the chosen section true to scale on a canvas: steel I-sections with web, flanges and sampled root-radius fillets; timber with grain rings clipped to the rectangle; concrete with a link outline and rebar dots (ringed bars on circular sections). Dashed centre lines behind, and a caption of the designation and dimensions.',
         'Below the section, a column height input (default 5 m) with unit options (m, mm, ft) that convert the value both ways, and an orbitable 3D view of the section extruded to that height, rendered hidden-line.',
-        'Export sets are separate: 2D — DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox), PNG and JSON (the section data); 3D — OBJ and STL of the extruded column (ear-clipped caps, mm) and a PNG of the view.',
+        'Export sets are separate: 2D — DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox), PNG and JSON (the section data); 3D — OBJ, STL and USD (usda Mesh prim, metersPerUnit 0.001, Z up) of the extruded column (ear-clipped caps, mm) and a PNG of the view. A Settings row exports the whole selection as JSON and imports it back.',
         '',
         'Reproduce the current state: nation ' + (s.nation || 'uk') + ', family ' + (s.fam || 'ub') +
         (s.custom ? ', custom dimensions ' + JSON.stringify(s.cd) : ', size index ' + (s.size || 0)) + '.',
