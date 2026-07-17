@@ -177,6 +177,21 @@
     display:flex; justify-content:space-between; gap:.8rem; }
   .di-list .sz{ color:var(--ink-60); }
 
+  /* ── column sections card ── */
+  .cs-row{ display:flex; align-items:center; gap:.6rem; padding:.65rem 1.1rem 0; flex-wrap:wrap; }
+  .cs-row label{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); }
+  .cs-row select{ font-family:var(--font-brand); font-size:.72rem; letter-spacing:.06em;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.35rem .5rem; }
+  .cs-row select.cs-grow{ flex:1; min-width:0; }
+  .cs-row input[type="number"]{ width:4.6rem; font-family:var(--font-brand); font-size:.72rem;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
+  .cs-boardwrap{ margin:.7rem .9rem .3rem; }
+  #csBoard{ display:block; width:100%; height:auto; border:1px solid var(--hair); }
+  .cs-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-60); text-align:center; padding:.15rem .9rem .1rem; }
+  .cs-exports{ padding:.5rem 1.1rem .35rem; justify-content:center; }
+
   /* ── graphs card ── */
   .grtab{ font-family:var(--font-brand); font-weight:500; font-size:.64rem; letter-spacing:.2em;
     text-transform:uppercase; background:none; border:none; color:var(--ink-60);
@@ -633,6 +648,34 @@
         <canvas id="grBoard" aria-label="Graph plot"></canvas>
       </div>
       <div class="pg-hint" id="grNote"></div>
+    </div>
+    <div class="draw-sec csec">
+      <div class="draw-cap">
+        <b>Column Sections</b>
+        <span>UB &middot; UC &middot; IPE &middot; HE &middot; W &middot; timber &middot; concrete</span>
+      </div>
+      <div class="cs-row">
+        <label for="csNation">Nation</label>
+        <select id="csNation"></select>
+        <label for="csFam">Family</label>
+        <select id="csFam"></select>
+      </div>
+      <div class="cs-row">
+        <label for="csSize">Size</label>
+        <select id="csSize" class="cs-grow"></select>
+      </div>
+      <div class="cs-row" id="csCustom" hidden></div>
+      <div class="cs-boardwrap">
+        <canvas id="csBoard" aria-label="Section drawing"></canvas>
+      </div>
+      <div class="cs-info" id="csInfo"></div>
+      <div class="pg-panel-row cs-exports">
+        <button id="csDxf" type="button">DXF</button>
+        <button id="csSvg" type="button">SVG</button>
+        <button id="csPng" type="button">PNG</button>
+        <span class="pg-note" id="csNote"></span>
+      </div>
+      <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom and set the dimensions</div>
     </div>
   </div>
 
@@ -3211,6 +3254,343 @@
   loadTab();
 })();
 </script>
+<script id="csecEngine">
+(function(){
+  "use strict";
+  /* ── column sections: nation -> family -> size, drawn true to scale,
+     exported as DXF / SVG / PNG. Steel I-sections carry web, flange and
+     root radius; timber shows its grain; concrete shows link and bars.
+     window.CS_ONLY (set by the HTML export) trims the families. ── */
+  var cv = document.getElementById('csBoard');
+  if(!cv) return;
+  var g2 = cv.getContext('2d');
+  var selN = document.getElementById('csNation'), selF = document.getElementById('csFam');
+  var selS = document.getElementById('csSize'), customHost = document.getElementById('csCustom');
+  var info = document.getElementById('csInfo'), note = document.getElementById('csNote');
+  var TAU = Math.PI * 2;
+
+  /* steel rows: [designation, h, b, tw, tf, r] in mm; rect rows: [name, b, d] */
+  var DB = {
+    uk: { label:'United Kingdom', fams: [
+      { id:'ub', label:'UB', kind:'i', sizes: [
+        ['127×76×13 UB',127,76,4,7.6,7.6], ['152×89×16 UB',152.4,88.7,4.5,7.7,7.6],
+        ['178×102×19 UB',177.8,101.2,4.8,7.9,7.6], ['203×133×25 UB',203.2,133.2,5.7,7.8,7.6],
+        ['254×146×31 UB',251.4,146.1,6,8.6,7.6], ['305×165×40 UB',303.4,165,6,10.2,8.9],
+        ['356×171×51 UB',355,171.5,7.4,11.5,10.2], ['406×178×60 UB',406.4,177.9,7.9,12.8,10.2],
+        ['457×191×74 UB',457,190.4,9,14.5,10.2], ['533×210×92 UB',533.1,209.3,10.1,15.6,12.7],
+        ['610×229×113 UB',607.6,228.2,11.1,17.3,12.7], ['686×254×140 UB',683.5,253.7,12.4,19,15.2] ] },
+      { id:'uc', label:'UC', kind:'i', sizes: [
+        ['152×152×23 UC',152.4,152.2,5.8,6.8,7.6], ['152×152×37 UC',161.8,154.4,8,11.5,7.6],
+        ['203×203×46 UC',203.2,203.6,7.2,11,10.2], ['203×203×60 UC',209.6,205.8,9.4,14.2,10.2],
+        ['254×254×73 UC',254.1,254.6,8.6,14.2,12.7], ['254×254×107 UC',266.7,258.8,12.8,20.5,12.7],
+        ['305×305×97 UC',307.9,305.3,9.9,15.4,15.2], ['305×305×158 UC',327.1,311.2,15.8,25,15.2],
+        ['356×368×129 UC',355.6,368.6,10.4,17.5,15.2], ['356×406×235 UC',381,394.8,18.4,30.2,15.2] ] },
+      { id:'timber', label:'Timber', kind:'timber', sizes: [
+        ['47 × 100 sawn',47,100], ['47 × 150 sawn',47,150], ['47 × 200 sawn',47,200],
+        ['47 × 225 sawn',47,225], ['75 × 150 sawn',75,150], ['75 × 200 sawn',75,200],
+        ['100 × 100 sawn',100,100], ['100 × 200 sawn',100,200], ['150 × 150 sawn',150,150],
+        ['200 × 200 sawn',200,200] ] },
+      { id:'conc', label:'Concrete', kind:'conc', sizes: [
+        ['225 × 225',225,225], ['250 × 250',250,250], ['300 × 300',300,300],
+        ['300 × 450',300,450], ['350 × 350',350,350], ['400 × 400',400,400],
+        ['400 × 600',400,600], ['450 × 450',450,450], ['500 × 500',500,500], ['600 × 600',600,600] ] } ] },
+    eu: { label:'Europe', fams: [
+      { id:'ipe', label:'IPE', kind:'i', sizes: [
+        ['IPE 80',80,46,3.8,5.2,5], ['IPE 100',100,55,4.1,5.7,7], ['IPE 140',140,73,4.7,6.9,7],
+        ['IPE 180',180,91,5.3,8,9], ['IPE 220',220,110,5.9,9.2,12], ['IPE 270',270,135,6.6,10.2,15],
+        ['IPE 330',330,160,7.5,11.5,18], ['IPE 400',400,180,8.6,13.5,21],
+        ['IPE 500',500,200,10.2,16,21], ['IPE 600',600,220,12,19,24] ] },
+      { id:'heb', label:'HE', kind:'i', sizes: [
+        ['HEB 100',100,100,6,10,12], ['HEB 140',140,140,7,12,12], ['HEB 180',180,180,8.5,14,15],
+        ['HEB 220',220,220,9.5,16,18], ['HEB 260',260,260,10,17.5,24], ['HEB 300',300,300,11,19,27],
+        ['HEB 400',400,300,13.5,24,27], ['HEB 500',500,300,14.5,28,27] ] },
+      { id:'timber', label:'Timber', kind:'timber', sizes: [
+        ['45 × 95',45,95], ['45 × 145',45,145], ['45 × 195',45,195], ['60 × 120',60,120],
+        ['80 × 160',80,160], ['100 × 100',100,100], ['120 × 120',120,120],
+        ['140 × 140',140,140], ['160 × 160',160,160], ['200 × 200',200,200] ] },
+      { id:'conc', label:'Concrete', kind:'conc', sizes: [
+        ['250 × 250',250,250], ['300 × 300',300,300], ['300 × 500',300,500],
+        ['350 × 350',350,350], ['400 × 400',400,400], ['450 × 450',450,450],
+        ['500 × 500',500,500], ['600 × 600',600,600] ] } ] },
+    us: { label:'United States', fams: [
+      { id:'w', label:'W shapes', kind:'i', sizes: [
+        ['W8×31',203,203,7.2,11,10], ['W10×49',253,254,8.6,14.2,12], ['W12×65',308,305,9.9,15.4,15],
+        ['W14×90',356,369,11.2,18,15], ['W16×40',407,178,7.7,12.8,10], ['W18×50',457,190,9,14.5,10],
+        ['W21×62',533,209,10.2,15.6,13], ['W24×84',612,229,11.9,19.6,13] ] },
+      { id:'timber', label:'Timber', kind:'timber', sizes: [
+        ['2×4 (38 × 89)',38,89], ['2×6 (38 × 140)',38,140], ['2×8 (38 × 184)',38,184],
+        ['2×10 (38 × 235)',38,235], ['4×4 (89 × 89)',89,89], ['4×6 (89 × 140)',89,140],
+        ['6×6 (140 × 140)',140,140], ['8×8 (184 × 184)',184,184] ] },
+      { id:'conc', label:'Concrete', kind:'conc', sizes: [
+        ['10 × 10 in (254)',254,254], ['12 × 12 in (305)',305,305], ['14 × 14 in (356)',356,356],
+        ['16 × 16 in (406)',406,406], ['18 × 18 in (457)',457,457],
+        ['12 × 18 in (305 × 457)',305,457], ['24 × 24 in (610)',610,610] ] } ] }
+  };
+  var ONLY = (typeof window !== 'undefined' && window.CS_ONLY) || null;
+  if(ONLY && ONLY.length){
+    Object.keys(DB).forEach(function(n){
+      DB[n].fams = DB[n].fams.filter(function(f){ return ONLY.indexOf(f.id) >= 0; });
+    });
+  }
+  var allowCustom = !ONLY || !ONLY.length || ONLY.indexOf('custom') >= 0;
+
+  var state = { nation:'uk', fam:'ub', size:0, custom:false,
+                cd: { h:300, b:150, tw:8, tf:12, w:150, d:300 } };
+  window.__cs = state;
+
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
+  function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
+  function paper(){ return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff'; }
+  function fam(){
+    var fams = DB[state.nation].fams;
+    for(var i = 0; i < fams.length; i++) if(fams[i].id === state.fam) return fams[i];
+    return fams[0];
+  }
+  function section(){
+    var f = fam();
+    if(state.custom){
+      if(f.kind === 'i') return { name:'Custom ' + f.label, h:state.cd.h, b:state.cd.b,
+                                  tw:state.cd.tw, tf:state.cd.tf, r:0, kind:'i' };
+      return { name:'Custom ' + f.label, b:state.cd.w, d:state.cd.d, kind:f.kind };
+    }
+    var s = f.sizes[Math.min(state.size, f.sizes.length - 1)];
+    return f.kind === 'i'
+      ? { name:s[0], h:s[1], b:s[2], tw:s[3], tf:s[4], r:s[5], kind:'i' }
+      : { name:s[0], b:s[1], d:s[2], kind:f.kind };
+  }
+
+  /* ---- geometry: outline points in mm, centred, y up ---- */
+  function fillet(cx, cy, r, a0, a1, out){
+    for(var i = 0; i <= 6; i++){
+      var a = a0 + (a1 - a0) * i / 6;
+      out.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+    }
+  }
+  function outline(sec){
+    if(sec.kind !== 'i'){
+      var hb = sec.b / 2, hd = sec.d / 2;
+      return [ { x:-hb, y:hd }, { x:hb, y:hd }, { x:hb, y:-hd }, { x:-hb, y:-hd } ];
+    }
+    var hw = sec.b / 2, hh = sec.h / 2, wt = sec.tw / 2, r = sec.r || 0;
+    var fy = hh - sec.tf, P = [];
+    P.push({ x:-hw, y:hh }, { x:hw, y:hh }, { x:hw, y:fy });
+    if(r){ fillet(wt + r, fy - r, r, Math.PI / 2, Math.PI, P); } else P.push({ x:wt, y:fy });
+    if(r){ fillet(wt + r, -fy + r, r, Math.PI, Math.PI * 1.5, P); } else P.push({ x:wt, y:-fy });
+    P.push({ x:hw, y:-fy }, { x:hw, y:-hh }, { x:-hw, y:-hh }, { x:-hw, y:-fy });
+    if(r){ fillet(-wt - r, -fy + r, r, Math.PI * 1.5, Math.PI * 2, P); } else P.push({ x:-wt, y:-fy });
+    if(r){ fillet(-wt - r, fy - r, r, 0, Math.PI / 2, P); } else P.push({ x:-wt, y:fy });
+    P.push({ x:-hw, y:fy });
+    return P;
+  }
+  function bars(sec){                       /* concrete rebar centres + radius */
+    if(sec.kind !== 'conc') return [];
+    var c = 50, hb = sec.b / 2, hd = sec.d / 2, r = 10, out = [];
+    [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(s){
+      out.push({ x: s[0] * (hb - c), y: s[1] * (hd - c), r: r });
+    });
+    if(sec.b >= 450) out.push({ x:0, y:hd - c, r:r }, { x:0, y:-(hd - c), r:r });
+    if(sec.d >= 450) out.push({ x:hb - c, y:0, r:r }, { x:-(hb - c), y:0, r:r });
+    return out;
+  }
+
+  /* ---- drawing ---- */
+  function draw(){
+    var w = cv.clientWidth, h = cv.clientHeight;
+    g2.clearRect(0, 0, w, h);
+    var sec = section(), P = outline(sec);
+    var sw = sec.kind === 'i' ? sec.b : sec.b, sh = sec.kind === 'i' ? sec.h : sec.d;
+    var S = 0.78 * Math.min(w, h) / Math.max(sw, sh);
+    var sx = function(x){ return w / 2 + x * S; }, sy = function(y){ return h / 2 - y * S; };
+    /* faint centre lines */
+    g2.strokeStyle = muted(); g2.globalAlpha = 0.5; g2.lineWidth = 1; g2.setLineDash([6, 5]);
+    g2.beginPath();
+    g2.moveTo(w/2 + 0.5, h/2 - sh * S * 0.62); g2.lineTo(w/2 + 0.5, h/2 + sh * S * 0.62);
+    g2.moveTo(w/2 - sw * S * 0.62, h/2 + 0.5); g2.lineTo(w/2 + sw * S * 0.62, h/2 + 0.5);
+    g2.stroke(); g2.setLineDash([]); g2.globalAlpha = 1;
+    /* outline */
+    g2.beginPath();
+    P.forEach(function(p, i){ i ? g2.lineTo(sx(p.x), sy(p.y)) : g2.moveTo(sx(p.x), sy(p.y)); });
+    g2.closePath();
+    g2.fillStyle = paper(); g2.strokeStyle = ink(); g2.lineWidth = 2; g2.lineJoin = 'round';
+    g2.fill(); g2.stroke();
+    if(sec.kind === 'timber'){
+      /* grain rings from one corner */
+      g2.strokeStyle = muted(); g2.lineWidth = 1;
+      var cxg = sx(-sec.b / 2), cyg = sy(-sec.d / 2);
+      var rmax = Math.hypot(sec.b, sec.d) * S;
+      g2.save();
+      g2.beginPath();
+      P.forEach(function(p, i){ i ? g2.lineTo(sx(p.x), sy(p.y)) : g2.moveTo(sx(p.x), sy(p.y)); });
+      g2.closePath(); g2.clip();
+      for(var rr = rmax * 0.15; rr < rmax; rr += rmax * 0.16){
+        g2.beginPath(); g2.arc(cxg, cyg, rr, -Math.PI / 2, 0); g2.stroke();
+      }
+      g2.restore();
+    }
+    if(sec.kind === 'conc'){
+      var c = 40 * S;
+      g2.strokeStyle = muted(); g2.lineWidth = 1.5;
+      g2.strokeRect(sx(-sec.b/2) + c, sy(sec.d/2) + c, sec.b * S - 2 * c, sec.d * S - 2 * c);
+      g2.fillStyle = ink();
+      bars(sec).forEach(function(bb){
+        g2.beginPath(); g2.arc(sx(bb.x), sy(bb.y), Math.max(2.5, bb.r * S), 0, TAU); g2.fill();
+      });
+    }
+    if(info){
+      var dims = sec.kind === 'i'
+        ? sec.h + ' × ' + sec.b + ' mm · web ' + sec.tw + ' · flange ' + sec.tf
+        : sec.b + ' × ' + sec.d + ' mm';
+      info.textContent = sec.name + ' — ' + dims;
+    }
+  }
+
+  /* ---- exports ---- */
+  function fname(ext){
+    return section().name.replace(/[^\w×-]+/g, '-').replace(/×/g, 'x') + '.' + ext;
+  }
+  function download(blob, name){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+    if(note) note.textContent = name;
+  }
+  function exportDxf(){
+    var sec = section(), P = outline(sec), L = ['0','SECTION','2','ENTITIES'];
+    L.push('0','LWPOLYLINE','8','0','90', String(P.length), '70','1');
+    P.forEach(function(p){ L.push('10', p.x.toFixed(2), '20', p.y.toFixed(2)); });
+    bars(sec).forEach(function(b){
+      L.push('0','CIRCLE','8','0','10', b.x.toFixed(2), '20', b.y.toFixed(2), '40', b.r.toFixed(2));
+    });
+    L.push('0','ENDSEC','0','EOF');
+    download(new Blob([L.join('\n')], { type:'application/dxf' }), fname('dxf'));
+  }
+  function exportSvg(){
+    var sec = section(), P = outline(sec);
+    var sw = sec.kind === 'i' ? sec.b : sec.b, sh = sec.kind === 'i' ? sec.h : sec.d;
+    var m = 10, W = sw + 2 * m, H = sh + 2 * m;
+    var d = P.map(function(p, i){
+      return (i ? 'L' : 'M') + p.x.toFixed(2) + ' ' + (-p.y).toFixed(2);
+    }).join(' ') + ' Z';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' +
+      (-W/2) + ' ' + (-H/2) + ' ' + W + ' ' + H + '" width="' + W + 'mm" height="' + H + 'mm">' +
+      '<path d="' + d + '" fill="none" stroke="#111" stroke-width="2"/>' +
+      bars(sec).map(function(b){
+        return '<circle cx="' + b.x + '" cy="' + (-b.y) + '" r="' + b.r + '" fill="#111"/>';
+      }).join('') +
+      '</svg>';
+    download(new Blob([svg], { type:'image/svg+xml' }), fname('svg'));
+  }
+  function exportPng(){
+    cv.toBlob(function(b){ if(b) download(b, fname('png')); });
+  }
+  var bD = document.getElementById('csDxf'), bS = document.getElementById('csSvg'), bP = document.getElementById('csPng');
+  if(bD) bD.addEventListener('click', exportDxf);
+  if(bS) bS.addEventListener('click', exportSvg);
+  if(bP) bP.addEventListener('click', exportPng);
+
+  /* ---- selects ---- */
+  function fillNations(){
+    selN.innerHTML = '';
+    Object.keys(DB).forEach(function(n){
+      if(!DB[n].fams.length) return;
+      var o = document.createElement('option');
+      o.value = n; o.textContent = DB[n].label;
+      selN.appendChild(o);
+    });
+    if(!DB[state.nation] || !DB[state.nation].fams.length) state.nation = selN.value;
+    selN.value = state.nation;
+  }
+  function fillFams(){
+    selF.innerHTML = '';
+    DB[state.nation].fams.forEach(function(f){
+      var o = document.createElement('option');
+      o.value = f.id; o.textContent = f.label;
+      selF.appendChild(o);
+    });
+    if(!DB[state.nation].fams.some(function(f){ return f.id === state.fam; }))
+      state.fam = DB[state.nation].fams[0].id;
+    selF.value = state.fam;
+  }
+  function fillSizes(){
+    selS.innerHTML = '';
+    fam().sizes.forEach(function(s, i){
+      var o = document.createElement('option');
+      o.value = i; o.textContent = s[0];
+      selS.appendChild(o);
+    });
+    if(allowCustom){
+      var oc = document.createElement('option');
+      oc.value = 'custom'; oc.textContent = 'Custom…';
+      selS.appendChild(oc);
+    }
+    if(state.custom && allowCustom) selS.value = 'custom';
+    else { state.custom = false; state.size = Math.min(state.size, fam().sizes.length - 1); selS.value = state.size; }
+  }
+  function buildCustom(){
+    if(!customHost) return;
+    customHost.hidden = !state.custom;
+    if(!state.custom) return;
+    customHost.innerHTML = '';
+    var f = fam();
+    var fields = f.kind === 'i'
+      ? [ ['h','Depth h'], ['b','Width b'], ['tw','Web tw'], ['tf','Flange tf'] ]
+      : [ ['w','Width'], ['d','Depth'] ];
+    fields.forEach(function(fd){
+      var lab = document.createElement('label');
+      lab.textContent = fd[1];
+      var inp = document.createElement('input');
+      inp.type = 'number'; inp.min = 1; inp.step = 'any';
+      inp.value = state.cd[fd[0]];
+      inp.setAttribute('aria-label', fd[1] + ' (mm)');
+      inp.addEventListener('input', function(){
+        var v = +inp.value;
+        if(!isNaN(v) && v > 0){ state.cd[fd[0]] = v; draw(); }
+      });
+      customHost.appendChild(lab);
+      customHost.appendChild(inp);
+    });
+    var mm = document.createElement('span');
+    mm.className = 'pg-note'; mm.textContent = 'mm';
+    customHost.appendChild(mm);
+  }
+  selN.addEventListener('change', function(){
+    state.nation = selN.value;
+    fillFams(); fillSizes(); buildCustom(); draw();
+  });
+  selF.addEventListener('change', function(){
+    state.fam = selF.value; state.custom = false; state.size = 0;
+    fillSizes(); buildCustom(); draw();
+  });
+  selS.addEventListener('change', function(){
+    if(selS.value === 'custom'){
+      state.custom = true;
+      var f = fam(), s0 = f.sizes[Math.min(state.size, f.sizes.length - 1)];
+      if(f.kind === 'i'){ state.cd.h = s0[1]; state.cd.b = s0[2]; state.cd.tw = s0[3]; state.cd.tf = s0[4]; }
+      else { state.cd.w = s0[1]; state.cd.d = s0[2]; }
+    } else {
+      state.custom = false;
+      state.size = +selS.value;
+    }
+    buildCustom(); draw();
+  });
+
+  function resize(){
+    var w = cv.clientWidth;
+    if(!w) return;
+    var h = Math.round(w * 0.88), dpr = window.devicePixelRatio || 1;
+    cv.style.height = h + 'px';
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+  new MutationObserver(draw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  fillNations(); fillFams(); fillSizes(); buildCustom();
+  resize();
+})();
+</script>
 <script id="exportsEngine">
 (function(){
   "use strict";
@@ -3261,6 +3641,22 @@
       units:null,
       prompt: function(){
         return ['Build a "Data Input" box as one self-contained HTML file with no libraries: a Browse button that opens a multi-file picker and lists each chosen file’s name and size (KB / MB) in dashed rows underneath. White paper, black ink, uppercase micro-labels, serif italic note explaining that import pipelines land later.'].join('\n');
+      } },
+    { sel:'.csec', title:'Column Sections', engines:['csecEngine'], only:'CS_ONLY', file:'column-sections.html',
+      units:[ { id:'ub', label:'UB' }, { id:'uc', label:'UC' }, { id:'ipe', label:'IPE' },
+              { id:'heb', label:'HE' }, { id:'w', label:'W shapes' }, { id:'timber', label:'Timber' },
+              { id:'conc', label:'Concrete' }, { id:'custom', label:'Custom sizes' } ],
+      prompt: function(){
+        var s = window.__cs || {};
+        return ['Build a "Column Sections" browser as one self-contained HTML file with no libraries.',
+        '',
+        'The user picks a nation first (United Kingdom, Europe, United States), then a section family from that nation’s catalogue — UK: UB, UC, timber, concrete; Europe: IPE, HE, timber, concrete; US: W shapes, timber, concrete — then a size from the family’s standard sizes, or Custom… which reveals dimension boxes (depth, width, web and flange for steel; width and depth for timber and concrete), all in millimetres.',
+        'Draw the chosen section true to scale on a canvas: steel I-sections with web, flanges and sampled root-radius fillets; timber with grain rings clipped to the rectangle; concrete with a link outline and rebar dots (corner bars, plus mid-face bars on large sections). Dashed centre lines behind, and a caption of the designation and dimensions.',
+        'Export buttons under the drawing: DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox) and PNG.',
+        '',
+        'Reproduce the current state: nation ' + (s.nation || 'uk') + ', family ' + (s.fam || 'ub') +
+        (s.custom ? ', custom dimensions ' + JSON.stringify(s.cd) : ', size index ' + (s.size || 0)) + '.',
+        'Style: white board, thin grey hairlines, 2px black ink, uppercase micro-labels.'].join('\n');
       } },
     { sel:'.graphs', title:'Graphs', engines:['graphsEngine'], only:'GR_ONLY', file:'graphs.html',
       units:[ { id:'xy', label:'XY' }, { id:'pol', label:'Polar' },
