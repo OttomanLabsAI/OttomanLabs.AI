@@ -103,7 +103,11 @@
   .pg-hero-btn{ font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.22em;
     text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
     padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
-  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
+  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{
+    background:#B01018; border-color:#B01018; color:#fff; box-shadow:0 0 18px rgba(176,16,24,.35); }
+  [data-theme="dark"] .pg-hero:hover .pg-hero-btn,
+  [data-theme="dark"] .pg-hero:focus-visible .pg-hero-btn{
+    background:#DE8286; border-color:#DE8286; color:#111; box-shadow:0 0 18px rgba(222,130,134,.4); }
 
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
@@ -1635,10 +1639,9 @@
 <script>
 (function(){
   "use strict";
-  /* ── the playground hero: a monochrome collage of what's inside — the
-     Gherkin's diagrid up close, a graph, a polar rose and the input kit —
-     every point warped by the same cursor-repel field, so the whole scene
-     bends on hover and springs back. ── */
+  /* ── the playground hero: the Gherkin's diagrid built from the dashboard's
+     exported settings JSON, plots, and the input kit — dots travel along
+     every line, and everything glows burgundy near the cursor. ── */
   var hero = document.getElementById('pgHero');
   var cv = document.getElementById('pgHeroCanvas');
   if(!hero || !cv) return;
@@ -1646,141 +1649,202 @@
   var TAU = Math.PI * 2;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
+  var LINES = [], DOTS = [], dial = null;
 
-  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
+  /* the gherkin dashboard export: profile spline (x = radius, y = height),
+     22 nodes around, twist 2.5 */
+  var GK = {
+    pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
+    around: 22, twist: 2.5, hMax: 600, rMax: 150
+  };
+  function gbez(t){
+    var q = GK.pts.map(function(p){ return { x: p.x, y: p.y }; });
+    for(var k = q.length - 1; k > 0; k--)
+      for(var i = 0; i < k; i++){
+        q[i].x += (q[i+1].x - q[i].x) * t;
+        q[i].y += (q[i+1].y - q[i].y) * t;
+      }
+    return q[0];
+  }
+
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
-
-  function warp(x, y){
-    var px = x + Math.sin(T * 0.7 + x * 0.012 + y * 0.02) * 2.2;
-    var py = y + Math.cos(T * 0.6 + x * 0.015 - y * 0.018) * 2.2;
-    if(cursor){
-      var dx = x - cursor.x, dy = y - cursor.y;
-      var d = Math.hypot(dx, dy) || 1, R = 140;
-      if(d < R){
-        var f = (1 - d / R);
-        f = f * f * 30;
-        px += dx / d * f;
-        py += dy / d * f;
-      }
-    }
-    return { x: px, y: py };
+  function burg(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? '#DE8286' : '#B01018'; }
+  function hx(c){
+    c = c.replace('#', '');
+    if(c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+    return [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
   }
-  function wstroke(pts, lw, col, alpha){
-    ctx.strokeStyle = col || ink();
-    ctx.lineWidth = lw || 1;
-    ctx.globalAlpha = alpha == null ? 1 : alpha;
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.beginPath();
-    for(var i = 0; i < pts.length; i++){
-      var q = warp(pts[i].x, pts[i].y);
-      i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
-    }
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-  function wcircle(cx, cy, r, lw, col, alpha){
-    var pts = [];
-    for(var i = 0; i <= 28; i++){
-      var a = TAU * i / 28;
-      pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
-    }
-    wstroke(pts, lw, col, alpha);
-  }
-  function wdot(x, y, r, col){
-    var q = warp(x, y);
-    ctx.fillStyle = col || ink();
-    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, TAU); ctx.fill();
+  function mix(a, b, t){
+    var A = hx(a), B = hx(b);
+    return 'rgb(' + Math.round(A[0]+(B[0]-A[0])*t) + ',' + Math.round(A[1]+(B[1]-A[1])*t) + ',' +
+           Math.round(A[2]+(B[2]-A[2])*t) + ')';
   }
 
-  function dotGrid(){
-    ctx.fillStyle = muted();
-    ctx.globalAlpha = 0.35;
-    for(var y = 23; y < H; y += 46)
-      for(var x = 23; x < W; x += 46){
-        var q = warp(x, y);
-        ctx.fillRect(q.x - 0.75, q.y - 0.75, 1.5, 1.5);
-      }
-    ctx.globalAlpha = 1;
+  function addLine(pts, lw, base, alpha, dots){
+    var cum = [0];
+    for(var i = 1; i < pts.length; i++)
+      cum.push(cum[i-1] + Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y));
+    var L = { pts: pts, lw: lw, base: base, alpha: alpha == null ? 1 : alpha, cum: cum, len: cum[cum.length-1] };
+    LINES.push(L);
+    (dots || []).forEach(function(d){ d.line = L; DOTS.push(d); });
+    return L;
   }
-  function gherkin(cx){
-    var top = -H * 0.18, bot = H * 1.18, HH = bot - top;
-    var w0 = Math.min(W * 0.085, 120);
-    function GW(t){ return w0 * (0.42 + 0.72 * Math.sin(Math.PI * Math.pow(t, 0.85))); }
-    var S = 26, i, s, t, fam;
+  function arcPoint(L, u){
+    var target = Math.max(0, Math.min(1, u)) * L.len;
+    var i = 1;
+    while(i < L.cum.length - 1 && L.cum[i] < target) i++;
+    var seg = L.cum[i] - L.cum[i-1] || 1;
+    var f = (target - L.cum[i-1]) / seg;
+    return { x: L.pts[i-1].x + (L.pts[i].x - L.pts[i-1].x) * f,
+             y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
+  }
+  function glowAt(x, y){
+    if(!cursor) return 0;
+    var d = Math.hypot(x - cursor.x, y - cursor.y);
+    return d > 170 ? 0 : (1 - d / 170);
+  }
+  function glowFor(L){
+    if(!cursor) return 0;
+    var g = 0;
+    for(var i = 0; i < L.pts.length; i += 3)
+      g = Math.max(g, glowAt(L.pts[i].x, L.pts[i].y));
+    return g;
+  }
+
+  function build(){
+    LINES = []; DOTS = [];
+    var slim = W < 720;
+    /* ── the gherkin, from the export ── */
+    var cx = W * (slim ? 0.14 : 0.105);
+    var w0 = Math.min(W * 0.09, 130), k = w0 / GK.rMax;
+    var yBot = H * 1.16, yTop = -H * 0.16, N = GK.around / 2, turns = GK.twist / 2;
+    var fam, i, s, t;
     for(fam = -1; fam <= 1; fam += 2){
-      for(i = 0; i < 7; i++){
+      for(i = 0; i < N; i++){
         var pts = [];
-        for(s = 0; s <= S; s++){
-          t = s / S;
-          var ph = TAU * (fam * 1.15 * t + i / 7);
-          pts.push({ x: cx + GW(t) * Math.sin(ph), y: top + HH * t });
+        for(s = 0; s <= 26; s++){
+          t = s / 26;
+          var p = gbez(t), ph = TAU * (fam * turns * t + i / N);
+          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yBot - p.y / GK.hMax * (yBot - yTop) });
         }
-        wstroke(pts, 0.8, ink(), 0.65);
+        addLine(pts, 0.8, 'ink', 0.62,
+          i % 3 === 0 ? [{ sp: 0.045, off: (fam + 1) / 4 + i / N, mode: 'loop' }] : null);
       }
     }
     var sl = [], sr = [];
-    for(s = 0; s <= S; s++){
-      t = s / S;
-      sl.push({ x: cx - GW(t), y: top + HH * t });
-      sr.push({ x: cx + GW(t), y: top + HH * t });
+    for(s = 0; s <= 26; s++){
+      t = s / 26;
+      var pp = gbez(t);
+      sl.push({ x: cx - pp.x * k, y: yBot - pp.y / GK.hMax * (yBot - yTop) });
+      sr.push({ x: cx + pp.x * k, y: yBot - pp.y / GK.hMax * (yBot - yTop) });
     }
-    wstroke(sl, 1.6);
-    wstroke(sr, 1.6);
-  }
-  function graphXY(){
-    var gx = W * 0.27, gy = H * 0.5;
-    var gw = Math.min(W * 0.1, 160), gh = Math.min(H * 0.5, 110);
-    wstroke([{ x: gx - gw/2, y: gy }, { x: gx + gw/2, y: gy }], 1, muted());
-    wstroke([{ x: gx, y: gy - gh/2 }, { x: gx, y: gy + gh/2 }], 1, muted());
-    var pts = [];
-    for(var i = 0; i <= 44; i++){
-      var u = i / 44 - 0.5;
-      pts.push({ x: gx + u * gw, y: gy - Math.sin(u * TAU * 1.15) * gh * 0.42 * Math.cos(u * 1.4) });
+    addLine(sl, 1.6, 'ink', 1, [{ sp: 0.035, off: 0.2, mode: 'loop' }]);
+    addLine(sr, 1.6, 'ink', 1, [{ sp: 0.035, off: 0.7, mode: 'loop' }]);
+
+    /* ── plots ── */
+    if(!slim){
+      var gx = W * 0.27, gy = H * 0.5;
+      var gw = Math.min(W * 0.105, 165), gh = Math.min(H * 0.52, 115);
+      addLine([{ x: gx - gw/2, y: gy }, { x: gx + gw/2, y: gy }], 1, 'muted', 0.8);
+      addLine([{ x: gx, y: gy - gh/2 }, { x: gx, y: gy + gh/2 }], 1, 'muted', 0.8);
+      var sine = [];
+      for(i = 0; i <= 48; i++){
+        var u = i / 48 - 0.5;
+        sine.push({ x: gx + u * gw, y: gy - Math.sin(u * TAU * 1.15) * gh * 0.44 });
+      }
+      addLine(sine, 1.5, 'ink', 1, [{ sp: 0.12, off: 0, mode: 'loop' }]);
     }
-    wstroke(pts, 1.5);
-    wdot(gx + gw * 0.18, gy - Math.sin(0.18 * TAU * 1.15 / 1) * 0, 0, ink());
-  }
-  function rose(){
-    var cx = W * 0.73, cy = H * 0.5, R = Math.min(H * 0.36, 82);
-    wcircle(cx, cy, R, 1, muted(), 0.7);
-    wcircle(cx, cy, R * 0.55, 1, muted(), 0.45);
-    var pts = [];
-    for(var i = 0; i <= 120; i++){
-      var th = Math.PI * i / 120 * 2;
-      var r = R * Math.cos(3 * th);
-      pts.push({ x: cx + r * Math.cos(th), y: cy + r * Math.sin(th) });
+    var rx = W * (slim ? 0.8 : 0.71), ry = H * 0.5, R = Math.min(H * 0.36, 80);
+    var ring = [], ring2 = [], roseC = [];
+    for(i = 0; i <= 40; i++){
+      var a2 = TAU * i / 40;
+      ring.push({ x: rx + R * Math.cos(a2), y: ry + R * Math.sin(a2) });
+      ring2.push({ x: rx + R * 0.55 * Math.cos(a2), y: ry + R * 0.55 * Math.sin(a2) });
     }
-    wstroke(pts, 1.4);
-  }
-  function inputs(){
-    var x0 = W * 0.885, cw = Math.min(W * 0.09, 140);
-    /* slider with knob */
-    var sy = H * 0.24;
-    wstroke([{ x: x0 - cw/2, y: sy }, { x: x0 + cw/2, y: sy }], 2, muted());
-    wdot(x0 - cw * 0.12, sy, 5, ink());
-    /* dial */
-    var dy = H * 0.52, dr = Math.min(H * 0.17, 36);
-    wcircle(x0, dy, dr, 1.2, ink(), 0.8);
-    var na = -TAU * 0.17;
-    wstroke([{ x: x0, y: dy }, { x: x0 + dr * 0.78 * Math.cos(na), y: dy + dr * 0.78 * Math.sin(na) }], 1.6);
-    wdot(x0, dy, 2.4, ink());
-    /* toggle */
-    var ty = H * 0.8;
-    wstroke([{ x: x0 - cw * 0.22, y: ty }, { x: x0 + cw * 0.22, y: ty }], 9, muted(), 0.55);
-    wdot(x0 + cw * 0.22, ty, 6, ink());
+    addLine(ring, 1, 'muted', 0.65);
+    addLine(ring2, 1, 'muted', 0.4);
+    for(i = 0; i <= 130; i++){
+      var th = TAU * i / 130;
+      var rr = R * Math.cos(3 * th);
+      roseC.push({ x: rx + rr * Math.cos(th), y: ry + rr * Math.sin(th) });
+    }
+    addLine(roseC, 1.4, 'ink', 1, [{ sp: 0.08, off: 0.3, mode: 'loop' }]);
+
+    /* ── input kit ── */
+    if(!slim){
+      var x0 = W * 0.885, cw = Math.min(W * 0.09, 140);
+      var sy = H * 0.24;
+      addLine([{ x: x0 - cw/2, y: sy }, { x: x0 + cw/2, y: sy }], 2, 'muted', 0.8,
+        [{ sp: 0.35, off: 0, mode: 'pingpong', r: 5 }]);
+      var dy = H * 0.52, dr = Math.min(H * 0.17, 36);
+      var dc = [];
+      for(i = 0; i <= 32; i++){
+        var a3 = TAU * i / 32;
+        dc.push({ x: x0 + dr * Math.cos(a3), y: dy + dr * Math.sin(a3) });
+      }
+      addLine(dc, 1.2, 'ink', 0.85);
+      dial = { x: x0, y: dy, r: dr };
+      var ty = H * 0.8;
+      addLine([{ x: x0 - cw * 0.22, y: ty }, { x: x0 + cw * 0.22, y: ty }], 9, 'muted', 0.5,
+        [{ sp: 0, off: 1, mode: 'fixed', r: 6 }]);
+    } else dial = null;
   }
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
-    dotGrid();
-    if(W >= 720){
-      gherkin(W * 0.1);
-      graphXY();
-      rose();
-      inputs();
-    } else {
-      gherkin(W * 0.14);
-      rose();
+    /* dot-grid paper */
+    ctx.fillStyle = muted();
+    ctx.globalAlpha = 0.35;
+    for(var y = 23; y < H; y += 46)
+      for(var x = 23; x < W; x += 46)
+        ctx.fillRect(x - 0.75, y - 0.75, 1.5, 1.5);
+    ctx.globalAlpha = 1;
+    var BG = burg(), IK = ink(), MT = muted();
+    LINES.forEach(function(L){
+      var g = glowFor(L);
+      var base = L.base === 'ink' ? IK : MT;
+      ctx.strokeStyle = g ? mix(base, BG, Math.min(1, g * 1.2)) : base;
+      ctx.lineWidth = L.lw;
+      ctx.globalAlpha = L.alpha;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      if(g > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 14 * g; }
+      ctx.beginPath();
+      for(var i = 0; i < L.pts.length; i++)
+        i ? ctx.lineTo(L.pts[i].x, L.pts[i].y) : ctx.moveTo(L.pts[i].x, L.pts[i].y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    });
+    /* travelling dots */
+    DOTS.forEach(function(d){
+      var u = d.mode === 'fixed' ? d.off
+            : d.mode === 'pingpong' ? 0.5 + 0.45 * Math.sin(T * d.sp * TAU + d.off)
+            : (T * d.sp + d.off) % 1;
+      var p = arcPoint(d.line, u);
+      var g = glowAt(p.x, p.y);
+      ctx.fillStyle = g ? mix(ink(), burg(), Math.min(1, g * 1.25)) : ink();
+      if(g > 0.08){ ctx.shadowColor = burg(); ctx.shadowBlur = 16 * g; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, (d.r || 2.4) + g, 0, TAU);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    /* dial needle */
+    if(dial){
+      var na = -1.9 + Math.sin(T * 0.45) * 1.1;
+      var nx = dial.x + dial.r * 0.78 * Math.cos(na), ny = dial.y + dial.r * 0.78 * Math.sin(na);
+      var g2 = Math.max(glowAt(dial.x, dial.y), glowAt(nx, ny));
+      ctx.strokeStyle = g2 ? mix(ink(), burg(), Math.min(1, g2 * 1.2)) : ink();
+      ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+      if(g2 > 0.08){ ctx.shadowColor = burg(); ctx.shadowBlur = 14 * g2; }
+      ctx.beginPath();
+      ctx.moveTo(dial.x, dial.y);
+      ctx.lineTo(nx, ny);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath(); ctx.arc(dial.x, dial.y, 2.4, 0, TAU); ctx.fill();
     }
   }
   function loop(){
@@ -1791,8 +1855,12 @@
   hero.addEventListener('pointermove', function(e){
     var r = cv.getBoundingClientRect();
     cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if(reduced) draw();
   });
-  hero.addEventListener('pointerleave', function(){ cursor = null; });
+  hero.addEventListener('pointerleave', function(){
+    cursor = null;
+    if(reduced) draw();
+  });
   function resize(){
     var w = hero.clientWidth;
     if(!w) return;
@@ -1803,6 +1871,7 @@
     cv.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = w; H = h;
+    build();
     draw();
   }
   window.addEventListener('resize', resize);
