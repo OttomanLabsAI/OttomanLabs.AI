@@ -187,7 +187,9 @@
   .cs-row input[type="number"]{ width:4.6rem; font-family:var(--font-brand); font-size:.72rem;
     border:1px solid var(--hair); background:var(--paper); color:var(--ink); padding:.28rem .35rem; }
   .cs-boardwrap{ margin:.7rem .9rem .3rem; }
-  #csBoard{ display:block; width:100%; height:auto; border:1px solid var(--hair); }
+  #csBoard, #csView{ display:block; width:100%; height:auto; border:1px solid var(--hair); }
+  #csView{ cursor:grab; touch-action:none; }
+  #csH{ width:5.4rem; }
   .cs-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); text-align:center; padding:.15rem .9rem .1rem; }
   .cs-exports{ padding:.5rem 1.1rem .35rem; justify-content:center; }
@@ -670,12 +672,33 @@
       </div>
       <div class="cs-info" id="csInfo"></div>
       <div class="pg-panel-row cs-exports">
+        <span class="pg-note">2D</span>
         <button id="csDxf" type="button">DXF</button>
         <button id="csSvg" type="button">SVG</button>
         <button id="csPng" type="button">PNG</button>
+        <button id="csJson" type="button">JSON</button>
         <span class="pg-note" id="csNote"></span>
       </div>
-      <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom and set the dimensions</div>
+      <div class="cs-row">
+        <label for="csH">Column height</label>
+        <input type="number" id="csH" value="5" min="0.1" step="any">
+        <select id="csHUnit">
+          <option value="m">m</option>
+          <option value="mm">mm</option>
+          <option value="ft">ft</option>
+        </select>
+      </div>
+      <div class="cs-boardwrap">
+        <canvas id="csView" aria-label="Column 3D view — drag to orbit"></canvas>
+      </div>
+      <div class="pg-panel-row cs-exports">
+        <span class="pg-note">3D</span>
+        <button id="csObj" type="button">OBJ</button>
+        <button id="csStl" type="button">STL</button>
+        <button id="csPng3" type="button">PNG</button>
+        <span class="pg-note" id="csNote3"></span>
+      </div>
+      <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom; drag the column to orbit it</div>
     </div>
   </div>
 
@@ -3257,19 +3280,23 @@
 <script id="csecEngine">
 (function(){
   "use strict";
-  /* ── column sections: nation -> family -> size, drawn true to scale,
-     exported as DXF / SVG / PNG. Steel I-sections carry web, flange and
-     root radius; timber shows its grain; concrete shows link and bars.
-     window.CS_ONLY (set by the HTML export) trims the families. ── */
+  /* ── column sections: nation -> family -> size (or custom), drawn true to
+     scale in 2D, extruded to a column in an orbitable 3D view. Separate
+     export sets: 2D as DXF / SVG / PNG / JSON, 3D as OBJ / STL / PNG.
+     Concrete comes rectangular or circular. window.CS_ONLY trims families. ── */
   var cv = document.getElementById('csBoard');
   if(!cv) return;
   var g2 = cv.getContext('2d');
+  var view = document.getElementById('csView');
+  var v2 = view ? view.getContext('2d') : null;
   var selN = document.getElementById('csNation'), selF = document.getElementById('csFam');
   var selS = document.getElementById('csSize'), customHost = document.getElementById('csCustom');
-  var info = document.getElementById('csInfo'), note = document.getElementById('csNote');
+  var info = document.getElementById('csInfo');
+  var note2d = document.getElementById('csNote'), note3d = document.getElementById('csNote3');
+  var hIn = document.getElementById('csH'), hUnit = document.getElementById('csHUnit');
   var TAU = Math.PI * 2;
 
-  /* steel rows: [designation, h, b, tw, tf, r] in mm; rect rows: [name, b, d] */
+  /* steel rows: [designation, h, b, tw, tf, r]; rect rows: [name, b, d]; circles: [name, dia, 0, 'c'] */
   var DB = {
     uk: { label:'United Kingdom', fams: [
       { id:'ub', label:'UB', kind:'i', sizes: [
@@ -3293,7 +3320,9 @@
       { id:'conc', label:'Concrete', kind:'conc', sizes: [
         ['225 × 225',225,225], ['250 × 250',250,250], ['300 × 300',300,300],
         ['300 × 450',300,450], ['350 × 350',350,350], ['400 × 400',400,400],
-        ['400 × 600',400,600], ['450 × 450',450,450], ['500 × 500',500,500], ['600 × 600',600,600] ] } ] },
+        ['400 × 600',400,600], ['450 × 450',450,450], ['500 × 500',500,500], ['600 × 600',600,600],
+        ['Ø 300 circular',300,0,'c'], ['Ø 350 circular',350,0,'c'], ['Ø 400 circular',400,0,'c'],
+        ['Ø 450 circular',450,0,'c'], ['Ø 500 circular',500,0,'c'], ['Ø 600 circular',600,0,'c'] ] } ] },
     eu: { label:'Europe', fams: [
       { id:'ipe', label:'IPE', kind:'i', sizes: [
         ['IPE 80',80,46,3.8,5.2,5], ['IPE 100',100,55,4.1,5.7,7], ['IPE 140',140,73,4.7,6.9,7],
@@ -3311,7 +3340,9 @@
       { id:'conc', label:'Concrete', kind:'conc', sizes: [
         ['250 × 250',250,250], ['300 × 300',300,300], ['300 × 500',300,500],
         ['350 × 350',350,350], ['400 × 400',400,400], ['450 × 450',450,450],
-        ['500 × 500',500,500], ['600 × 600',600,600] ] } ] },
+        ['500 × 500',500,500], ['600 × 600',600,600],
+        ['Ø 300 circular',300,0,'c'], ['Ø 400 circular',400,0,'c'],
+        ['Ø 500 circular',500,0,'c'], ['Ø 600 circular',600,0,'c'] ] } ] },
     us: { label:'United States', fams: [
       { id:'w', label:'W shapes', kind:'i', sizes: [
         ['W8×31',203,203,7.2,11,10], ['W10×49',253,254,8.6,14.2,12], ['W12×65',308,305,9.9,15.4,15],
@@ -3324,7 +3355,9 @@
       { id:'conc', label:'Concrete', kind:'conc', sizes: [
         ['10 × 10 in (254)',254,254], ['12 × 12 in (305)',305,305], ['14 × 14 in (356)',356,356],
         ['16 × 16 in (406)',406,406], ['18 × 18 in (457)',457,457],
-        ['12 × 18 in (305 × 457)',305,457], ['24 × 24 in (610)',610,610] ] } ] }
+        ['12 × 18 in (305 × 457)',305,457], ['24 × 24 in (610)',610,610],
+        ['Ø 12 in (305)',305,0,'c'], ['Ø 16 in (406)',406,0,'c'],
+        ['Ø 18 in (457)',457,0,'c'], ['Ø 24 in (610)',610,0,'c'] ] } ] }
   };
   var ONLY = (typeof window !== 'undefined' && window.CS_ONLY) || null;
   if(ONLY && ONLY.length){
@@ -3334,9 +3367,12 @@
   }
   var allowCustom = !ONLY || !ONLY.length || ONLY.indexOf('custom') >= 0;
 
-  var state = { nation:'uk', fam:'ub', size:0, custom:false,
-                cd: { h:300, b:150, tw:8, tf:12, w:150, d:300 } };
+  var state = { nation:'uk', fam:'ub', size:0, custom:false, h:5, hUnit:'m',
+                yaw:-0.7, pitch:0.42,
+                cd: { h:300, b:150, tw:8, tf:12, w:150, d:300, dia:400, shape:'rect' } };
   window.__cs = state;
+  var HF = { m:1000, mm:1, ft:304.8 };
+  function heightMm(){ return Math.max(1, (+state.h || 5) * HF[state.hUnit]); }
 
   function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
   function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
@@ -3351,12 +3387,20 @@
     if(state.custom){
       if(f.kind === 'i') return { name:'Custom ' + f.label, h:state.cd.h, b:state.cd.b,
                                   tw:state.cd.tw, tf:state.cd.tf, r:0, kind:'i' };
+      if(f.kind === 'conc' && state.cd.shape === 'circ')
+        return { name:'Custom concrete Ø' + state.cd.dia, dia:state.cd.dia, kind:'circ' };
       return { name:'Custom ' + f.label, b:state.cd.w, d:state.cd.d, kind:f.kind };
     }
     var s = f.sizes[Math.min(state.size, f.sizes.length - 1)];
-    return f.kind === 'i'
-      ? { name:s[0], h:s[1], b:s[2], tw:s[3], tf:s[4], r:s[5], kind:'i' }
-      : { name:s[0], b:s[1], d:s[2], kind:f.kind };
+    if(f.kind === 'i')
+      return { name:s[0], h:s[1], b:s[2], tw:s[3], tf:s[4], r:s[5], kind:'i' };
+    if(s[3] === 'c') return { name:s[0], dia:s[1], kind:'circ' };
+    return { name:s[0], b:s[1], d:s[2], kind:f.kind };
+  }
+  function extents(sec){
+    if(sec.kind === 'i') return { w: sec.b, h: sec.h };
+    if(sec.kind === 'circ') return { w: sec.dia, h: sec.dia };
+    return { w: sec.b, h: sec.d };
   }
 
   /* ---- geometry: outline points in mm, centred, y up ---- */
@@ -3367,6 +3411,14 @@
     }
   }
   function outline(sec){
+    if(sec.kind === 'circ'){
+      var P0 = [], R0 = sec.dia / 2;
+      for(var k = 0; k < 48; k++){
+        var a = TAU * k / 48;
+        P0.push({ x: R0 * Math.cos(a), y: R0 * Math.sin(a) });
+      }
+      return P0;
+    }
     if(sec.kind !== 'i'){
       var hb = sec.b / 2, hd = sec.d / 2;
       return [ { x:-hb, y:hd }, { x:hb, y:hd }, { x:hb, y:-hd }, { x:-hb, y:-hd } ];
@@ -3382,7 +3434,15 @@
     P.push({ x:-hw, y:fy });
     return P;
   }
-  function bars(sec){                       /* concrete rebar centres + radius */
+  function bars(sec){
+    if(sec.kind === 'circ'){
+      var out0 = [], nb = sec.dia >= 500 ? 8 : 6, rr = sec.dia / 2 - 50;
+      for(var i = 0; i < nb; i++){
+        var a = -Math.PI / 2 + TAU * i / nb;
+        out0.push({ x: rr * Math.cos(a), y: rr * Math.sin(a), r: 10 });
+      }
+      return out0;
+    }
     if(sec.kind !== 'conc') return [];
     var c = 50, hb = sec.b / 2, hd = sec.d / 2, r = 10, out = [];
     [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(s){
@@ -3392,29 +3452,59 @@
     if(sec.d >= 450) out.push({ x:hb - c, y:0, r:r }, { x:-(hb - c), y:0, r:r });
     return out;
   }
+  /* ear-clip triangulation for the caps */
+  function triangulate2(P){
+    var idx = P.map(function(_, i){ return i; }), tris = [], guard = 0;
+    function ar(a, b, c){ return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x); }
+    var sum = 0;
+    for(var i = 0; i < P.length; i++){
+      var a = P[i], b = P[(i+1)%P.length];
+      sum += (b.x - a.x) * (b.y + a.y);
+    }
+    if(sum > 0) idx.reverse();
+    while(idx.length > 3 && guard++ < 8000){
+      var n = idx.length, clipped = false;
+      for(var i2 = 0; i2 < n; i2++){
+        var i0 = idx[(i2+n-1)%n], i1 = idx[i2], i3 = idx[(i2+1)%n];
+        var A = P[i0], B = P[i1], C = P[i3];
+        if(ar(A, B, C) <= 0) continue;
+        var ok = true;
+        for(var j = 0; j < n; j++){
+          var pj = idx[j];
+          if(pj === i0 || pj === i1 || pj === i3) continue;
+          var Q = P[pj];
+          if(ar(A, B, Q) >= 0 && ar(B, C, Q) >= 0 && ar(C, A, Q) >= 0){ ok = false; break; }
+        }
+        if(!ok) continue;
+        tris.push([i0, i1, i3]);
+        idx.splice(i2, 1);
+        clipped = true;
+        break;
+      }
+      if(!clipped) break;
+    }
+    if(idx.length === 3) tris.push([idx[0], idx[1], idx[2]]);
+    return tris;
+  }
 
-  /* ---- drawing ---- */
+  /* ---- 2d drawing ---- */
   function draw(){
     var w = cv.clientWidth, h = cv.clientHeight;
     g2.clearRect(0, 0, w, h);
-    var sec = section(), P = outline(sec);
-    var sw = sec.kind === 'i' ? sec.b : sec.b, sh = sec.kind === 'i' ? sec.h : sec.d;
-    var S = 0.78 * Math.min(w, h) / Math.max(sw, sh);
+    var sec = section(), P = outline(sec), ex = extents(sec);
+    var S = 0.78 * Math.min(w, h) / Math.max(ex.w, ex.h);
     var sx = function(x){ return w / 2 + x * S; }, sy = function(y){ return h / 2 - y * S; };
-    /* faint centre lines */
     g2.strokeStyle = muted(); g2.globalAlpha = 0.5; g2.lineWidth = 1; g2.setLineDash([6, 5]);
     g2.beginPath();
-    g2.moveTo(w/2 + 0.5, h/2 - sh * S * 0.62); g2.lineTo(w/2 + 0.5, h/2 + sh * S * 0.62);
-    g2.moveTo(w/2 - sw * S * 0.62, h/2 + 0.5); g2.lineTo(w/2 + sw * S * 0.62, h/2 + 0.5);
+    g2.moveTo(w/2 + 0.5, h/2 - ex.h * S * 0.62); g2.lineTo(w/2 + 0.5, h/2 + ex.h * S * 0.62);
+    g2.moveTo(w/2 - ex.w * S * 0.62, h/2 + 0.5); g2.lineTo(w/2 + ex.w * S * 0.62, h/2 + 0.5);
     g2.stroke(); g2.setLineDash([]); g2.globalAlpha = 1;
-    /* outline */
     g2.beginPath();
     P.forEach(function(p, i){ i ? g2.lineTo(sx(p.x), sy(p.y)) : g2.moveTo(sx(p.x), sy(p.y)); });
     g2.closePath();
     g2.fillStyle = paper(); g2.strokeStyle = ink(); g2.lineWidth = 2; g2.lineJoin = 'round';
     g2.fill(); g2.stroke();
     if(sec.kind === 'timber'){
-      /* grain rings from one corner */
       g2.strokeStyle = muted(); g2.lineWidth = 1;
       var cxg = sx(-sec.b / 2), cyg = sy(-sec.d / 2);
       var rmax = Math.hypot(sec.b, sec.d) * S;
@@ -3427,10 +3517,14 @@
       }
       g2.restore();
     }
-    if(sec.kind === 'conc'){
-      var c = 40 * S;
+    if(sec.kind === 'conc' || sec.kind === 'circ'){
       g2.strokeStyle = muted(); g2.lineWidth = 1.5;
-      g2.strokeRect(sx(-sec.b/2) + c, sy(sec.d/2) + c, sec.b * S - 2 * c, sec.d * S - 2 * c);
+      if(sec.kind === 'circ'){
+        g2.beginPath(); g2.arc(w/2, h/2, (sec.dia / 2 - 40) * S, 0, TAU); g2.stroke();
+      } else {
+        var c = 40 * S;
+        g2.strokeRect(sx(-sec.b/2) + c, sy(sec.d/2) + c, sec.b * S - 2 * c, sec.d * S - 2 * c);
+      }
       g2.fillStyle = ink();
       bars(sec).forEach(function(bb){
         g2.beginPath(); g2.arc(sx(bb.x), sy(bb.y), Math.max(2.5, bb.r * S), 0, TAU); g2.fill();
@@ -3439,16 +3533,99 @@
     if(info){
       var dims = sec.kind === 'i'
         ? sec.h + ' × ' + sec.b + ' mm · web ' + sec.tw + ' · flange ' + sec.tf
-        : sec.b + ' × ' + sec.d + ' mm';
+        : sec.kind === 'circ' ? 'Ø ' + sec.dia + ' mm' : sec.b + ' × ' + sec.d + ' mm';
       info.textContent = sec.name + ' — ' + dims;
     }
   }
 
-  /* ---- exports ---- */
-  function fname(ext){
-    return section().name.replace(/[^\w×-]+/g, '-').replace(/×/g, 'x') + '.' + ext;
+  /* ---- 3d column viewer: orbitable hidden-line prism ---- */
+  function drawView(){
+    if(!view || !v2) return;
+    var w = view.clientWidth, h = view.clientHeight;
+    v2.clearRect(0, 0, w, h);
+    var sec = section(), P = outline(sec), ex = extents(sec), H = heightMm();
+    var cy = Math.cos(state.yaw), sy0 = Math.sin(state.yaw);
+    var cp = Math.cos(state.pitch), sp = Math.sin(state.pitch);
+    var Rb = Math.hypot(H / 2, Math.hypot(ex.w, ex.h) / 2) * 1.12;
+    var S = 0.5 * Math.min(w, h) / Rb;
+    function tv(p, z){
+      var x1 = p.x * cy - p.y * sy0, y1 = p.x * sy0 + p.y * cy;
+      var zz = z - H / 2;
+      return { x: x1, d: y1 * cp - zz * sp, z: y1 * sp + zz * cp };
+    }
+    var n = P.length, i;
+    /* corner sharpness along the outline */
+    var sharp = [];
+    for(i = 0; i < n; i++){
+      var a = P[(i + n - 1) % n], b = P[i], c = P[(i + 1) % n];
+      var u = { x: b.x - a.x, y: b.y - a.y }, v = { x: c.x - b.x, y: c.y - b.y };
+      var lu = Math.hypot(u.x, u.y) || 1, lv = Math.hypot(v.x, v.y) || 1;
+      sharp.push((u.x * v.x + u.y * v.y) / (lu * lv) < 0.975);
+    }
+    var B = P.map(function(p){ return tv(p, 0); });
+    var T = P.map(function(p){ return tv(p, H); });
+    var faces = [], facing = [];
+    for(i = 0; i < n; i++){
+      var j = (i + 1) % n;
+      var d = (B[i].d + B[j].d + T[j].d + T[i].d) / 4;
+      var ux = B[j].x - B[i].x, uz = B[j].z - B[i].z;
+      var wx = T[i].x - B[i].x, wz = T[i].z - B[i].z;
+      facing.push((uz * wx - ux * wz) < 0);
+      faces.push({ q: [B[i], B[j], T[j], T[i]], d: d, i: i, side: true });
+    }
+    var capB = 0, capT = 0;
+    B.forEach(function(p){ capB += p.d / n; });
+    T.forEach(function(p){ capT += p.d / n; });
+    faces.push({ q: B, d: capB, cap: true });
+    faces.push({ q: T, d: capT, cap: true });
+    faces.sort(function(x, y){ return y.d - x.d; });
+    var fc = paper(), ec = ink();
+    faces.forEach(function(f){
+      v2.beginPath();
+      f.q.forEach(function(p, k){
+        k ? v2.lineTo(w/2 + p.x * S, h/2 - p.z * S) : v2.moveTo(w/2 + p.x * S, h/2 - p.z * S);
+      });
+      v2.closePath();
+      v2.fillStyle = fc; v2.strokeStyle = fc; v2.lineWidth = 1;
+      v2.fill(); v2.stroke();
+      if(f.cap){
+        v2.strokeStyle = ec; v2.lineWidth = 1.1; v2.stroke();
+        return;
+      }
+      /* vertical edges: creases at sharp corners, silhouettes where facing flips */
+      var i0 = f.i, i1 = (f.i + 1) % n;
+      var e0 = sharp[i0] || facing[i0] !== facing[(i0 + n - 1) % n];
+      var e1 = sharp[i1] || facing[i1] !== facing[i0];
+      if(e0 || e1){
+        v2.strokeStyle = ec; v2.lineWidth = 0.9;
+        v2.beginPath();
+        if(e0){ v2.moveTo(w/2 + B[i0].x * S, h/2 - B[i0].z * S); v2.lineTo(w/2 + T[i0].x * S, h/2 - T[i0].z * S); }
+        if(e1){ v2.moveTo(w/2 + B[i1].x * S, h/2 - B[i1].z * S); v2.lineTo(w/2 + T[i1].x * S, h/2 - T[i1].z * S); }
+        v2.stroke();
+      }
+    });
   }
-  function download(blob, name){
+  if(view){
+    var orb = false, lx = 0, ly = 0;
+    view.addEventListener('pointerdown', function(e){
+      orb = true; lx = e.clientX; ly = e.clientY;
+      view.setPointerCapture(e.pointerId);
+    });
+    view.addEventListener('pointermove', function(e){
+      if(!orb) return;
+      state.yaw += (e.clientX - lx) * 0.008;
+      state.pitch = Math.max(-1.4, Math.min(1.4, state.pitch + (e.clientY - ly) * 0.008));
+      lx = e.clientX; ly = e.clientY;
+      drawView();
+    });
+    view.addEventListener('pointerup', function(){ orb = false; });
+  }
+
+  /* ---- exports ---- */
+  function fname(suffix, ext){
+    return section().name.replace(/[^\w×Ø-]+/g, '-').replace(/[×Ø]/g, 'x') + suffix + '.' + ext;
+  }
+  function download(blob, name, note){
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = name;
@@ -3464,12 +3641,11 @@
       L.push('0','CIRCLE','8','0','10', b.x.toFixed(2), '20', b.y.toFixed(2), '40', b.r.toFixed(2));
     });
     L.push('0','ENDSEC','0','EOF');
-    download(new Blob([L.join('\n')], { type:'application/dxf' }), fname('dxf'));
+    download(new Blob([L.join('\n')], { type:'application/dxf' }), fname('', 'dxf'), note2d);
   }
   function exportSvg(){
-    var sec = section(), P = outline(sec);
-    var sw = sec.kind === 'i' ? sec.b : sec.b, sh = sec.kind === 'i' ? sec.h : sec.d;
-    var m = 10, W = sw + 2 * m, H = sh + 2 * m;
+    var sec = section(), P = outline(sec), ex = extents(sec);
+    var m = 10, W = ex.w + 2 * m, H = ex.h + 2 * m;
     var d = P.map(function(p, i){
       return (i ? 'L' : 'M') + p.x.toFixed(2) + ' ' + (-p.y).toFixed(2);
     }).join(' ') + ' Z';
@@ -3480,15 +3656,66 @@
         return '<circle cx="' + b.x + '" cy="' + (-b.y) + '" r="' + b.r + '" fill="#111"/>';
       }).join('') +
       '</svg>';
-    download(new Blob([svg], { type:'image/svg+xml' }), fname('svg'));
+    download(new Blob([svg], { type:'image/svg+xml' }), fname('', 'svg'), note2d);
   }
-  function exportPng(){
-    cv.toBlob(function(b){ if(b) download(b, fname('png')); });
+  function exportPng2d(){
+    cv.toBlob(function(b){ if(b) download(b, fname('', 'png'), note2d); });
   }
-  var bD = document.getElementById('csDxf'), bS = document.getElementById('csSvg'), bP = document.getElementById('csPng');
-  if(bD) bD.addEventListener('click', exportDxf);
-  if(bS) bS.addEventListener('click', exportSvg);
-  if(bP) bP.addEventListener('click', exportPng);
+  function exportJson(){
+    var sec = section();
+    var data = { name: sec.name, nation: DB[state.nation].label, family: fam().label,
+                 kind: sec.kind, units: 'mm', height_mm: heightMm() };
+    if(sec.kind === 'i'){ data.depth = sec.h; data.width = sec.b; data.web = sec.tw; data.flange = sec.tf; data.root_radius = sec.r; }
+    else if(sec.kind === 'circ'){ data.diameter = sec.dia; }
+    else { data.width = sec.b; data.depth = sec.d; }
+    download(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }), fname('', 'json'), note2d);
+  }
+  function exportObj(){
+    var sec = section(), P = outline(sec), H = heightMm(), n = P.length;
+    var L = ['# ' + sec.name + ' column, ' + H + ' mm, units mm'];
+    P.forEach(function(p){ L.push('v ' + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' 0'); });
+    P.forEach(function(p){ L.push('v ' + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ' ' + H.toFixed(2)); });
+    for(var i = 0; i < n; i++){
+      var j = (i + 1) % n;
+      L.push('f ' + (i + 1) + ' ' + (j + 1) + ' ' + (n + j + 1) + ' ' + (n + i + 1));
+    }
+    triangulate2(P).forEach(function(t){
+      L.push('f ' + (t[2] + 1) + ' ' + (t[1] + 1) + ' ' + (t[0] + 1));
+      L.push('f ' + (n + t[0] + 1) + ' ' + (n + t[1] + 1) + ' ' + (n + t[2] + 1));
+    });
+    download(new Blob([L.join('\n')], { type:'text/plain' }), fname('-column', 'obj'), note3d);
+  }
+  function exportStl(){
+    var sec = section(), P = outline(sec), H = heightMm(), n = P.length;
+    var L = ['solid ' + sec.name.replace(/\s+/g, '_')];
+    function tri(a, b, c){
+      L.push(' facet normal 0 0 0', '  outer loop',
+        '   vertex ' + a[0].toFixed(2) + ' ' + a[1].toFixed(2) + ' ' + a[2].toFixed(2),
+        '   vertex ' + b[0].toFixed(2) + ' ' + b[1].toFixed(2) + ' ' + b[2].toFixed(2),
+        '   vertex ' + c[0].toFixed(2) + ' ' + c[1].toFixed(2) + ' ' + c[2].toFixed(2),
+        '  endloop', ' endfacet');
+    }
+    for(var i = 0; i < n; i++){
+      var j = (i + 1) % n, a = P[i], b = P[j];
+      tri([a.x, a.y, 0], [b.x, b.y, 0], [b.x, b.y, H]);
+      tri([a.x, a.y, 0], [b.x, b.y, H], [a.x, a.y, H]);
+    }
+    triangulate2(P).forEach(function(t){
+      tri([P[t[2]].x, P[t[2]].y, 0], [P[t[1]].x, P[t[1]].y, 0], [P[t[0]].x, P[t[0]].y, 0]);
+      tri([P[t[0]].x, P[t[0]].y, H], [P[t[1]].x, P[t[1]].y, H], [P[t[2]].x, P[t[2]].y, H]);
+    });
+    L.push('endsolid');
+    download(new Blob([L.join('\n')], { type:'model/stl' }), fname('-column', 'stl'), note3d);
+  }
+  function exportPng3d(){
+    if(view) view.toBlob(function(b){ if(b) download(b, fname('-column', 'png'), note3d); });
+  }
+  var hook = function(id, fn){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('click', fn);
+  };
+  hook('csDxf', exportDxf); hook('csSvg', exportSvg); hook('csPng', exportPng2d); hook('csJson', exportJson);
+  hook('csObj', exportObj); hook('csStl', exportStl); hook('csPng3', exportPng3d);
 
   /* ---- selects ---- */
   function fillNations(){
@@ -3528,65 +3755,105 @@
     if(state.custom && allowCustom) selS.value = 'custom';
     else { state.custom = false; state.size = Math.min(state.size, fam().sizes.length - 1); selS.value = state.size; }
   }
+  function numField(key, label){
+    var lab = document.createElement('label');
+    lab.textContent = label;
+    var inp = document.createElement('input');
+    inp.type = 'number'; inp.min = 1; inp.step = 'any';
+    inp.value = state.cd[key];
+    inp.setAttribute('aria-label', label + ' (mm)');
+    inp.addEventListener('input', function(){
+      var v = +inp.value;
+      if(!isNaN(v) && v > 0){ state.cd[key] = v; redraw(); }
+    });
+    customHost.appendChild(lab);
+    customHost.appendChild(inp);
+  }
   function buildCustom(){
     if(!customHost) return;
     customHost.hidden = !state.custom;
     if(!state.custom) return;
     customHost.innerHTML = '';
     var f = fam();
-    var fields = f.kind === 'i'
-      ? [ ['h','Depth h'], ['b','Width b'], ['tw','Web tw'], ['tf','Flange tf'] ]
-      : [ ['w','Width'], ['d','Depth'] ];
-    fields.forEach(function(fd){
+    if(f.kind === 'i'){
+      [['h','Depth h'], ['b','Width b'], ['tw','Web tw'], ['tf','Flange tf']].forEach(function(fd){ numField(fd[0], fd[1]); });
+    } else if(f.kind === 'conc'){
       var lab = document.createElement('label');
-      lab.textContent = fd[1];
-      var inp = document.createElement('input');
-      inp.type = 'number'; inp.min = 1; inp.step = 'any';
-      inp.value = state.cd[fd[0]];
-      inp.setAttribute('aria-label', fd[1] + ' (mm)');
-      inp.addEventListener('input', function(){
-        var v = +inp.value;
-        if(!isNaN(v) && v > 0){ state.cd[fd[0]] = v; draw(); }
+      lab.textContent = 'Shape';
+      var sel = document.createElement('select');
+      [['rect','Rectangular'], ['circ','Circular']].forEach(function(o){
+        var op = document.createElement('option');
+        op.value = o[0]; op.textContent = o[1];
+        sel.appendChild(op);
       });
+      sel.value = state.cd.shape;
+      sel.addEventListener('change', function(){ state.cd.shape = sel.value; buildCustom(); redraw(); });
       customHost.appendChild(lab);
-      customHost.appendChild(inp);
-    });
+      customHost.appendChild(sel);
+      if(state.cd.shape === 'circ') numField('dia', 'Diameter');
+      else { numField('w', 'Width'); numField('d', 'Depth'); }
+    } else {
+      numField('w', 'Width'); numField('d', 'Depth');
+    }
     var mm = document.createElement('span');
     mm.className = 'pg-note'; mm.textContent = 'mm';
     customHost.appendChild(mm);
   }
+  function redraw(){ draw(); drawView(); }
   selN.addEventListener('change', function(){
     state.nation = selN.value;
-    fillFams(); fillSizes(); buildCustom(); draw();
+    fillFams(); fillSizes(); buildCustom(); redraw();
   });
   selF.addEventListener('change', function(){
     state.fam = selF.value; state.custom = false; state.size = 0;
-    fillSizes(); buildCustom(); draw();
+    fillSizes(); buildCustom(); redraw();
   });
   selS.addEventListener('change', function(){
     if(selS.value === 'custom'){
       state.custom = true;
       var f = fam(), s0 = f.sizes[Math.min(state.size, f.sizes.length - 1)];
       if(f.kind === 'i'){ state.cd.h = s0[1]; state.cd.b = s0[2]; state.cd.tw = s0[3]; state.cd.tf = s0[4]; }
+      else if(s0[3] === 'c'){ state.cd.shape = 'circ'; state.cd.dia = s0[1]; }
       else { state.cd.w = s0[1]; state.cd.d = s0[2]; }
     } else {
       state.custom = false;
       state.size = +selS.value;
     }
-    buildCustom(); draw();
+    buildCustom(); redraw();
+  });
+  if(hIn) hIn.addEventListener('input', function(){
+    var v = +hIn.value;
+    if(!isNaN(v) && v > 0){ state.h = v; drawView(); }
+  });
+  if(hUnit) hUnit.addEventListener('change', function(){
+    var mm = heightMm();
+    state.hUnit = hUnit.value;
+    state.h = +(mm / HF[state.hUnit]).toFixed(state.hUnit === 'mm' ? 0 : 2);
+    if(hIn) hIn.value = state.h;
+    drawView();
   });
 
   function resize(){
     var w = cv.clientWidth;
-    if(!w) return;
-    var h = Math.round(w * 0.88), dpr = window.devicePixelRatio || 1;
-    cv.style.height = h + 'px';
-    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    g2.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw();
+    if(w){
+      var h = Math.round(w * 0.72), dpr = window.devicePixelRatio || 1;
+      cv.style.height = h + 'px';
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      g2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if(view){
+      var w2 = view.clientWidth;
+      if(w2){
+        var h2 = Math.round(w2 * 0.8), dpr2 = window.devicePixelRatio || 1;
+        view.style.height = h2 + 'px';
+        view.width = Math.round(w2 * dpr2); view.height = Math.round(h2 * dpr2);
+        v2.setTransform(dpr2, 0, 0, dpr2, 0, 0);
+      }
+    }
+    redraw();
   }
   window.addEventListener('resize', resize);
-  new MutationObserver(draw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  new MutationObserver(redraw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   fillNations(); fillFams(); fillSizes(); buildCustom();
   resize();
 })();
@@ -3651,8 +3918,10 @@
         return ['Build a "Column Sections" browser as one self-contained HTML file with no libraries.',
         '',
         'The user picks a nation first (United Kingdom, Europe, United States), then a section family from that nation’s catalogue — UK: UB, UC, timber, concrete; Europe: IPE, HE, timber, concrete; US: W shapes, timber, concrete — then a size from the family’s standard sizes, or Custom… which reveals dimension boxes (depth, width, web and flange for steel; width and depth for timber and concrete), all in millimetres.',
-        'Draw the chosen section true to scale on a canvas: steel I-sections with web, flanges and sampled root-radius fillets; timber with grain rings clipped to the rectangle; concrete with a link outline and rebar dots (corner bars, plus mid-face bars on large sections). Dashed centre lines behind, and a caption of the designation and dimensions.',
-        'Export buttons under the drawing: DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox) and PNG.',
+        'Concrete comes rectangular or circular — circular standard sizes (Ø) in every nation, and the custom concrete form offers a shape choice with a diameter box.',
+        'Draw the chosen section true to scale on a canvas: steel I-sections with web, flanges and sampled root-radius fillets; timber with grain rings clipped to the rectangle; concrete with a link outline and rebar dots (ringed bars on circular sections). Dashed centre lines behind, and a caption of the designation and dimensions.',
+        'Below the section, a column height input (default 5 m) with unit options (m, mm, ft) that convert the value both ways, and an orbitable 3D view of the section extruded to that height, rendered hidden-line.',
+        'Export sets are separate: 2D — DXF (LWPOLYLINE outline plus CIRCLE rebar, mm), SVG (true-mm viewBox), PNG and JSON (the section data); 3D — OBJ and STL of the extruded column (ear-clipped caps, mm) and a PNG of the view.',
         '',
         'Reproduce the current state: nation ' + (s.nation || 'uk') + ', family ' + (s.fam || 'ub') +
         (s.custom ? ', custom dimensions ' + JSON.stringify(s.cd) : ', size index ' + (s.size || 0)) + '.',
