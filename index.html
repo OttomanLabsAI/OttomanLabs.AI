@@ -1762,7 +1762,7 @@
     var p2 = Math.max(0, Math.min(1, (sg.run - 0.55) / 0.45));
     var LH = 10 - 2 * p1;          /* level height: 10 m → 8 m */
     var NP = 6 + 16 * p2;          /* diagrid points: 6 → 22 */
-    var turns = GK.twist / 2, mpy = GK.hMax / 180;
+    var mpy = GK.hMax / 180;
     var fam, i, s, t;
 
     /* levels every LH metres up to the 2 m top offset — these are the
@@ -1778,29 +1778,27 @@
       addLine([{ x: cx - L.r, y: L.y }, { x: cx + L.r, y: L.y }], 0.8, 'muted', 0.45);
     });
 
-    /* diagrid: two helix families drawn node-to-node through the levels;
-       count follows the points slider, newest line fades in */
-    var Nc = NP / 2;
+    /* diagrid like the dashboard: one node grid — every level, NPi
+       azimuth slots. The brace families step one slot per level from the
+       even nodes and the verticals rise through the same node columns, so
+       every element meets at the diagrid connections */
+    var NPi = Math.max(4, 2 * Math.round(NP / 2)), Nl = Ls.length;
+    function nodeAt(l, j){
+      return { x: cx + Ls[l].r * Math.sin(TAU * j / NPi), y: Ls[l].y };
+    }
     for(fam = -1; fam <= 1; fam += 2){
-      for(i = 0; i < Math.ceil(Nc); i++){
+      for(i = 0; i < NPi; i += 2){
         var pts = [];
-        for(s = 0; s < Ls.length; s++){
-          var ph = TAU * (fam * turns * Ls[s].t + i / Nc);
-          pts.push({ x: cx + Ls[s].r * Math.sin(ph), y: Ls[s].y });
-        }
-        var la = (i < Math.floor(Nc) ? 1 : Nc - Math.floor(Nc)) * 0.6;
-        addLine(pts, 0.8, 'ink', la,
-          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / Nc }] : null);
-        KNOBS.push({ x: pts[0].x, y: pts[0].y, r: 2.6, hollow: true, a: la / 0.6 });   /* base node */
+        for(s = 0; s < Nl; s++) pts.push(nodeAt(s, i + fam * s));
+        addLine(pts, 0.8, 'ink', 0.6,
+          i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / NPi }] : null);
       }
     }
-    /* the vertical elements — one mullion per diagrid point, riding the profile */
-    for(i = 0; i < Math.ceil(NP); i++){
+    for(i = 0; i < NPi; i++){
       var vp = [];
-      for(s = 0; s < Ls.length; s++)
-        vp.push({ x: cx + Ls[s].r * Math.sin(TAU * i / NP), y: Ls[s].y });
-      var va = (i < Math.floor(NP) ? 1 : NP - Math.floor(NP)) * 0.3;
-      addLine(vp, 0.7, 'ink', va);
+      for(s = 0; s < Nl; s++) vp.push(nodeAt(s, i));
+      addLine(vp, 0.7, 'ink', 0.3);
+      KNOBS.push({ x: vp[0].x, y: vp[0].y, r: 2.6, hollow: true });   /* base node */
     }
     var sl = [], sr = [];
     for(s = 0; s <= 26; s++){
