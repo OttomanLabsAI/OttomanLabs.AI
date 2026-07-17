@@ -94,13 +94,14 @@
   .t3-chips button.active{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
   .t3-chips button.bcol.active{ background:#B01018; border-color:#B01018; color:#fff; }
   [data-theme="dark"] .t3-chips button.bcol.active{ background:#DE8286; border-color:#DE8286; color:#111; }
-  .t3-clear{ margin-left:auto; font-family:var(--font-brand); font-size:.52rem; letter-spacing:.12em;
+  .t3-btns{ margin-left:auto; display:flex; gap:.3rem; }
+  .t3-clear{ font-family:var(--font-brand); font-size:.52rem; letter-spacing:.12em;
     text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
     padding:.16rem .42rem; cursor:pointer; }
   .t3-clear:hover{ background:var(--ink); color:var(--paper); }
   #t3Prof, #t3Path{ display:block; width:100%; height:auto; border:1px solid var(--hair);
     cursor:crosshair; touch-action:none; }
-  .t3-blab2{ min-height:1.55rem; }
+  .t3-blab2{ min-height:1.55rem; padding-top:.4rem; padding-bottom:.15rem; }
   .t3-note{ font-family:var(--font-serif); font-style:italic; font-size:.82rem; color:var(--ink-60);
     text-align:center; padding:0 1rem .9rem; }
   .t3-bhint{ font-family:var(--font-brand); font-size:.5rem; letter-spacing:.12em;
@@ -425,18 +426,22 @@
               <button class="active" data-shape="A" type="button">A</button>
               <button class="bcol" data-shape="B" type="button">B</button>
             </span>
-            <button class="t3-clear" id="t3ProfClear" type="button">Clear</button>
+            <span class="t3-btns">
+              <button class="t3-clear" id="t3ProfUndo" type="button">Undo</button>
+              <button class="t3-clear" id="t3ProfClear" type="button">Clear</button>
+            </span>
           </div>
+          <canvas id="t3Prof" aria-label="Profile sketchboard — the centre is the line of action"></canvas>
           <div class="t3-blab t3-blab2">
             <span class="t3-chips" id="t3PrType">
               <button class="active" data-pr="shape" type="button">Shape</button>
               <button data-pr="line" type="button">Line</button>
               <button data-pr="poly" type="button">Poly</button>
               <button data-pr="arc" type="button">Arc</button>
+              <button data-pr="bez" type="button">Bezier</button>
               <button data-pr="curve" type="button">Curve</button>
             </span>
           </div>
-          <canvas id="t3Prof" aria-label="Profile sketchboard — the centre is the line of action"></canvas>
           <div class="t3-bhint" id="t3ProfHint"></div>
         </div>
         <div class="t3-b">
@@ -446,17 +451,21 @@
               <button data-plane="xz" type="button">XZ</button>
               <button data-plane="yz" type="button">YZ</button>
             </span>
-            <button class="t3-clear" id="t3PathClear" type="button">Clear</button>
+            <span class="t3-btns">
+              <button class="t3-clear" id="t3PathUndo" type="button">Undo</button>
+              <button class="t3-clear" id="t3PathClear" type="button">Clear</button>
+            </span>
           </div>
+          <canvas id="t3Path" aria-label="Line of action sketchboard"></canvas>
           <div class="t3-blab t3-blab2">
             <span class="t3-chips" id="t3PType">
               <button class="active" data-pt="line" type="button">Line</button>
               <button data-pt="poly" type="button">Poly</button>
               <button data-pt="arc" type="button">Arc</button>
+              <button data-pt="bez" type="button">Bezier</button>
               <button data-pt="curve" type="button">Curve</button>
             </span>
           </div>
-          <canvas id="t3Path" aria-label="Line of action sketchboard"></canvas>
           <div class="t3-bhint" id="t3PathHint"></div>
         </div>
       </div>
@@ -1671,8 +1680,21 @@
     return { x: (a2*(b.y - c.y) + b2*(c.y - a.y) + c2*(a.y - b.y)) / d,
              y: (a2*(c.x - b.x) + b2*(a.x - c.x) + c2*(b.x - a.x)) / d };
   }
+  function bez2(P, t){
+    var q = P.map(function(p){ return { x: p.x, y: p.y }; });
+    for(var k = q.length - 1; k > 0; k--)
+      for(var i = 0; i < k; i++){
+        q[i].x += (q[i+1].x - q[i].x) * t;
+        q[i].y += (q[i+1].y - q[i].y) * t;
+      }
+    return q[0];
+  }
   function samplePath2(pp, t){
     var pts = [], i;
+    if(t === 'bez' && pp.length >= 3){
+      for(i = 0; i <= 44; i++) pts.push(bez2(pp, i / 44));
+      return pts;
+    }
     if(t === 'curve' && pp.length >= 3){
       var C = [pp[0]].concat(pp, [pp[pp.length-1]]);
       for(i = 0; i <= 44; i++){
@@ -2277,6 +2299,10 @@
   wireBoard(prof, activeProf);
   wireBoard(pathC, function(){ return state.path; });
 
+  var pun = document.getElementById('t3ProfUndo');
+  if(pun) pun.addEventListener('click', function(){ activeProf().pop(); refresh(); });
+  var aun = document.getElementById('t3PathUndo');
+  if(aun) aun.addEventListener('click', function(){ state.path.pop(); refresh(); });
   var pcl = document.getElementById('t3ProfClear');
   if(pcl) pcl.addEventListener('click', function(){
     if(isBlend() && state.shape === 'B') state.B = []; else state.A = [];
@@ -3200,7 +3226,7 @@
         var s = window.__t3 || {};
         return ['Build an interactive "3D Techniques" widget as one self-contained HTML file with no libraries.',
         '',
-        'Two square sketchboards: a profile board whose centre is the line of action (mark it with an X), and a line-of-action board with a plane picker (XY / XZ / YZ). Both boards offer line styles — the profile: shape / line / poly / arc / curve (open profiles sweep into sheets); the line of action: line / polyline / arc / curve. Snap-to-grid with a density slider, on by default, grid centred on the board centre.',
+        'Two square sketchboards: a profile board whose centre is the line of action (mark it with an X), and a line-of-action board with a plane picker (XY / XZ / YZ). Both boards offer line styles — the profile: shape / line / poly / arc / bezier / curve (open profiles sweep into sheets); the line of action: line / polyline / arc / bezier / curve. Snap-to-grid with a density slider, on by default, grid centred on the board centre.',
         'Techniques: extrude, revolve (angle setting), sweep, blend and sweep blend (two profiles on one board, A in ink, B in red). Twist setting shows a greyed rotated ghost of the end profile on the board.',
         'Output: an orbitable 3D canvas with painter-sorted hidden-line rendering — white faces, black ink only on crease and silhouette edges, no wireframe lines on flat faces — an XY ground grid that matches the snap grid through the origin, XYZ axes, and a view cube whose faces and corners are clickable to snap the camera. Fixed view scale (mouse wheel zooms), no idle spin.',
         'Interaction: tap adds a point; drag a point to move it, or grab the line to carry the whole sketch; right-click deletes a point. Show the solid only when both the profile and the line of action exist; before that show whichever sketch exists flat on its plane.',
