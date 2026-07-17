@@ -2576,7 +2576,9 @@
   // Closed outline of one plate: the disc with the wedges cut out, twisted by rot.
   function plateOutline(r, rot){
     var pts = [], i;
-    if(wedgeN < 1 || wedgeD >= r - 1e-9){   // no wedges, or the cuts have exited this plate
+    // no wedges, cuts exited the plate, or point distance still at zero —
+    // the plate stays a whole disc until the slider actually moves
+    if(wedgeN < 1 || wedgeD >= r - 1e-9 || wedgeD <= 1e-9){
       var M = 72;
       for(i = 0; i <= M; i++){
         var th = 2 * Math.PI * i / M + rot;
@@ -2585,7 +2587,6 @@
       return pts;
     }
     var dW = wedgeD;
-    if(dW <= 1e-9) return null;             // tips at the core: the cuts remove everything
     var sg = 2 * Math.PI / wedgeN, hs = sg / 2;
     var tu = -dW * Math.cos(hs) + Math.sqrt(Math.max(0, dW * dW * Math.cos(hs) * Math.cos(hs) + r * r - dW * dW));
     var hx = dW + tu * Math.cos(hs), hy = tu * Math.sin(hs);
@@ -2629,9 +2630,8 @@
     ];
   }
   function plateSegments(r, rot){
-    if(wedgeN < 1 || wedgeD >= r - 1e-9) return discSegments(r, rot);
+    if(wedgeN < 1 || wedgeD >= r - 1e-9 || wedgeD <= 1e-9) return discSegments(r, rot);
     var dW = wedgeD;
-    if(dW <= 1e-9) return null;
     var sg = 2 * Math.PI / wedgeN, hs = sg / 2;
     var tu = -dW * Math.cos(hs) + Math.sqrt(Math.max(0, dW * dW * Math.cos(hs) * Math.cos(hs) + r * r - dW * dW));
     var hx = dW + tu * Math.cos(hs), hy = tu * Math.sin(hs);
