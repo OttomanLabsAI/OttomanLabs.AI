@@ -282,6 +282,8 @@
   .a4-snap svg{ width:100%; height:100%; display:block; }
   /* single design — the pair holds just the one pane */
   .a4-snap img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .a4-snap.live{ overflow:hidden; }
+  .a4-snap.live canvas{ cursor:crosshair; }
   .a4-snap .empty{ font-family:var(--font-brand); font-size:2.6mm; letter-spacing:.12em;
     text-transform:uppercase; color:var(--ink-60); padding:4mm; text-align:center; }
   .a4-foot{ margin-top:auto; border-top:1px solid var(--hair); padding-top:3mm;
@@ -4434,7 +4436,6 @@
       stagePage:'pageExo', stagePanel:'panelDash',
       params:[
         { master:'bldgHeight',   name:'Building height', unit:'m',  desc:'Overall tower height; sets the vertical scale of every level.' },
-        { master:'splineDegree', name:'Spline degree',   unit:'',   desc:'Smoothness of the profile curve through the control points.' },
         { master:'zLevelH',      name:'Level height',    unit:'m',  desc:'Vertical spacing of the exoskeleton levels — a level is placed every this many meters up the frame.' },
         { master:'pointsSlider', name:'Polar points',    unit:'',   desc:'Nodes around each ring — the diagrid brace count.' }
       ],
@@ -4476,6 +4477,31 @@
 
   function makeSheet(spec){
     var capturing = false;
+    var printing = false;
+
+    /* the sheet's spline view is the LIVE board, adopted into its cell —
+       drag the points there and the whole model follows (the other views
+       re-capture on model3d/floors3d). Released home for off-screen
+       staging, printing and svg export, which need the vector snapshot. */
+    var liveSrc = spec.caps[0][0], liveCell = spec.caps[0][1] + '_o';
+    function adopt(){
+      var brd = el(liveSrc), cell = el(liveCell);
+      if(!brd || !cell || brd.parentElement === cell) return;
+      if(!brd.__home){ brd.__home = brd.parentElement; brd.__homeNext = brd.nextSibling; }
+      cell.innerHTML = '';
+      cell.classList.add('live');
+      cell.appendChild(brd);
+      window.dispatchEvent(new Event('resize'));
+    }
+    function release(){
+      var brd = el(liveSrc), cell = el(liveCell);
+      if(!brd || !brd.__home || brd.parentElement !== cell) return;
+      cell.classList.remove('live');
+      brd.__home.insertBefore(brd, brd.__homeNext || null);
+      window.dispatchEvent(new Event('resize'));
+    }
+    window.__a4Release = window.__a4Release || [];
+    window.__a4Release.push(release);
 
     /* build the parameter rows: each has an Original slider (drives the master)
        and a hidden Alternative slider (used only at capture time in dual mode) */
@@ -4555,6 +4581,7 @@
       spec.caps.forEach(function(pair){
         var c = el(pair[0]), box = el(pair[1] + suffix);
         if(!box) return;
+        if(c && c.parentElement === box) return;   /* live board adopted here */
         if(!c || !c.width || !c.height){ anyZero = true; return; }
         var fn = reg[pair[0]];
         var svg = fn ? fn(SVG_SIZE) : null;
@@ -4624,6 +4651,7 @@
     function build(){
       reflectFromMasters();
       syncReadout();
+      if(!printing && sheetVisible()) adopt();
       takeSnaps();
     }
 
@@ -4632,6 +4660,7 @@
     if(refreshBtn) refreshBtn.addEventListener('click', build);
     var printBtn = el(spec.printId);
     if(printBtn) printBtn.addEventListener('click', function(){
+      printing = true; release();
       build();
       setTimeout(function(){ window.print(); }, 450);
     });
@@ -4639,6 +4668,7 @@
     // together via the folder-picking batch saver (same as the CSV exports)
     var svgBtn = el(spec.svgId);
     if(svgBtn) svgBtn.addEventListener('click', function(){
+      printing = true; release();
       build();   // refresh the inline vector captures first
       setTimeout(function(){
         var files = [];
@@ -4650,6 +4680,8 @@
           }
         });
         if(files.length) window.saveCSVBatch(files);
+        printing = false;
+        if(sheetVisible()) adopt();
       }, 500);
     });
 
@@ -4680,7 +4712,11 @@
     });
     window.addEventListener('beforeprint', function(){
       var pg = el(spec.pageId);
-      if(pg && !pg.hidden) build();
+      if(pg && !pg.hidden){ printing = true; release(); build(); }
+    });
+    window.addEventListener('afterprint', function(){
+      printing = false;
+      if(sheetVisible()) adopt();
     });
 
     buildParams();
@@ -4714,6 +4750,7 @@
   }
   function showSub(which){
     sheetSub = which;
+    if(window.__a4Release) window.__a4Release.forEach(function(f){ f(); });
     var ep = gp('pageSheetExo'), fp = gp('pageSheetFloors');
     if(ep) ep.hidden = (which !== 'exo');
     if(fp) fp.hidden = (which !== 'floors');
@@ -4728,6 +4765,8 @@
       var pg = gp(pages[k]); if(pg) pg.hidden = (k !== which);
       var tb = gp(tabs[k]); if(tb) tb.classList.toggle('active', k === which);
     });
+    if(which !== 'sheets' && window.__a4Release)
+      window.__a4Release.forEach(function(f){ f(); });
     window.dispatchEvent(new Event('resize'));
     if(which === 'sheets'){ showSub(sheetSub); }
     if(which === 'total') requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); });
