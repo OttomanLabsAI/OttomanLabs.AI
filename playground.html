@@ -697,6 +697,10 @@
     if(!SNAP.on) return p;
     return { x: Math.round(p.x / SNAP.g) * SNAP.g, y: Math.round(p.y / SNAP.g) * SNAP.g };
   }
+  function clampP(p){
+    return { x: Math.max(0, Math.min(canvas.clientWidth, p.x)),
+             y: Math.max(0, Math.min(canvas.clientHeight, p.y)) };
+  }
   var TAU = Math.PI * 2;
 
   /* g = taps per element (0 = one running element, -1 = freehand drag);
@@ -1189,9 +1193,10 @@
     /* light drafting grid */
     ctx.strokeStyle = muted(); ctx.globalAlpha = 0.25; ctx.lineWidth = 1;
     var g = SNAP.g;
+    var gw = Math.floor(w / g) * g, gh = Math.floor(h / g) * g;
     ctx.beginPath();
-    for(var x = g; x < w; x += g){ ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); }
-    for(var y = g; y < h; y += g){ ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); }
+    for(var x = g; x <= gw; x += g){ ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, gh); }
+    for(var y = g; y <= gh; y += g){ ctx.moveTo(0, y + 0.5); ctx.lineTo(gw, y + 0.5); }
     ctx.stroke();
     ctx.globalAlpha = 1;
     var m = typeMeta(state.tab), P = state.pts[state.tab];
@@ -1230,7 +1235,7 @@
     canvas.setPointerCapture(e.pointerId);
     if(typeMeta(state.tab).id === 'free'){
       sketching = true;
-      state.pts[state.tab].push(snapP(p));
+      state.pts[state.tab].push(clampP(snapP(p)));
       draw();
       return;
     }
@@ -1240,12 +1245,12 @@
     var p = pos(e);
     if(sketching){
       var P = state.pts[state.tab], q = P[P.length - 1];
-      if(!q || dst(p, q) > 4){ P.push(snapP(p)); draw(); }
+      if(!q || dst(p, q) > 4){ P.push(clampP(snapP(p))); draw(); }
       return;
     }
     if(dragIdx < 0) return;
     moved = true;
-    state.pts[state.tab][dragIdx] = snapP(p);
+    state.pts[state.tab][dragIdx] = clampP(snapP(p));
     draw();
   });
   canvas.addEventListener('pointerup', function(e){
@@ -1254,7 +1259,7 @@
     var p = pos(e);
     if(dragIdx >= 0){ if(moved) draw(); dragIdx = -1; return; }
     dragIdx = -1;
-    state.pts[state.tab].push(snapP(p));
+    state.pts[state.tab].push(clampP(snapP(p)));
     draw();
   });
   canvas.addEventListener('contextmenu', function(e){
@@ -2081,21 +2086,23 @@
     c2.clearRect(0, 0, w, h);
     c2.strokeStyle = muted(); c2.globalAlpha = 0.22; c2.lineWidth = 1;
     var g = SNAP.g, cx = w / 2, cyy = h / 2, k;
+    var hx = Math.floor(cx / g) * g, hy = Math.floor(cyy / g) * g;
+    var gx0 = cx - hx, gx1 = cx + hx, gy0 = cyy - hy, gy1 = cyy + hy;
     c2.beginPath();
-    for(k = 0; cx + k < w || cx - k > 0; k += g){
-      if(cx + k < w){ c2.moveTo(Math.round(cx + k) + 0.5, 0); c2.lineTo(Math.round(cx + k) + 0.5, h); }
-      if(k && cx - k > 0){ c2.moveTo(Math.round(cx - k) + 0.5, 0); c2.lineTo(Math.round(cx - k) + 0.5, h); }
+    for(k = 0; k <= hx; k += g){
+      c2.moveTo(Math.round(cx + k) + 0.5, gy0); c2.lineTo(Math.round(cx + k) + 0.5, gy1);
+      if(k){ c2.moveTo(Math.round(cx - k) + 0.5, gy0); c2.lineTo(Math.round(cx - k) + 0.5, gy1); }
     }
-    for(k = 0; cyy + k < h || cyy - k > 0; k += g){
-      if(cyy + k < h){ c2.moveTo(0, Math.round(cyy + k) + 0.5); c2.lineTo(w, Math.round(cyy + k) + 0.5); }
-      if(k && cyy - k > 0){ c2.moveTo(0, Math.round(cyy - k) + 0.5); c2.lineTo(w, Math.round(cyy - k) + 0.5); }
+    for(k = 0; k <= hy; k += g){
+      c2.moveTo(gx0, Math.round(cyy + k) + 0.5); c2.lineTo(gx1, Math.round(cyy + k) + 0.5);
+      if(k){ c2.moveTo(gx0, Math.round(cyy - k) + 0.5); c2.lineTo(gx1, Math.round(cyy - k) + 0.5); }
     }
     c2.stroke();
     c2.globalAlpha = 0.65;
     c2.setLineDash([4, 4]);
     c2.beginPath();
-    c2.moveTo(w/2 + 0.5, 0); c2.lineTo(w/2 + 0.5, h);
-    c2.moveTo(0, h/2 + 0.5); c2.lineTo(w, h/2 + 0.5);
+    c2.moveTo(cx + 0.5, gy0); c2.lineTo(cx + 0.5, gy1);
+    c2.moveTo(gx0, cyy + 0.5); c2.lineTo(gx1, cyy + 0.5);
     c2.stroke();
     c2.setLineDash([]);
     c2.globalAlpha = 1;
@@ -2202,6 +2209,10 @@
       });
       return best;
     }
+    function clampB(p){
+      return { x: Math.max(0, Math.min(cv.clientWidth, p.x)),
+               y: Math.max(0, Math.min(cv.clientHeight, p.y)) };
+    }
     function onShape(p){
       var P = getP();
       if(P.length < 2) return false;
@@ -2232,7 +2243,7 @@
     });
     cv.addEventListener('pointermove', function(e){
       if(mode === 'pt'){
-        getP()[ptIdx] = snap(pos(e), cv);
+        getP()[ptIdx] = clampB(snap(pos(e), cv));
         refresh();
       } else if(mode === 'shape'){
         var p = pos(e), dx = p.x - startPos.x, dy = p.y - startPos.y;
@@ -2240,6 +2251,13 @@
           dx = Math.round(dx / SNAP.g) * SNAP.g;
           dy = Math.round(dy / SNAP.g) * SNAP.g;
         }
+        var mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
+        startPts.forEach(function(q){
+          mnX = Math.min(mnX, q.x); mxX = Math.max(mxX, q.x);
+          mnY = Math.min(mnY, q.y); mxY = Math.max(mxY, q.y);
+        });
+        dx = Math.max(-mnX, Math.min(cv.clientWidth - mxX, dx));
+        dy = Math.max(-mnY, Math.min(cv.clientHeight - mxY, dy));
         var P = getP();
         startPts.forEach(function(q, i){ P[i] = { x: q.x + dx, y: q.y + dy }; });
         refresh();
@@ -2247,7 +2265,7 @@
     });
     cv.addEventListener('pointerup', function(e){
       if(e.button === 2) return;
-      if(mode === 'add'){ getP().push(snap(pos(e), cv)); refresh(); }
+      if(mode === 'add'){ getP().push(clampB(snap(pos(e), cv))); refresh(); }
       mode = null;
     });
     cv.addEventListener('contextmenu', function(e){
