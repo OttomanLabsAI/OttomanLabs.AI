@@ -107,8 +107,11 @@
     padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
   .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
   @media (max-width:719px){
-    .pg-hero-centre{ padding-left:32%; }   /* clear the gherkin on phones */
-    .pg-hero-title{ font-size:clamp(1.05rem,4.4vw,1.4rem); white-space:normal; }
+    /* clear the gherkin on phones, whatever the width, and centre the
+       lockup in the space that remains */
+    .pg-hero-centre{ padding-left:clamp(120px, 32%, 210px); padding-right:10px; }
+    .pg-hero-title{ font-size:clamp(1.05rem,4.4vw,1.4rem); white-space:normal;
+      line-height:1.18; text-wrap:balance; }
     .pg-hero-btn{ padding:.5rem 1.2rem; }
   }
 
