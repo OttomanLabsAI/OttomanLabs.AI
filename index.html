@@ -92,6 +92,19 @@
       "stocks  cv     cv     github"
       "youtube strategy strategy b2";
   }
+  /* ── the playground hero banner ── */
+  .pg-hero{ position:relative; display:block; border:1px solid var(--hair);
+    margin-bottom:var(--gap); text-decoration:none; color:var(--ink); overflow:hidden; }
+  .pg-hero canvas{ display:block; width:100%; height:auto; }
+  .pg-hero-centre{ position:absolute; inset:0; display:flex; flex-direction:column; gap:.4rem;
+    align-items:center; justify-content:center; text-align:center; pointer-events:none; }
+  .pg-hero-kicker{ font-family:var(--font-serif); font-style:italic; font-size:1.05rem; color:var(--ink-60); }
+  .pg-hero-title{ font-family:var(--font-display); font-size:clamp(1.5rem,3.2vw,2.5rem); letter-spacing:.14em; }
+  .pg-hero-btn{ font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.22em;
+    text-transform:uppercase; background:var(--ink); color:var(--paper); border:1px solid var(--ink);
+    padding:.62rem 1.7rem; margin-top:.45rem; transition:background .15s, color .15s; }
+  .pg-hero:hover .pg-hero-btn, .pg-hero:focus-visible .pg-hero-btn{ background:var(--paper); color:var(--ink); }
+
   /* ── interactive project selector (the one colour tile on the page) ── */
   .selector-box{ padding:0; gap:0; overflow:hidden; }
   .selector-stage{ position:relative; width:100%; }
@@ -195,6 +208,15 @@
     <span class="claim-sub">weeks of work in minutes &mdash; from day 1</span>
   </div>
 
+  <a class="pg-hero" id="pgHero" href="playground.html" aria-label="Enter the Computational AI Playground">
+    <canvas id="pgHeroCanvas" aria-hidden="true"></canvas>
+    <span class="pg-hero-centre">
+      <span class="pg-hero-kicker">The Computational</span>
+      <span class="pg-hero-title">AI PLAYGROUND</span>
+      <span class="pg-hero-btn">Enter</span>
+    </span>
+  </a>
+
   <h2 class="section-head">Architecture and Structural</h2>
 
     <!-- ════════ PROJECT SELECTOR (the one colour tile) ════════ -->
@@ -204,8 +226,8 @@
         <canvas id="selCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="selPrev" aria-label="Previous project">&#8249;</button>
         <button class="sel-arrow next" id="selNext" aria-label="Next project">&#8250;</button>
-        <a class="sel-opt opt-dash" id="selDash" href="gherkin.html">Enter the dashboard<small>open the model</small></a>
-        <a class="sel-opt opt-tut" id="selTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        <a class="sel-opt opt-dash" id="selDash" href="gherkin.html">Concept design<small>open the model</small></a>
+        <a class="sel-opt opt-tut" id="selTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" id="selBanner" aria-live="polite">
         <span class="sel-name" id="selName">THE GHERKIN</span>
@@ -219,8 +241,8 @@
         <canvas id="topoCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="topoPrev" aria-label="Previous tool">&#8249;</button>
         <button class="sel-arrow next" id="topoNext" aria-label="Next tool">&#8250;</button>
-        <a class="sel-opt opt-dash" id="topoDash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
-        <a class="sel-opt opt-tut" id="topoTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        <a class="sel-opt opt-dash" id="topoDash" href="#" aria-disabled="true">Concept design<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="topoTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" aria-live="polite">
         <span class="sel-name" id="topoName">TOPOFORGE</span>
@@ -234,8 +256,8 @@
         <canvas id="mepCanvas" aria-hidden="true"></canvas>
         <button class="sel-arrow prev" id="mepPrev" aria-label="Previous tool">&#8249;</button>
         <button class="sel-arrow next" id="mepNext" aria-label="Next tool">&#8250;</button>
-        <a class="sel-opt opt-dash" id="mepDash" href="#" aria-disabled="true">Enter the dashboard<small>coming soon</small></a>
-        <a class="sel-opt opt-tut" id="mepTut" href="#" aria-disabled="true">Tutorial<small>coming soon</small></a>
+        <a class="sel-opt opt-dash" id="mepDash" href="#" aria-disabled="true">Concept design<small>coming soon</small></a>
+        <a class="sel-opt opt-tut" id="mepTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" aria-live="polite">
         <span class="sel-name" id="mepName">BULK PLACEMENT</span>
@@ -349,16 +371,7 @@
       <span class="display" style="font-size:1.4rem">BIM &amp; CONSTRUCTION</span>
       <span class="caps caps-tight muted" style="font-size:.6rem">the playbook &middot; coming soon</span>
     </a>
-    <a class="box a-playground" href="playground.html">
-      <svg viewBox="0 0 96 44" width="88" height="40" fill="none" stroke="#111" stroke-width="2" aria-hidden="true">
-        <rect x="4" y="6" width="20" height="14"/><rect x="4" y="26" width="20" height="12"/>
-        <rect x="34" y="6" width="26" height="32"/><rect x="70" y="6" width="22" height="20"/>
-        <circle cx="47" cy="22" r="7"/><path d="M70 32 h22 M70 36 h14" stroke-width="1.6"/>
-      </svg>
-      <span class="ital">The Computational</span>
-      <span class="display" style="font-size:1.4rem">AI PLAYGROUND</span>
-      <span class="caps caps-tight muted" style="font-size:.6rem">draw &middot; model &middot; graph &middot; export</span>
-    </a>
+    <div class="box blank a-playground" aria-hidden="true"></div>
 
   </div>
 
@@ -697,6 +710,27 @@
   };
   /* island painter: stacked slabs differ in depth by noise-level amounts, so
      near-ties resolve by height (lower faces first) instead of raw depth */
+  var TEXPAT = null;
+  function texPattern(ctx){
+    if(TEXPAT) return TEXPAT;
+    var t = document.createElement('canvas');
+    t.width = 8; t.height = 8;
+    var tc = t.getContext('2d');
+    for(var y = 0; y < 8; y++)
+      for(var x = 0; x < 8; x++){
+        var h1 = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; h1 -= Math.floor(h1);
+        var h2 = Math.sin(x * 269.5 + y * 183.3) * 28001.8384; h2 -= Math.floor(h2);
+        tc.fillStyle = 'rgba(' + (h1 < 0.5 ? '0,0,0' : '255,255,255') + ',' + (0.05 + 0.16 * h2).toFixed(3) + ')';
+        tc.fillRect(x, y, 1, 1);
+      }
+    var big = document.createElement('canvas');
+    big.width = 40; big.height = 40;
+    var bc = big.getContext('2d');
+    bc.imageSmoothingEnabled = false;
+    bc.drawImage(t, 0, 0, 40, 40);
+    TEXPAT = ctx.createPattern(big, 'repeat');
+    return TEXPAT;
+  }
   function paintVox(ctx, faces, prj, yaw, lineCol){
     var out = faces.map(function(f){
       var pts = f.pts.map(function(p){ return prj(p[0], p[1], p[2]); });
@@ -715,6 +749,7 @@
       for(var i = 1; i < f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
       ctx.closePath();
       ctx.fillStyle = f.col; ctx.fill();
+      ctx.fillStyle = texPattern(ctx); ctx.fill();   /* minecraft texel speckle */
       ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
     });
   }
@@ -1595,6 +1630,110 @@
       }
     });
   });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  /* ── the playground hero: a field of flowing splines over a node grid.
+     Nodes repel from the cursor and spring back; a soft idle wave keeps
+     it breathing. Monochrome, theme-aware. ── */
+  var hero = document.getElementById('pgHero');
+  var cv = document.getElementById('pgHeroCanvas');
+  if(!hero || !cv) return;
+  var ctx = cv.getContext('2d');
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var nodes = [], cols = 0, rows = 0, GAP = 46;
+  var cursor = null, t0 = performance.now();
+
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111'; }
+  function muted(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
+
+  function build(){
+    var w = cv.clientWidth, h = cv.clientHeight;
+    cols = Math.ceil(w / GAP) + 2;
+    rows = Math.ceil(h / GAP) + 1;
+    nodes = [];
+    for(var r = 0; r < rows; r++)
+      for(var c = 0; c < cols; c++)
+        nodes.push({ rx: (c - 0.5) * GAP, ry: (r + 0.5) * GAP, x: 0, y: 0, vx: 0, vy: 0 });
+    nodes.forEach(function(n){ n.x = n.rx; n.y = n.ry; });
+  }
+  function step(){
+    var t = (performance.now() - t0) / 1000;
+    nodes.forEach(function(n, i){
+      var wx = Math.sin(t * 0.7 + n.rx * 0.011 + n.ry * 0.02) * 3;
+      var wy = Math.cos(t * 0.6 + n.rx * 0.014 - n.ry * 0.017) * 3;
+      var tx = n.rx + wx, ty = n.ry + wy;
+      if(cursor){
+        var dx = n.rx - cursor.x, dy = n.ry - cursor.y;
+        var d = Math.hypot(dx, dy) || 1;
+        var R = 150;
+        if(d < R){
+          var f = (1 - d / R);
+          f = f * f * 42;
+          tx += dx / d * f;
+          ty += dy / d * f;
+        }
+      }
+      n.vx = (n.vx + (tx - n.x) * 0.14) * 0.72;
+      n.vy = (n.vy + (ty - n.y) * 0.14) * 0.72;
+      n.x += n.vx; n.y += n.vy;
+    });
+  }
+  function draw(){
+    var w = cv.clientWidth, h = cv.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    /* flowing splines along each row, midpoint-smoothed */
+    for(var r = 0; r < rows; r++){
+      ctx.strokeStyle = r % 2 ? muted() : ink();
+      ctx.globalAlpha = r % 2 ? 0.55 : 0.8;
+      ctx.lineWidth = r % 2 ? 1 : 1.4;
+      ctx.beginPath();
+      var first = nodes[r * cols];
+      ctx.moveTo(first.x, first.y);
+      for(var c = 1; c < cols; c++){
+        var p = nodes[r * cols + c - 1], q = nodes[r * cols + c];
+        ctx.quadraticCurveTo(p.x, p.y, (p.x + q.x) / 2, (p.y + q.y) / 2);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    /* node discs on the ink rows */
+    ctx.fillStyle = ink();
+    for(var i = 0; i < nodes.length; i++){
+      var rr = Math.floor(i / cols);
+      if(rr % 2) continue;
+      var n = nodes[i];
+      ctx.beginPath(); ctx.arc(n.x, n.y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  function loop(){
+    step();
+    draw();
+    requestAnimationFrame(loop);
+  }
+  hero.addEventListener('pointermove', function(e){
+    var r = cv.getBoundingClientRect();
+    cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
+  });
+  hero.addEventListener('pointerleave', function(){ cursor = null; });
+  function resize(){
+    var w = hero.clientWidth;
+    if(!w) return;
+    var h = Math.max(170, Math.min(250, Math.round(w * 0.16)));
+    var dpr = window.devicePixelRatio || 1;
+    cv.style.height = h + 'px';
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    build();
+    draw();
+  }
+  window.addEventListener('resize', resize);
+  new MutationObserver(draw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  resize();
+  if(!reduced) requestAnimationFrame(loop);
 })();
 </script>
 <script>
