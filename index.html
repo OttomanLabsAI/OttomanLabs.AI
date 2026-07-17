@@ -1776,17 +1776,13 @@
       Ls.push({ my: my, r: grad(my) * k, y: yTop + my * k });
       if(hh === 178) break;
     }
-    Ls.forEach(function(L){
-      addLine([{ x: cx - L.r, y: L.y }, { x: cx + L.r, y: L.y }], 0.8, 'muted', 0.45);
-    });
-    var NlR = Ls.length;                 /* ring levels — verticals stop here */
+    var NlR = Ls.length;                 /* ring levels */
     Ls.push({ my: 0, r: 0, y: yTop });   /* the apex: braces close the dome */
 
     /* diagrid like the dashboard: one node grid — every level, NPi
        azimuth slots. The brace families step one slot per level from the
-       even nodes and the verticals rise through the same node columns, so
-       every element meets at the diagrid connections. Between nodes the
-       members follow the shell, keeping the weave smooth */
+       even nodes, and ring beams tie each level node to node. Between
+       nodes the members follow the shell, keeping the weave smooth */
     var NPi = Math.max(4, 2 * Math.round(NP / 2)), Nl = Ls.length;
     function nodePt(lf, j){
       var s0 = Math.max(0, Math.min(Nl - 2, Math.floor(lf)));
@@ -1808,14 +1804,18 @@
           i % 3 === 0 ? [{ sp: 0.05, off: (fam + 1) / 4 + i / NPi }] : null);
       }
     }
+    /* horizontal diagrid lines — the ring beams, node to node around each
+       level; they project to a chord between the extreme nodes, so their
+       reach breathes with the points slider */
+    var sMax = 0;
+    for(i = 0; i < NPi; i++) sMax = Math.max(sMax, Math.abs(Math.sin(TAU * i / NPi)));
+    for(s = 0; s < NlR; s++){
+      addLine([{ x: cx - Ls[s].r * sMax, y: Ls[s].y },
+               { x: cx + Ls[s].r * sMax, y: Ls[s].y }], 0.8, 'ink', 0.45);
+    }
     for(i = 0; i < NPi; i++){
-      var vp = [];
-      for(s = 0; s < NlR; s++){
-        vp.push(nodePt(s, i));
-        if(s < NlR - 1) vp.push(nodePt(s + 0.5, i));
-      }
-      addLine(vp, 0.7, 'ink', 0.3);
-      KNOBS.push({ x: vp[0].x, y: vp[0].y, r: 2.6, hollow: true });   /* base node */
+      var bp = nodePt(0, i);
+      KNOBS.push({ x: bp.x, y: bp.y, r: 2.6, hollow: true });   /* base node */
     }
     var sl = [], sr = [];
     for(s = 0; s <= 26; s++){
