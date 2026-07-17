@@ -151,6 +151,7 @@
   #itDom{ width:150px; height:26px; border:1px solid var(--hair); cursor:ew-resize; touch-action:none; }
   .it-mapwrap{ display:flex; flex-direction:column; gap:.35rem; align-items:flex-start; }
   .it-mini{ width:3.2rem !important; }
+  .it-row > label.it-mini-lab{ flex:0 0 auto; margin-left:auto; }
   .it-mini-lab{ font-family:var(--font-brand); font-size:.52rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); }
   #itList, #itMapType, #itDialUnit{ font-family:var(--font-brand); font-size:.72rem; letter-spacing:.06em;
@@ -479,13 +480,6 @@
         <span>the controls every asset will ship with</span>
       </div>
       <div class="it-body">
-        <div class="it-row" data-it="slider">
-          <label for="itR">Number slider</label>
-          <input type="range" id="itR" min="0" max="100" value="35">
-          <input type="number" id="itN" min="0" max="100" value="35" aria-label="Number slider value">
-          <label class="it-mini-lab" for="itRStep">step</label>
-          <input type="number" id="itRStep" class="it-mini" value="1" min="0" step="any">
-        </div>
         <div class="it-row" data-it="stepper">
           <label for="itVal">Number entry</label>
           <div class="it-step">
@@ -493,6 +487,13 @@
             <button id="itMinus" type="button" aria-label="Decrease">&minus;</button>
             <button id="itPlus" type="button" aria-label="Increase">+</button>
           </div>
+        </div>
+        <div class="it-row" data-it="slider">
+          <label for="itR">Number slider</label>
+          <input type="range" id="itR" min="0" max="100" value="35">
+          <input type="number" id="itN" min="0" max="100" value="35" aria-label="Number slider value">
+          <label class="it-mini-lab" for="itRStep">step</label>
+          <input type="number" id="itRStep" class="it-mini" value="1" min="0" step="any">
         </div>
         <div class="it-row" data-it="dial">
           <label for="itDeg">Dial</label>
