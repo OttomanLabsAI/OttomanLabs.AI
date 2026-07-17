@@ -1639,9 +1639,10 @@
 <script>
 (function(){
   "use strict";
-  /* ── the playground hero: the Gherkin's diagrid built from the dashboard's
-     exported settings JSON, plots, and the input kit — dots travel along
-     every line, and everything glows burgundy near the cursor. ── */
+  /* ── the playground hero: the whole Gherkin (from the dashboard's export)
+     slowly spinning, the gaussian bell and the lemniscate from the graphs
+     card in motion, the input kit — dots riding every line, burgundy glow
+     around the cursor. Geometry rebuilds each frame. ── */
   var hero = document.getElementById('pgHero');
   var cv = document.getElementById('pgHeroCanvas');
   if(!hero || !cv) return;
@@ -1651,8 +1652,6 @@
   var cursor = null, t0 = performance.now(), T = 0, W = 0, H = 0;
   var LINES = [], DOTS = [], dial = null;
 
-  /* the gherkin dashboard export: profile spline (x = radius, y = height),
-     22 nodes around, twist 2.5 */
   var GK = {
     pts: [ { x:0, y:0 }, { x:60, y:0 }, { x:150, y:240 }, { x:90, y:600 } ],
     around: 22, twist: 2.5, hMax: 600, rMax: 150
@@ -1680,7 +1679,6 @@
     return 'rgb(' + Math.round(A[0]+(B[0]-A[0])*t) + ',' + Math.round(A[1]+(B[1]-A[1])*t) + ',' +
            Math.round(A[2]+(B[2]-A[2])*t) + ')';
   }
-
   function addLine(pts, lw, base, alpha, dots){
     var cum = [0];
     for(var i = 1; i < pts.length; i++)
@@ -1712,23 +1710,25 @@
     return g;
   }
 
-  function build(){
+  function geom(){
     LINES = []; DOTS = [];
     var slim = W < 720;
-    /* ── the gherkin, from the export ── */
-    var cx = W * (slim ? 0.14 : 0.105);
-    var w0 = Math.min(W * 0.09, 130), k = w0 / GK.rMax;
-    var yBot = H * 1.16, yTop = -H * 0.16, N = GK.around / 2, turns = GK.twist / 2;
+    /* ── the whole gherkin, spinning ── */
+    var k = (H * 0.94) / GK.hMax;
+    var half = GK.rMax * k;
+    var cx = Math.max(half + 12, W * (slim ? 0.14 : 0.1));
+    var yBot = H * 0.97;
+    var N = GK.around / 2, turns = GK.twist / 2, spin = T * 0.18;
     var fam, i, s, t;
     for(fam = -1; fam <= 1; fam += 2){
       for(i = 0; i < N; i++){
         var pts = [];
         for(s = 0; s <= 26; s++){
           t = s / 26;
-          var p = gbez(t), ph = TAU * (fam * turns * t + i / N);
-          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yBot - p.y / GK.hMax * (yBot - yTop) });
+          var p = gbez(t), ph = TAU * (fam * turns * t + i / N) + spin * fam;
+          pts.push({ x: cx + p.x * k * Math.sin(ph), y: yBot - p.y * k });
         }
-        addLine(pts, 0.8, 'ink', 0.62,
+        addLine(pts, 0.8, 'ink', 0.6,
           i % 3 === 0 ? [{ sp: 0.045, off: (fam + 1) / 4 + i / N, mode: 'loop' }] : null);
       }
     }
@@ -1736,40 +1736,55 @@
     for(s = 0; s <= 26; s++){
       t = s / 26;
       var pp = gbez(t);
-      sl.push({ x: cx - pp.x * k, y: yBot - pp.y / GK.hMax * (yBot - yTop) });
-      sr.push({ x: cx + pp.x * k, y: yBot - pp.y / GK.hMax * (yBot - yTop) });
+      sl.push({ x: cx - pp.x * k, y: yBot - pp.y * k });
+      sr.push({ x: cx + pp.x * k, y: yBot - pp.y * k });
     }
-    addLine(sl, 1.6, 'ink', 1, [{ sp: 0.035, off: 0.2, mode: 'loop' }]);
-    addLine(sr, 1.6, 'ink', 1, [{ sp: 0.035, off: 0.7, mode: 'loop' }]);
+    addLine(sl, 1.5, 'ink', 1);
+    addLine(sr, 1.5, 'ink', 1);
 
-    /* ── plots ── */
+    /* ── the gaussian bell, peak drifting ── */
     if(!slim){
-      var gx = W * 0.27, gy = H * 0.5;
-      var gw = Math.min(W * 0.105, 165), gh = Math.min(H * 0.52, 115);
+      var gx = W * 0.28, gy = H * 0.72;
+      var gw = Math.min(W * 0.11, 175), gh = Math.min(H * 0.62, 150);
       addLine([{ x: gx - gw/2, y: gy }, { x: gx + gw/2, y: gy }], 1, 'muted', 0.8);
-      addLine([{ x: gx, y: gy - gh/2 }, { x: gx, y: gy + gh/2 }], 1, 'muted', 0.8);
-      var sine = [];
-      for(i = 0; i <= 48; i++){
-        var u = i / 48 - 0.5;
-        sine.push({ x: gx + u * gw, y: gy - Math.sin(u * TAU * 1.15) * gh * 0.44 });
+      addLine([{ x: gx, y: gy - gh * 1.05 }, { x: gx, y: gy + gh * 0.06 }], 1, 'muted', 0.55);
+      var mu = 3.2 * Math.sin(T * 0.32);
+      var amp = 0.92 + 0.08 * Math.sin(T * 0.7);
+      var bell = [];
+      for(i = 0; i <= 52; i++){
+        var xm = (i / 52 * 2 - 1) * 10;
+        var v = Math.exp(-Math.pow(xm - mu, 2) / 10);
+        bell.push({ x: gx + xm / 10 * gw / 2, y: gy - v * gh * amp });
       }
-      addLine(sine, 1.5, 'ink', 1, [{ sp: 0.12, off: 0, mode: 'loop' }]);
+      addLine(bell, 1.5, 'ink', 1, [{ sp: 0.1, off: 0, mode: 'loop' }]);
     }
-    var rx = W * (slim ? 0.8 : 0.71), ry = H * 0.5, R = Math.min(H * 0.36, 80);
-    var ring = [], ring2 = [], roseC = [];
+
+    /* ── the lemniscate, rotating in its polar grid ── */
+    var rx = W * (slim ? 0.8 : 0.71), ry = H * 0.5, R = Math.min(H * 0.37, 92);
+    var ring = [], ring2 = [];
     for(i = 0; i <= 40; i++){
       var a2 = TAU * i / 40;
       ring.push({ x: rx + R * Math.cos(a2), y: ry + R * Math.sin(a2) });
       ring2.push({ x: rx + R * 0.55 * Math.cos(a2), y: ry + R * 0.55 * Math.sin(a2) });
     }
-    addLine(ring, 1, 'muted', 0.65);
-    addLine(ring2, 1, 'muted', 0.4);
-    for(i = 0; i <= 130; i++){
-      var th = TAU * i / 130;
-      var rr = R * Math.cos(3 * th);
-      roseC.push({ x: rx + rr * Math.cos(th), y: ry + rr * Math.sin(th) });
+    addLine(ring, 1, 'muted', 0.6);
+    addLine(ring2, 1, 'muted', 0.38);
+    for(i = 0; i < 6; i++){
+      var sa = TAU * i / 6;
+      addLine([{ x: rx + R * 0.15 * Math.cos(sa), y: ry + R * 0.15 * Math.sin(sa) },
+               { x: rx + R * Math.cos(sa), y: ry + R * Math.sin(sa) }], 1, 'muted', 0.25);
     }
-    addLine(roseC, 1.4, 'ink', 1, [{ sp: 0.08, off: 0.3, mode: 'loop' }]);
+    var alpha = T * 0.22;
+    [0, Math.PI].forEach(function(base, li){
+      var lobe = [];
+      for(i = 0; i <= 44; i++){
+        var th = base - Math.PI / 4 + (Math.PI / 2) * i / 44;
+        var c2 = Math.max(0, Math.cos(2 * (th - base) + 0));
+        var rr = R * 0.98 * Math.sqrt(Math.max(0, Math.cos(2 * (th - base))));
+        lobe.push({ x: rx + rr * Math.cos(th + alpha), y: ry + rr * Math.sin(th + alpha) });
+      }
+      addLine(lobe, 1.5, 'ink', 1, [{ sp: 0.07, off: li * 0.5, mode: 'loop' }]);
+    });
 
     /* ── input kit ── */
     if(!slim){
@@ -1793,7 +1808,6 @@
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
-    /* dot-grid paper */
     ctx.fillStyle = muted();
     ctx.globalAlpha = 0.35;
     for(var y = 23; y < H; y += 46)
@@ -1816,28 +1830,26 @@
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     });
-    /* travelling dots */
     DOTS.forEach(function(d){
       var u = d.mode === 'fixed' ? d.off
             : d.mode === 'pingpong' ? 0.5 + 0.45 * Math.sin(T * d.sp * TAU + d.off)
             : (T * d.sp + d.off) % 1;
       var p = arcPoint(d.line, u);
       var g = glowAt(p.x, p.y);
-      ctx.fillStyle = g ? mix(ink(), burg(), Math.min(1, g * 1.25)) : ink();
-      if(g > 0.08){ ctx.shadowColor = burg(); ctx.shadowBlur = 16 * g; }
+      ctx.fillStyle = g ? mix(IK, BG, Math.min(1, g * 1.25)) : IK;
+      if(g > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 16 * g; }
       ctx.beginPath();
       ctx.arc(p.x, p.y, (d.r || 2.4) + g, 0, TAU);
       ctx.fill();
       ctx.shadowBlur = 0;
     });
-    /* dial needle */
     if(dial){
       var na = -1.9 + Math.sin(T * 0.45) * 1.1;
       var nx = dial.x + dial.r * 0.78 * Math.cos(na), ny = dial.y + dial.r * 0.78 * Math.sin(na);
       var g2 = Math.max(glowAt(dial.x, dial.y), glowAt(nx, ny));
-      ctx.strokeStyle = g2 ? mix(ink(), burg(), Math.min(1, g2 * 1.2)) : ink();
+      ctx.strokeStyle = g2 ? mix(IK, BG, Math.min(1, g2 * 1.2)) : IK;
       ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-      if(g2 > 0.08){ ctx.shadowColor = burg(); ctx.shadowBlur = 14 * g2; }
+      if(g2 > 0.08){ ctx.shadowColor = BG; ctx.shadowBlur = 14 * g2; }
       ctx.beginPath();
       ctx.moveTo(dial.x, dial.y);
       ctx.lineTo(nx, ny);
@@ -1847,35 +1859,38 @@
       ctx.beginPath(); ctx.arc(dial.x, dial.y, 2.4, 0, TAU); ctx.fill();
     }
   }
+  function frame(){
+    geom();
+    draw();
+  }
   function loop(){
     T = (performance.now() - t0) / 1000;
-    draw();
+    frame();
     requestAnimationFrame(loop);
   }
   hero.addEventListener('pointermove', function(e){
     var r = cv.getBoundingClientRect();
     cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
-    if(reduced) draw();
+    if(reduced) frame();
   });
   hero.addEventListener('pointerleave', function(){
     cursor = null;
-    if(reduced) draw();
+    if(reduced) frame();
   });
   function resize(){
     var w = hero.clientWidth;
     if(!w) return;
-    var h = Math.max(180, Math.min(260, Math.round(w * 0.17)));
+    var h = Math.max(190, Math.min(270, Math.round(w * 0.175)));
     var dpr = window.devicePixelRatio || 1;
     cv.style.height = h + 'px';
     cv.width = Math.round(w * dpr);
     cv.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = w; H = h;
-    build();
-    draw();
+    frame();
   }
   window.addEventListener('resize', resize);
-  new MutationObserver(draw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+  new MutationObserver(frame).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   resize();
   if(!reduced) requestAnimationFrame(loop);
 })();
