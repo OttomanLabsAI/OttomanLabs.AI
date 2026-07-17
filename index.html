@@ -1720,16 +1720,16 @@
              y: L.pts[i-1].y + (L.pts[i].y - L.pts[i-1].y) * f };
   }
   /* box hover: the sliders play one by one, hold, then ease home */
-  var HOV = { gk: { h: 0, run: 1, ph: 'peak', wait: 0 } }, DT = 0;
+  var HOV = { gk: { h: 0, run: 0, ph: 'base', wait: 0 } }, DT = 0;
   window.__heroHov = HOV;
   window.__heroState = function(){ return { lines: LINES.length, knobs: KNOBS.length }; };
   function hov(st, auto){
     var active = auto || !!cursor;
     st.h += ((active ? 1 : 0) - st.h) * 0.1;
     if(active){
-      /* the settings cycle, starting from the dense look: a long pause at
-         the peak, down to the sparse export settings, a short pause at
-         the base, and back up. Phones run it on their own; desktop runs
+      /* the settings cycle, starting from the small numbers: a short
+         pause at the base, up to the dense look, a long pause at the
+         peak, and back down. Phones run it on their own; desktop runs
          it while hovered */
       if(st.ph === 'peak'){
         st.wait += DT;
@@ -1745,9 +1745,9 @@
         if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
       }
     } else {
-      /* idle: settle back to the dense look */
-      st.run = Math.min(1, st.run + DT / 1.1);
-      st.ph = 'peak'; st.wait = 0;
+      /* idle: settle back to the small numbers */
+      st.run = Math.max(0, st.run - DT / 1.1);
+      st.ph = 'base'; st.wait = 0;
     }
     return st;
   }
