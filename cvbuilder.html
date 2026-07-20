@@ -111,7 +111,7 @@ h1.name{font-family:"Open Sans","Segoe UI",sans-serif;font-weight:400;font-size:
 .badge{width:51pt;text-align:center}
 .badge .ic{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto}
 .badge .ic svg.lvlring{position:absolute;inset:0;width:100%;height:100%}
-.badge .ic img{max-height:76%;max-width:76%;display:block}
+.badge .ic img{max-height:54%;max-width:54%;display:block}
 .sigslot{width:46pt;height:20pt;margin:-20pt auto 0;transform:translateX(46pt);display:flex;
   align-items:flex-end;justify-content:center;cursor:pointer;position:relative;z-index:2}
 .sigslot img{width:100%;display:block}
@@ -368,10 +368,10 @@ function renderPage(){
     const n = RINGN[String(level || '').trim().toLowerCase()] || 3;
     let d = '';
     for (let sg = 0; sg < 4; sg++){
-      const a0 = (-45 + sg * 90 - 39) * Math.PI / 180, a1 = (-45 + sg * 90 + 39) * Math.PI / 180;
-      d += '<path d="M' + (50 + 45 * Math.cos(a0)).toFixed(1) + ' ' + (50 + 45 * Math.sin(a0)).toFixed(1) +
-           ' A45 45 0 0 1 ' + (50 + 45 * Math.cos(a1)).toFixed(1) + ' ' + (50 + 45 * Math.sin(a1)).toFixed(1) +
-           '" fill="none" stroke="' + (sg < n ? '#45484D' : '#D9DBDD') + '" stroke-width="9" stroke-linecap="round"/>';
+      const a0 = (-45 + sg * 90 - 40.5) * Math.PI / 180, a1 = (-45 + sg * 90 + 40.5) * Math.PI / 180;
+      d += '<path d="M' + (50 + 46.4 * Math.cos(a0)).toFixed(1) + ' ' + (50 + 46.4 * Math.sin(a0)).toFixed(1) +
+           ' A46.4 46.4 0 0 1 ' + (50 + 46.4 * Math.cos(a1)).toFixed(1) + ' ' + (50 + 46.4 * Math.sin(a1)).toFixed(1) +
+           '" fill="none" stroke="' + (sg < n ? '#58595b' : '#d6d7d9') + '" stroke-width="7.2" stroke-linecap="butt"/>';
     }
     return '<svg class="lvlring" viewBox="0 0 100 100" aria-hidden="true">' + d + '</svg>';
   };
