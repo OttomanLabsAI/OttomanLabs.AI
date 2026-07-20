@@ -1748,9 +1748,10 @@
         if(st.run >= 1){ st.ph = 'peak'; st.wait = 0; }
       }
     } else {
-      /* idle: settle back to the small numbers */
+      /* idle: settle back to the small numbers, primed to climb the
+         moment a hover begins — no base pause on entry */
       st.run = Math.max(0, st.run - DT / 1.1);
-      st.ph = 'base'; st.wait = 0;
+      st.ph = 'up'; st.wait = 0;
     }
     return st;
   }
