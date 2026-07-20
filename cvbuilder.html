@@ -76,6 +76,7 @@ body{background:#43484f;font-family:"Segoe UI","Open Sans",Arial,sans-serif}
 .logo-thumb.none{background:#22262b;color:#6a707a;display:flex;align-items:center;justify-content:center;font-size:14px}
 .photo-thumb{width:110px;height:110px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #565c65}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .itemrow{display:grid;grid-template-columns:1fr 92px auto auto;gap:5px;align-items:center;margin:5px 0}
 .itemrow .ctrls,.ctrls{display:flex;gap:3px}
 .checkline{display:flex;align-items:center;gap:6px;font-size:12px;color:#cfd3d9}
@@ -232,7 +233,17 @@ header.masthead{margin-bottom:6px}
   body:not(.m-edit) .panel{display:none}
   .panel{max-height:none;border-bottom:none}
 }
-@media print{ body{background:#fff} header.masthead{display:none!important} .preview{display:block!important} }
+/* the page-edge overlay: A4 cut-off line + margin bounds */
+body.show-cut .page{position:relative}
+body.show-cut .page::before{content:'';position:absolute;pointer-events:none;z-index:5;
+  left:28pt;right:28.3pt;top:26pt;bottom:24pt;border:1px dashed rgba(176,16,24,.5)}
+body.show-cut .page::after{content:'A4 cut-off';position:absolute;pointer-events:none;z-index:5;
+  left:0;right:0;top:841.9pt;border-top:2px dashed #B01018;color:#B01018;
+  font-family:'Afacad Flux',sans-serif;font-size:8pt;letter-spacing:.14em;text-transform:uppercase;
+  padding:2pt 4pt 0 4pt;text-align:right}
+.toolbar button.on{background:#111;color:#FFF}
+@media print{ body{background:#fff} header.masthead{display:none!important} .preview{display:block!important}
+  .page::before,.page::after{display:none!important} }
 </style>
 <style id="dynType"></style>
 </head>
@@ -257,6 +268,7 @@ header.masthead{margin-bottom:6px}
   <button id="btnExport">Export data</button>
   <button id="btnImport">Import data</button>
   <button id="btnReset">Reset to original</button>
+  <button id="btnEdge" title="Show where the A4 page ends and its margins sit">Page edge</button>
   <span class="status" id="status">Saved</span>
 </div>
 
@@ -452,14 +464,13 @@ function renderPage(){
     return head + body;
   }).join('');
 
-  const hLogo = st.history.logoH || 10;
-  const histRows = st.history.rows.map(r =>
-    '<div class="hrow" style="justify-content:' + flexAlign(st.history.align) + '">' +
-      '<span class="slot logo' + (r.logo ? '' : ' empty') + '" data-path="' + r.path + '" style="height:' + hLogo + 'pt" title="Click to add logo">' +
-        (r.logo ? '<img src="' + r.logo + '" style="max-height:' + hLogo + 'pt;max-width:' + (hLogo * 2.6).toFixed(1) + 'pt" alt="" draggable="false">' : '') +
-      '</span>' +
-      '<span>' + esc(r.text) + '</span>' +
-    '</div>').join('');
+  const histRows = st.history.rows.map(r => {
+    const dates = [r.start, r.end].map(s => String(s || '').trim()).filter(Boolean).join(' \u2013 ');
+    const line = [r.company, r.role, r.type, dates].map(s => String(s || '').trim()).filter(Boolean).join(' | ');
+    return '<div class="hrow" style="justify-content:' + flexAlign(st.history.align) + '">' +
+      '<span>' + esc(line) + '</span>' +
+    '</div>';
+  }).join('');
 
   window.__fitBadges = () => {
     document.querySelectorAll('.badge .ic img').forEach(img => {
@@ -543,7 +554,6 @@ function renderPage(){
 function tagPaths(){
   upgrade();
   state.skills.cats.forEach((c,ci)=>c.items.forEach((it,ii)=>{ it.path = 'skills.cats.'+ci+'.items.'+ii+'.logo'; }));
-  state.history.rows.forEach((r,ri)=>{ r.path = 'history.rows.'+ri+'.logo'; });
 }
 let pageTimer = null;
 function upgrade(){
@@ -561,6 +571,15 @@ function upgrade(){
   if (state.skills.icon == null) state.skills.icon = 33.5;
   if (state.channels.logoW == null) state.channels.logoW = 34;
   if (state.history.logoH == null) state.history.logoH = 10;
+  state.history.rows.forEach(r => {
+    if (r.company == null){
+      const parts = String(r.text || '').split('|').map(s => s.trim());
+      const dm = String(parts[3] || '').split(/\s*[\u2013\u2014]\s*|\s+-\s+/);
+      r.company = parts[0] || ''; r.role = parts[1] || ''; r.type = parts[2] || '';
+      r.start = (dm[0] || '').trim(); r.end = (dm[1] || '').trim();
+      delete r.text; delete r.logo;
+    }
+  });
 }
 function schedulePage(){ clearTimeout(pageTimer); pageTimer = setTimeout(()=>{ tagPaths(); renderPage(); }, 180); queueSave(); }
 function refresh(){ tagPaths(); renderPage(); buildForms(); queueSave(); }
@@ -573,7 +592,6 @@ function flash(msg){
 function exportable(){
   const s = clone(state);
   s.skills.cats.forEach(c=>c.items.forEach(it=>delete it.path));
-  s.history.rows.forEach(r=>delete r.path);
   return s;
 }
 async function saveStorage(quiet){
@@ -962,15 +980,19 @@ function buildForms(){
     body.append(
       fld('Section heading', tin('history.heading')),
       fld('Justification', alignSel('history.align', ['left','center','right'])),
-      fld('Logo height (pt)', nin('history.logoH', 6, 24, 0.5)));
+      );
     st.history.rows.forEach((r, i) => {
       body.append(el('div', {class:'card sub'},
-        el('div', {class:'itemrow', style:'grid-template-columns:1fr auto auto'},
-          tin('history.rows.'+i+'.text'),
-          logoPicker('history.rows.'+i+'.logo'),
-          ctrls(st.history.rows, i))));
+        el('div', {class:'chead'}, el('div', {class:'ttl'}, r.company || 'Company'), ctrls(st.history.rows, i)),
+        el('div', {class:'row2'},
+          fld('Company', tin('history.rows.'+i+'.company')),
+          fld('Role', tin('history.rows.'+i+'.role'))),
+        el('div', {class:'row3'},
+          fld('Contract type', tin('history.rows.'+i+'.type')),
+          fld('Start date', tin('history.rows.'+i+'.start')),
+          fld('End date', tin('history.rows.'+i+'.end')))));
     });
-    body.append(addBtn('company', ()=>{ st.history.rows.push({logo:'', text:'Company | Role | Contract | Jan 2026 \u2013 Present'}); refresh(); }));
+    body.append(addBtn('company', ()=>{ st.history.rows.push({company:'Company', role:'Role', type:'Contract', start:'Jan 2026', end:'Present'}); refresh(); }));
   }
 }
 
@@ -1015,6 +1037,13 @@ function fit(){
 window.addEventListener('resize', fit);
 window.addEventListener('beforeprint', ()=>{ page.style.transform=''; wrap.style.height=''; wrap.style.width=''; });
 window.addEventListener('afterprint', fit);
+
+/* page edge toggle */
+const btnEdge = document.getElementById('btnEdge');
+if (btnEdge) btnEdge.addEventListener('click', () => {
+  const on = document.body.classList.toggle('show-cut');
+  btnEdge.classList.toggle('on', on);
+});
 
 /* mobile: edit, layout and preview live on separate tabs */
 const mtE = document.getElementById('mtabEdit'), mtL = document.getElementById('mtabLay'),
