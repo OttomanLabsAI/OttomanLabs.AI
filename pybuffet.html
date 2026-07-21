@@ -767,15 +767,21 @@ async function fetchJson(url, onRoute) {
     : ROUTES;
   const failures = [];
   for (const route of order) {
+    let tid = null;
     try {
-      const res = await fetch(route.wrap(url), { headers: { 'Accept': 'application/json' } });
+      const ctl = new AbortController();
+      tid = setTimeout(() => ctl.abort(new Error('timeout')), 9000);
+      const res = await fetch(route.wrap(url), { headers: { 'Accept': 'application/json' }, signal: ctl.signal });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       preferredRoute = route;
       if (onRoute) onRoute(route.name, failures);
       return data;
     } catch (e) {
-      failures.push(route.name);
+      const why = e && (e.message || e.name) ? String(e.message || e.name).slice(0, 48) : 'failed';
+      failures.push(route.name + ' ✗ ' + why);
+    } finally {
+      if (tid) clearTimeout(tid);
     }
   }
   const err = new Error('All routes failed: ' + failures.join(', '));
@@ -1016,7 +1022,7 @@ function renderCompany(e, cik, secTitle, facts) {
 /* ---------------- registry bootstrap ---------------- */
 function updateRoute(name, failures) {
   $('routestatus').innerHTML = failures.length
-    ? `route: <b>${esc(name)}</b> <span class="bad">(${esc(failures.join(' ✗, '))} ✗)</span>`
+    ? `route: <b>${esc(name)}</b> <span class="bad">(${esc(failures.join(' · '))})</span>`
     : `route: ${esc(name)}`;
 }
 
@@ -1029,23 +1035,39 @@ function updateRegStatus() {
     : `${base} · load a watchlist to begin`;
 }
 
+function buildTickerMap(data) {
+  tickerMap = new Map();
+  for (const k of Object.keys(data)) {
+    const row = data[k];
+    if (row && row.ticker) tickerMap.set(String(row.ticker).toUpperCase(), { cik: row.cik_str, title: row.title });
+  }
+}
 async function loadRegistry() {
   registryError = false;
   $('retrybtn').hidden = true;
   $('regstatus').textContent = 'Loading EDGAR ticker registry…';
   try {
     const data = await fetchJson(TICKER_REGISTRY_URL, updateRoute);
-    tickerMap = new Map();
-    for (const k of Object.keys(data)) {
-      const row = data[k];
-      if (row && row.ticker) tickerMap.set(String(row.ticker).toUpperCase(), { cik: row.cik_str, title: row.title });
-    }
+    buildTickerMap(data);
+    try { localStorage.setItem('pybuffet-registry-v1', JSON.stringify({ t: Date.now(), data: data })); } catch (e) {}
     updateRegStatus();
     refreshStatuses();
   } catch (err) {
+    /* live routes all failed — fall back to the last good copy if we have one */
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem('pybuffet-registry-v1') || 'null'); } catch (e) {}
+    const detail = esc((err.failures || []).join(' · '));
+    if (cached && cached.data) {
+      buildTickerMap(cached.data);
+      updateRegStatus();
+      refreshStatuses();
+      $('regstatus').innerHTML = `Registry: cached copy from ${new Date(cached.t).toLocaleDateString()} — <span class="bad">live routes failed: ${detail}</span>`;
+      $('retrybtn').hidden = false;
+      return;
+    }
     registryError = true;
     tickerMap = null;
-    $('regstatus').innerHTML = `<span class="bad">Registry failed — every route blocked. Run the relay: <b>python edgar_relay.py</b> (same folder), then retry.</span>`;
+    $('regstatus').innerHTML = `<span class="bad">Registry failed — ${detail}. Run the relay: <b>python edgar_relay.py</b>, then retry.</span>`;
     $('retrybtn').hidden = false;
   }
 }
