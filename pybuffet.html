@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OttomanLabs.AI — pyBuffet · EDGAR Ledger</title>
+<link rel="stylesheet" href="assets/styles.css">
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
@@ -55,22 +56,22 @@
   .app{display:flex;flex-direction:column;gap:14px;height:100%;max-width:1880px;margin:0 auto}
 
   /* ---------- top bar ---------- */
-  header{
+  header.lgr-bar{
     border:1px solid var(--ink);
     background:var(--paper);
     padding:14px 20px;
     display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;
   }
-  .masthead{display:flex;align-items:baseline;gap:10px}
-  .masthead h1{
+  .lgr-head{display:flex;align-items:baseline;gap:10px}
+  .lgr-head h1{
     font-family:var(--display);font-weight:400;font-size:26px;
     letter-spacing:-.01em;line-height:1;
   }
-  .masthead h1 em{
+  .lgr-head h1 em{
     font-family:var(--serif);font-style:italic;font-weight:400;
     font-size:21px;color:var(--grey);
   }
-  .masthead .formno{
+  .lgr-head .formno{
     font-family:var(--sans);font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;
     color:var(--grey);border:1px solid var(--ink);padding:4px 8px;white-space:nowrap;
     font-variant-numeric:tabular-nums;
@@ -335,10 +336,22 @@
 </style>
 </head>
 <body>
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+<style>header.masthead{margin-bottom:10px}
+header.masthead .nav-row{border:0;background:none;padding:0;width:auto;max-height:none;overflow:visible;display:flex;justify-content:center}</style>
 <div class="app">
 
-  <header>
-    <div class="masthead">
+  <header class="lgr-bar">
+    <div class="lgr-head">
       <h1><em>Edgar</em>&nbsp;Ledger</h1>
       <span class="formno" id="appversion">v1.1.0</span>
       <span class="formno" id="formno">WL-·· / SEC XBRL</span>
@@ -793,6 +806,8 @@ async function fetchJson(url, onRoute) {
 let WATCHLIST = [];            // set once the user loads a .json (or the example)
 let tickerMap = null;          // TICKER -> {cik, title}
 let registryError = false;
+let regFailDetail = '';
+let regRetryTimer = null;
 let selected = null;           // watchlist entry
 let mode = 'annual';
 const factsCache = new Map();  // cik -> companyfacts json
@@ -948,7 +963,9 @@ async function select(e) {
 
   if (status === 'na') return renderStamp('Not an SEC filer', `${esc(e.company)} is an index, commodity, currency or crypto instrument — there are no corporate filings behind it.`);
   if (status === 'foreign') return renderStamp('No filings on record', `${esc(e.company)} is listed on ${esc(e.exchange)} and does not report to the SEC. Its filings live with the ${esc(e.exchange)} regulator instead.`);
-  if (status === 'pending') return renderStamp('Registry still loading', 'The EDGAR ticker registry has not loaded yet — give it a second, or hit Retry in the status bar.');
+  if (status === 'pending') return renderStamp('Registry still loading', regFailDetail
+    ? `Live routes are failing — <b>${regFailDetail}</b>. Retrying automatically every 45s. If “site relay” says HTTP 404, the /api/sec function has not deployed; check the Cloudflare Pages build settings.`
+    : 'The EDGAR ticker registry has not loaded yet — give it a second, or hit Retry in the status bar.');
   if (status === 'notfound') return renderStamp('Ticker not in EDGAR registry', `${esc(e.ticker)} does not appear in the SEC's ticker file — usually an unsponsored ADR whose issuer never registered (no 10-K/20-F to fetch).`);
 
   const { cik, title } = tickerMap.get(e.ticker.toUpperCase());
@@ -1049,26 +1066,34 @@ async function loadRegistry() {
   try {
     const data = await fetchJson(TICKER_REGISTRY_URL, updateRoute);
     buildTickerMap(data);
+    regFailDetail = '';
+    clearTimeout(regRetryTimer);
     try { localStorage.setItem('pybuffet-registry-v1', JSON.stringify({ t: Date.now(), data: data })); } catch (e) {}
     updateRegStatus();
     refreshStatuses();
+    if (selected) select(selected);
   } catch (err) {
     /* live routes all failed — fall back to the last good copy if we have one */
     let cached = null;
     try { cached = JSON.parse(localStorage.getItem('pybuffet-registry-v1') || 'null'); } catch (e) {}
     const detail = esc((err.failures || []).join(' · '));
+    regFailDetail = detail;
+    clearTimeout(regRetryTimer);
+    regRetryTimer = setTimeout(loadRegistry, 45000);
     if (cached && cached.data) {
       buildTickerMap(cached.data);
       updateRegStatus();
       refreshStatuses();
       $('regstatus').innerHTML = `Registry: cached copy from ${new Date(cached.t).toLocaleDateString()} — <span class="bad">live routes failed: ${detail}</span>`;
       $('retrybtn').hidden = false;
+      if (selected) select(selected);
       return;
     }
     registryError = true;
     tickerMap = null;
     $('regstatus').innerHTML = `<span class="bad">Registry failed — ${detail}. Run the relay: <b>python edgar_relay.py</b>, then retry.</span>`;
     $('retrybtn').hidden = false;
+    if (selected) select(selected);
   }
 }
 
