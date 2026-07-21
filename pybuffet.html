@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OttomanLabs.AI — pyBuffet · EDGAR Ledger</title>
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Prata&display=swap" rel="stylesheet">
+<style>
+
+  /* ================================================================
+     BOXED-MOSAIC EDITORIAL — two-colour discipline
+     paper/ink + two greys; burgundy reserved for data highlights.
+     Dark mode is a pure inversion via custom properties.
+     ================================================================ */
+  :root{
+    --paper:#FFFFFF;
+    --ink:#111111;
+    --grey:#5A5A5A;        /* secondary text */
+    --grey-2:#A9A9A9;      /* tertiary / disabled */
+    --accent:#7A2230;      /* deep burgundy — data & highlights only */
+    --ruling:var(--accent);
+    --tint:rgba(17,17,17,.05);
+    --sans:'Afacad Flux',system-ui,'Segoe UI',Roboto,sans-serif;
+    --serif:'Newsreader',Georgia,'Times New Roman',serif;
+    --display:'Prata',Georgia,serif;
+    --code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  [data-theme="dark"]{
+    --paper:#111111;
+    --ink:#FFFFFF;
+    --grey:#A9A9A9;
+    --grey-2:#5A5A5A;
+    --accent:#C25E6E;      /* burgundy lifted for contrast on ink */
+    --tint:rgba(255,255,255,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+  [hidden]{display:none!important}
+  html,body{height:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.5;
+    padding:clamp(14px,2.5vw,48px);
+  }
+  ::selection{background:var(--ink);color:var(--paper)}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+  .app{display:flex;flex-direction:column;gap:14px;height:100%;max-width:1880px;margin:0 auto}
+
+  /* ---------- top bar ---------- */
+  header{
+    border:1px solid var(--ink);
+    background:var(--paper);
+    padding:14px 20px;
+    display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;
+  }
+  .masthead{display:flex;align-items:baseline;gap:10px}
+  .masthead h1{
+    font-family:var(--display);font-weight:400;font-size:26px;
+    letter-spacing:-.01em;line-height:1;
+  }
+  .masthead h1 em{
+    font-family:var(--serif);font-style:italic;font-weight:400;
+    font-size:21px;color:var(--grey);
+  }
+  .masthead .formno{
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--grey);border:1px solid var(--ink);padding:4px 8px;white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .searchwrap{flex:1;min-width:260px;display:flex;align-items:center;gap:10px}
+  .searchbox{
+    flex:1;display:flex;align-items:center;gap:8px;
+    border:1px solid var(--ink);background:var(--paper);
+    padding:9px 12px;
+  }
+  .searchbox:focus-within{outline:1px solid var(--ink);outline-offset:2px}
+  .searchbox .glyph{font-family:var(--sans);color:var(--grey-2);font-size:13px}
+  #search{
+    flex:1;border:none;background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:14.5px;letter-spacing:.02em;
+  }
+  #search:focus{outline:none}
+  #search::placeholder{color:var(--grey-2)}
+  #matchcount{
+    font-family:var(--sans);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--grey);white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  .periodtoggle{display:flex;border:1px solid var(--ink)}
+  .periodtoggle button{
+    font-family:var(--sans);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+    background:transparent;color:var(--ink);border:none;padding:9px 14px;cursor:pointer;
+  }
+  .periodtoggle button+button{border-left:1px solid var(--ink)}
+  .periodtoggle button:hover{background:var(--tint)}
+  .periodtoggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+  .themebtn{
+    font-family:var(--sans);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+    padding:9px 14px;cursor:pointer;
+  }
+  .themebtn:hover{background:var(--ink);color:var(--paper)}
+
+  /* ---------- tab strip ---------- */
+  .tabs{display:flex;gap:14px;flex-wrap:wrap}
+  .tabs button{
+    font-family:var(--sans);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;
+    border:1px solid var(--ink);background:var(--paper);color:var(--grey);
+    padding:10px 22px;cursor:pointer;
+  }
+  .tabs button:hover{background:var(--ink);color:var(--paper)}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+
+  /* ---------- body split ---------- */
+  .split{flex:1;display:flex;gap:14px;min-height:0}
+
+  /* ---------- watchlist ---------- */
+  nav{
+    width:300px;flex-shrink:0;overflow-y:auto;
+    border:1px solid var(--ink);background:var(--paper);
+    padding-bottom:32px;
+  }
+  .cat{
+    font-family:var(--sans);font-weight:600;font-size:.64rem;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink);
+    padding:14px 16px 6px;border-bottom:1px solid var(--ink);
+    position:sticky;top:0;background:var(--paper);z-index:2;
+  }
+  .co{
+    display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+    background:transparent;border:none;border-bottom:1px solid var(--ink);
+    padding:8px 14px;cursor:pointer;color:var(--ink);
+  }
+  .co:hover{background:var(--tint)}
+  .co:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+  .co .tk{
+    font-family:var(--sans);font-size:.72rem;font-weight:600;letter-spacing:.08em;
+    min-width:58px;font-variant-numeric:tabular-nums;
+  }
+  .co .nm{flex:1;font-family:var(--serif);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .co .ex{font-family:var(--sans);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey-2)}
+  .co .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid var(--ink);background:transparent}
+  .co[data-status="ok"] .dot{background:var(--ink)}
+  .co.sel{background:var(--ink);color:var(--paper)}
+  .co.sel .ex{color:var(--paper);opacity:.7}
+  .co.sel .dot{border-color:var(--paper)}
+  .co.sel[data-status="ok"] .dot{background:var(--paper)}
+  .co.hidden{display:none}
+  .cat.hidden{display:none}
+  .nav-note{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--grey);padding:12px 16px;line-height:1.6}
+
+  /* ---------- main pane ---------- */
+  main{
+    flex:1;overflow-y:auto;padding:22px 26px 60px;min-width:0;
+    border:1px solid var(--ink);background:var(--paper);
+  }
+
+  .cohead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:4px}
+  .cohead h2{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:-.01em;line-height:1.15}
+  .cohead .meta{
+    font-family:var(--sans);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--grey);font-variant-numeric:tabular-nums;
+  }
+  .cohead a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+  .regname{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--grey);margin-bottom:18px}
+
+  /* ---------- the ledger table ---------- */
+  .ledgerwrap{overflow-x:auto;border:1px solid var(--ink);background:var(--paper)}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{padding:8px 14px;font-size:14px;white-space:nowrap}
+  thead th{
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--paper);background:var(--ink);text-align:right;font-weight:500;
+  }
+  thead th:first-child{text-align:left;border-right:1px solid var(--paper)}
+  tbody td{
+    font-family:var(--sans);text-align:right;font-variant-numeric:tabular-nums;
+    border-bottom:1px solid var(--ink);
+  }
+  tbody td:first-child{
+    text-align:left;font-family:var(--serif);font-size:14px;
+    border-right:1px solid var(--ink);
+    min-width:190px;
+  }
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:var(--tint)}
+  tr.sect td{
+    font-family:var(--sans);font-weight:600;font-size:.64rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--ink);background:var(--paper)!important;
+    border-bottom:1px solid var(--ink);padding-top:14px;
+  }
+  td.neg{color:var(--accent)}
+  td.na{color:var(--grey-2)}
+  .footnotes{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--grey);line-height:1.8;margin-top:12px}
+  .footnotes b{color:var(--ink);font-weight:600;font-style:normal}
+
+  /* ---------- stamps & states ---------- */
+  .stamp{
+    display:inline-block;margin:48px auto 8px;padding:14px 26px;
+    border:3px double var(--accent);color:var(--accent);
+    font-family:var(--sans);font-weight:600;font-size:1.05rem;letter-spacing:.24em;
+    text-transform:uppercase;transform:rotate(-2deg);
+  }
+  .stampwrap{text-align:center;padding:30px 10px 10px}
+  .stampsub{
+    font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--grey);
+    margin:14px auto 0;max-width:56ch;line-height:1.6;
+  }
+  .stampsub b{font-family:var(--code);font-style:normal;font-size:.85em;color:var(--ink)}
+  .loading{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--grey);padding:40px 6px}
+  .caret{display:inline-block;width:8px;height:15px;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){.caret{animation:none}}
+  .orn{font-family:var(--sans);color:var(--grey-2);letter-spacing:.5em;text-align:center;margin:12px 0 20px;font-size:.7rem}
+  .sysline{
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--grey);padding:10px 20px;border:1px solid var(--ink);
+    display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-variant-numeric:tabular-nums;
+  }
+  .sysline .bad{color:var(--accent)}
+  .sysline b{color:var(--ink)}
+  .sysline button{
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    background:var(--paper);border:1px solid var(--ink);
+    padding:4px 12px;cursor:pointer;color:var(--ink);
+  }
+  .sysline button:hover{background:var(--ink);color:var(--paper)}
+
+  /* ---------- watchlist loader ---------- */
+  .loadcard{max-width:700px;margin:36px auto;border:1px solid var(--ink);background:var(--paper)}
+  .loadcard .lc-head{
+    font-family:var(--display);font-weight:400;font-size:20px;
+    padding:14px 18px;border-bottom:1px solid var(--ink);
+  }
+  .loadcard .lc-body{padding:18px}
+  .loadcard p{font-family:var(--serif);font-size:14.5px;margin-bottom:8px}
+  .mono{font-family:var(--code);font-size:.9em}
+  .schema{
+    font-family:var(--code);font-size:11.5px;background:var(--paper);color:var(--grey);
+    border:1px solid var(--ink);padding:12px 14px;overflow-x:auto;line-height:1.7;
+    margin:8px 0 14px;white-space:pre;
+  }
+  .dropzone{
+    border:1px dashed var(--ink);padding:26px 18px;text-align:center;
+    font-family:var(--sans);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--grey);cursor:pointer;margin:0 0 14px;
+  }
+  .dropzone:hover{background:var(--tint)}
+  .dropzone.drag{background:var(--ink);color:var(--paper)}
+  .dropzone:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{
+    font-family:var(--sans);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:10px 18px;cursor:pointer;
+  }
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .btn.primary{background:var(--ink);color:var(--paper)}
+  .btn.primary:hover{background:var(--paper);color:var(--ink)}
+  .loaderr{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--accent);margin-top:14px;line-height:1.6}
+
+  /* ---------- AI prompt tab ---------- */
+  #pane-prompt{flex:1;overflow-y:auto;min-height:0;border:1px solid var(--ink);background:var(--paper)}
+  .promptpane{max-width:880px;margin:0 auto;padding:28px 26px 80px}
+  .promptpane h2{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:-.01em;margin-bottom:6px}
+  .promptpane .lede{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--grey);margin-bottom:8px;max-width:640px}
+  .step{display:flex;gap:14px;margin:0 0 14px;align-items:flex-start}
+  .step .n{
+    font-family:var(--sans);font-weight:600;font-size:.72rem;
+    border:1px solid var(--ink);width:28px;height:28px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;background:var(--paper);
+  }
+  .step .t{font-family:var(--serif);font-size:14.5px;padding-top:4px}
+  .step .t b{font-weight:600}
+  .promptbox{border:1px solid var(--ink);background:var(--paper);margin-top:22px}
+  .copybar{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:var(--ink);color:var(--paper);padding:9px 14px;
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;
+  }
+  .copybar button{
+    font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;
+    background:var(--paper);color:var(--ink);border:1px solid var(--paper);
+    padding:5px 14px;cursor:pointer;white-space:nowrap;
+  }
+  .copybar button:hover{background:var(--ink);color:var(--paper)}
+  .copybar button:focus-visible{outline:2px solid var(--paper);outline-offset:3px}
+  .promptbox pre{
+    font-family:var(--code);font-size:12px;line-height:1.7;padding:18px;
+    white-space:pre-wrap;word-break:break-word;max-height:440px;overflow:auto;
+  }
+  .promptnote{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--grey);margin-top:12px;line-height:1.8}
+
+  /* ---------- Warren Buffett tab ---------- */
+  #pane-buffett{flex:1;overflow-y:auto;min-height:0;border:1px solid var(--ink);background:var(--paper)}
+  .bookpane{max-width:880px;margin:0 auto;padding:28px 26px 80px}
+  .bookpane h2{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:-.01em;margin-bottom:6px}
+  .bookpane .lede{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--grey);margin-bottom:8px;max-width:640px}
+  .chapblock{
+    border:1px solid var(--ink);background:var(--paper);
+    padding:16px 18px;margin-bottom:14px;
+  }
+  .chaphead{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .chaphead .chno{
+    font-family:var(--sans);font-weight:600;font-size:.62rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--ink);
+    border:1px solid var(--ink);padding:5px 8px;flex-shrink:0;white-space:nowrap;
+  }
+  .chaphead h3{font-family:var(--display);font-weight:400;font-size:19px;line-height:1.3}
+  .chapblock .chsum{font-family:var(--serif);font-size:14.5px;line-height:1.65;margin-top:10px}
+  .chaptables .ledgerwrap{display:inline-block;max-width:100%;vertical-align:top}
+  .chaptables table{width:auto;min-width:340px}
+  .chaptables .exlabel{
+    font-family:var(--sans);font-weight:600;font-size:.62rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--grey);margin:12px 0 8px;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:880px){
+    body{padding:14px}
+    .split{flex-direction:column}
+    nav{width:100%;max-height:34vh}
+    main{padding:16px 14px 60px}
+    .cohead h2{font-size:24px}
+    tbody td:first-child{position:sticky;left:0;background:var(--paper)}
+    .promptpane,.bookpane{padding:20px 14px 80px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="masthead">
+      <h1><em>Edgar</em>&nbsp;Ledger</h1>
+      <span class="formno" id="appversion">v1.1.0</span>
+      <span class="formno" id="formno">WL-·· / SEC XBRL</span>
+      <span class="formno"><a href="index.html" style="color:inherit">OttomanLabs.AI</a> &middot; <a href="https://github.com/OttomanLabsAI/pyBuffet" target="_blank" rel="noopener" style="color:inherit">pyBuffet on GitHub</a> &middot; <a href="assets/pybuffet/edgar_relay.py" download style="color:inherit">relay</a> &middot; <a href="assets/pybuffet/investments.json" download style="color:inherit">example list</a></span>
+    </div>
+    <div class="searchwrap">
+      <div class="searchbox">
+        <span class="glyph">&gt;</span>
+        <input id="search" type="text" placeholder="Search company, ticker or category — press / to focus" autocomplete="off" spellcheck="false" aria-label="Search watchlist">
+      </div>
+      <span id="matchcount"></span>
+    </div>
+    <div class="periodtoggle" role="group" aria-label="Reporting period">
+      <button id="btn-annual" aria-pressed="true">Annual</button>
+      <button id="btn-quarterly" aria-pressed="false">Quarterly</button>
+    </div>
+    <button class="themebtn" id="themetoggle" type="button" aria-pressed="false">◐ Dark</button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button id="tab-ledger" role="tab" aria-selected="true">Ledger</button>
+    <button id="tab-prompt" role="tab" aria-selected="false">Build a list (AI)</button>
+    <button id="tab-buffett" role="tab" aria-selected="false">Warren Buffett</button>
+  </div>
+
+  <div class="split" id="pane-ledger">
+    <nav id="watchlist" aria-label="Watchlist"></nav>
+    <main id="main"></main>
+  </div>
+
+  <div id="pane-prompt" role="tabpanel" hidden>
+    <div class="promptpane">
+      <h2>Build a watchlist with an AI</h2>
+      <p class="lede">Any AI assistant (Claude, ChatGPT, Gemini, …) can turn a plain list of companies into
+      the <span class="mono">investments.json</span> format this ledger reads. It takes one message:</p>
+      <div class="orn" aria-hidden="true">● ◆ ●</div>
+
+      <div class="step"><div class="n">1</div><div class="t"><b>Copy the prompt below</b> — use the Copy button on the prompt's title bar.</div></div>
+      <div class="step"><div class="n">2</div><div class="t"><b>Paste it into your AI chat</b>, but don't send it yet.</div></div>
+      <div class="step"><div class="n">3</div><div class="t"><b>Paste your own list directly underneath the prompt</b> — company names, tickers, categories, dates you spotted them… any format works, even messy notes.</div></div>
+      <div class="step"><div class="n">4</div><div class="t"><b>Send it.</b> The AI replies with JSON. Save the reply as a file ending in <span class="mono">.json</span> (e.g. <span class="mono">investments.json</span>). The file must start with <span class="mono">{</span> — if the AI wrapped its reply in <span class="mono">```</span> fences, delete those lines.</div></div>
+      <div class="step"><div class="n">5</div><div class="t"><b>Switch to the Ledger tab</b> and load the file.</div></div>
+
+      <div class="promptbox">
+        <div class="copybar">
+          <span>Prompt — copy this, then paste your list after it</span>
+          <button id="copyprompt" type="button">Copy prompt</button>
+        </div>
+        <pre id="prompttext">You are converting my investment watchlist into a JSON file for the EDGAR Ledger dashboard.
+
+Take the list I paste below this prompt (company names, tickers, notes — any format) and return ONE JSON object in exactly this shape:
+
+{
+  "investments": [
+    {
+      "company": "Micron Technology",
+      "category": "RAM",
+      "ticker": "MU",
+      "exchange": "NASDAQ",
+      "country": "United States",
+      "date_spotted": "01/02/2026"
+    }
+  ]
+}
+
+Rules:
+1. Every entry must have all six keys — "company", "category", "ticker", "exchange", "country", "date_spotted" — and every value must be a string. Do not add extra keys.
+2. "company": the full common name (e.g. "Advanced Micro Devices", not "AMD Inc.").
+3. "ticker": the primary ticker, upper case. Prefer the US listing (NASDAQ / NYSE / OTC) when one exists — the dashboard uses this ticker to look up SEC filings. For indices, commodities, FX or crypto use a short symbol (e.g. "XAUUSD", "BTC").
+4. "exchange": the exchange that ticker trades on — "NASDAQ", "NYSE", "OTC", "LSE", "XETRA", "Euronext Paris", etc. Use "NONE" for anything that is not an exchange-listed company (indices, commodities, FX, crypto).
+5. "category": a short grouping label such as "Chips", "Software", "Energy". Keep any categories I give you; otherwise choose sensible ones. Entries in the same category must sit next to each other in the array.
+6. "country": the company's home country, or "NONE" where it does not apply.
+7. "date_spotted": MM/DD/YYYY if I gave a date for that entry, otherwise the string "NONE".
+8. If you are unsure about a ticker or exchange, make your best guess — never leave a field empty.
+9. Reply with the JSON only — no explanations and no markdown code fences — so I can save your reply directly as investments.json.
+
+My list follows:</pre>
+      </div>
+
+      <p class="promptnote">A working example of the finished format ships with this dashboard as
+      <span class="mono">investments.json</span> — it is the same list behind the “Load the example list” button on the Ledger tab.</p>
+    </div>
+  </div>
+
+  <div id="pane-buffett" role="tabpanel" hidden>
+    <div class="bookpane" id="bookpane"></div>
+  </div>
+
+  <div class="sysline">
+    <span id="regstatus">Loading EDGAR ticker registry…</span>
+    <span id="routestatus"></span>
+    <button id="retrybtn" hidden>Retry registry</button>
+    <button id="newlistbtn" hidden>Load a different list</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   EDGAR LEDGER
+   Data source : SEC EDGAR XBRL APIs (data.sec.gov) — free, no key.
+
+   The watchlist is no longer hard-coded: the Ledger tab asks for a
+   .json file shaped like the bundled investments.json (an example
+   copy of that list is embedded below as EXAMPLE_WATCHLIST so the
+   page works even when opened straight from disk). The second tab
+   holds a copy-paste prompt that turns any AI assistant into a
+   watchlist-to-JSON converter.
+
+   SEC requires a declared User-Agent (the set_identity thing), but
+   browsers forbid JS from setting that header. So the preferred
+   route is the bundled local relay — edgar_relay.py, same folder —
+   which serves this page and adds "User-Agent: email@email.com" to
+   every SEC call:   python edgar_relay.py
+   Public CORS proxies remain as best-effort fallbacks.
+   ================================================================ */
+
+const EXAMPLE_WATCHLIST = {"investments":[
+  {"company":"Micron Technology","category":"RAM","ticker":"MU","exchange":"NASDAQ","country":"United States","date_spotted":"01/02/2026"},
+  {"company":"Samsung Electronics","category":"RAM","ticker":"SMSN","exchange":"LSE","country":"South Korea","date_spotted":"01/02/2026"},
+  {"company":"SK hynix","category":"RAM","ticker":"HY9H","exchange":"Gettex","country":"South Korea","date_spotted":"01/02/2026"},
+  {"company":"Lumentum Holdings","category":"Optical","ticker":"LITE","exchange":"NASDAQ","country":"United States","date_spotted":"03/21/2026"},
+  {"company":"Coherent Corp.","category":"Optical","ticker":"COHR","exchange":"NYSE","country":"United States","date_spotted":"03/21/2026"},
+  {"company":"ARM Holdings","category":"Chips","ticker":"ARM","exchange":"NASDAQ","country":"United Kingdom","date_spotted":"NONE"},
+  {"company":"Nvidia","category":"Chips","ticker":"NVDA","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Advanced Micro Devices","category":"Chips","ticker":"AMD","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Intel","category":"Chips","ticker":"INTC","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Qualcomm","category":"Chips","ticker":"QCOM","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Broadcom","category":"Chips","ticker":"AVGO","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Taiwan Semiconductor","category":"Chips","ticker":"TSM","exchange":"NYSE","country":"Taiwan","date_spotted":"NONE"},
+  {"company":"Western Digital","category":"RAM II","ticker":"WDC","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Sandisk","category":"RAM II","ticker":"SNDK","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Rambus","category":"RAM II","ticker":"RMBS","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Marvell Technology","category":"Network Infrastructure","ticker":"MRVL","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Credo Technology","category":"Network Infrastructure","ticker":"CRDO","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Nokia","category":"Network Infrastructure","ticker":"NOK","exchange":"NYSE","country":"Finland","date_spotted":"NONE"},
+  {"company":"Zscaler","category":"Cybersecurity","ticker":"ZS","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Siemens Energy","category":"Energy","ticker":"ENR","exchange":"XETRA","country":"Germany","date_spotted":"NONE"},
+  {"company":"Mitsubishi Electric","category":"Energy","ticker":"MIELY","exchange":"OTC","country":"Japan","date_spotted":"NONE"},
+  {"company":"BWX Technologies","category":"Energy","ticker":"BWXT","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Rolls-Royce","category":"Energy","ticker":"RR","exchange":"LSE","country":"United Kingdom","date_spotted":"NONE"},
+  {"company":"NANO Nuclear Energy","category":"Energy","ticker":"NNE","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Constellation Energy","category":"Energy","ticker":"CEG","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Rivian Automotive","category":"Transport","ticker":"RIVN","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Safran","category":"Transport","ticker":"SAF","exchange":"Euronext Paris","country":"France","date_spotted":"NONE"},
+  {"company":"Uber Technologies","category":"Transport","ticker":"UBER","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Ferrari","category":"Transport","ticker":"RACE","exchange":"NYSE","country":"Italy","date_spotted":"NONE"},
+  {"company":"BYD","category":"Transport","ticker":"BYDDY","exchange":"OTC","country":"China","date_spotted":"NONE"},
+  {"company":"Toyota Motor","category":"Transport","ticker":"TM","exchange":"NYSE","country":"Japan","date_spotted":"NONE"},
+  {"company":"Tesla","category":"Transport","ticker":"TSLA","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Lucid","category":"Transport","ticker":"LCID","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"XPeng","category":"Transport","ticker":"XPEV","exchange":"NYSE","country":"China","date_spotted":"NONE"},
+  {"company":"SoundHound AI","category":"Software","ticker":"SOUN","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Take-Two Interactive","category":"Software","ticker":"TTWO","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Electronic Arts","category":"Software","ticker":"EA","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"CoreWeave","category":"Software","ticker":"CRWV","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Crowdstrike","category":"Software","ticker":"CRWD","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Adobe","category":"Software","ticker":"ADBE","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Strategy","category":"Software","ticker":"MSTR","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Oracle","category":"Software","ticker":"ORCL","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Dassault Systemes","category":"Software","ticker":"DSY","exchange":"Euronext Paris","country":"France","date_spotted":"NONE"},
+  {"company":"Autodesk","category":"Software","ticker":"ADSK","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Unity Software","category":"Software","ticker":"U","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"IREN","category":"Tech Hardware","ticker":"IREN","exchange":"NASDAQ","country":"Australia","date_spotted":"NONE"},
+  {"company":"STMicroelectronics","category":"Tech Hardware","ticker":"STM","exchange":"NYSE","country":"Switzerland","date_spotted":"NONE"},
+  {"company":"Analog Devices","category":"Tech Hardware","ticker":"ADI","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Chipotle Mexican Grill","category":"Tech Hardware","ticker":"CMG","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Super Micro Computer","category":"Tech Hardware","ticker":"SMCI","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Lumen Technologies","category":"Tech Hardware","ticker":"LUMN","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Dell Technologies","category":"Tech Hardware","ticker":"DELL","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Raspberry PI","category":"Tech Hardware","ticker":"RPI","exchange":"LSE","country":"United Kingdom","date_spotted":"NONE"},
+  {"company":"Alphabet","category":"Technology","ticker":"GOOGL","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Apple","category":"Technology","ticker":"AAPL","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Amazon","category":"Technology","ticker":"AMZN","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Meta Platforms","category":"Technology","ticker":"META","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"IBM","category":"Technology","ticker":"IBM","exchange":"NYSE","country":"United States","date_spotted":"NONE"},
+  {"company":"Microsoft","category":"Technology","ticker":"MSFT","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Quantum Computing","category":"Quantum","ticker":"QUBT","exchange":"NASDAQ","country":"United States","date_spotted":"NONE"},
+  {"company":"Volatility Index","category":"Global Markets","ticker":"VOLX","exchange":"NONE","country":"United States","date_spotted":"NONE"}
+]};
+
+/* Chapter notes for the Warren Buffett tab — same content as the bundled
+   buffett_book_ch113.json, embedded so the page works straight from disk. */
+const BUFFETT_BOOK = {"book": "Warren Buffett and the Interpretation of Financial Statements", "chapters": [{"chapter": 1, "title": "Two Great Revelations That Made Warren the Richest Person in the World", "tables": [], "summary": "In the mid-1960s Buffett reexamined Benjamin Graham's value approach and had two revelations that reshaped his strategy: how to identify a company with a durable competitive advantage, and how to value one. The book sets out to explain both and how he uses financial statements to apply them."}, {"chapter": 2, "title": "The Kind of Business That Will Make Warren Superrich", "tables": [], "summary": "Wall Street has long run on speculators chasing short-term price moves. Graham broke from that in the 1930s by buying \"oversold\" businesses below intrinsic value and selling once the market corrected — value investing, but indifferent to what business he bought. Buffett spotted Graham's flaw: some undervalued stocks stayed cheap or went bankrupt, while the ones Graham sold under his 50% rule kept compounding for decades. Studying these \"superstars,\" Buffett found they shared a durable competitive advantage yielding monopoly-like economics. Holding such businesses long-term inverts Wall Street's risk/reward logic — lower prices mean less risk and more upside — and never selling defers capital gains tax indefinitely, as his $11M Washington Post stake growing to $1.4B tax-free shows."}, {"chapter": 3, "title": "Where Warren Starts His Search for the Exceptional Company", "tables": [], "summary": "Durable-advantage companies come in three models: sellers of a unique product (Coca-Cola, Wrigley, Budweiser), sellers of a unique service (Moody's, H&R Block, American Express, Wells Fargo), and the low-cost buyer-and-seller of something the public constantly needs (Wal-Mart, Costco, Nebraska Furniture Mart, BNSF). Unique-product firms own a piece of the consumer's mind and can charge more without changing the product; unique-service firms enjoy phenomenal economics with little plant or redesign cost, as long as they're institution- rather than people-specific (the Salomon lesson); low-cost operators trade margin for volume by being both the cheapest buyer and cheapest seller. Each cashes in year after year."}, {"chapter": 4, "title": "Durability Is Warren's Ticket to Riches", "tables": [], "summary": "The wealth comes from the durability of the advantage, not just its existence. Coca-Cola has sold essentially the same product for 122 years, and that product consistency drives profit consistency: no constant R&D or plant retooling, so cash builds, debt and interest stay low, and surplus funds expansion or buybacks that lift the stock. So Warren reads financial statements hunting for consistency (high margins, low debt, low R&D, steady growing earnings) as the signal of durability — and the statements are where he goes to find it."}, {"chapter": 5, "title": "Financial Statement Overview: Where the Gold Is Hidden", "tables": [], "summary": "Financial statements are where Warren mines for the durable advantage, revealing whether a business is mediocre or a superrich-maker. They come in three forms: the income statement (earnings over a period, showing margins, return, and the consistency/direction of earnings), the balance sheet (what's owned vs. owed on a given day, with cash and long-term debt as advantage indicators), and the cash flow statement (money in and out, capital spending, and bond/stock sales and repurchases). The chapters ahead break down the key entries in each."}, {"chapter": 6, "title": "Where Warren Goes to Find Financial Information", "tables": [], "summary": "Company financials are easy to find online — simplest via MSN Money and Yahoo Finance, with MSN more detailed. A stock's page links to its balance sheet, income statement, cash flow, and SEC filings: quarterly 10Qs and the annual 10K. Warren has read thousands of 10Ks because they report the numbers without promotional fluff. Bloomberg offers more for a fee, but the free sources cover what's needed to build a portfolio."}, {"chapter": 7, "title": "Where Warren Starts: The Income Statement", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000\nSelling General & Admin,2100\nResearch & Development,1000\nDepreciation,700\nOperating Profit,3200\nInterest Expense,200\nGain (Loss) Sale Assets,1275\nOther,225\nIncome Before Tax,1500\nIncome Taxes Paid,525\nNet Earnings,975"], "summary": "Warren always begins with the income statement, which reports results over a labeled period via three parts: revenue, expenses, and the resulting profit or loss. Unlike Graham — who cared only whether a firm made a profit and would buy any lousy business cheaply enough — Warren splits businesses into those with a long-term durable advantage (worth buying at a fair price and holding) and mediocre ones that merely struggle. The individual line items reveal a company's economic engine — margins, R&D dependence, leverage — because to Warren the source of earnings matters more than the earnings themselves."}, {"chapter": 8, "title": "Revenue: Where the Money Comes In", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000"], "summary": "The top line is total (gross) revenue — all money coming in during the period. But a big revenue figure says nothing about profit until expenses are subtracted to get net earnings, so after a glance at revenue Warren digs carefully through expenses, knowing a great secret to making more money is spending less."}, {"chapter": 9, "title": "Cost of Goods Sold: For Warren the Lower the Better", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000"], "summary": "Directly below revenue sits Cost of Goods Sold (or Cost of Revenue) — what the company paid for goods it resells, or the materials and labor to make what it sells. It's worth checking what a company includes, since it shows how management thinks. Calculation: beginning inventory plus purchases minus ending inventory ($10M + $2M − $7M = $5M COGS). Alone it says little about durability, but it's essential because it determines Gross Profit — the key number, taken up next."}, {"chapter": 10, "title": "Gross Profit/Gross Profit Margin: Key Numbers for Warren in His Search for Long-Term Gold", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000", "Calculation,Value\nGross Profit / Revenue,7000 / 10000\nGross Profit Margin,70%"], "summary": "Revenue minus COGS gives Gross Profit; dividing by revenue gives the Gross Profit Margin (here 70%). A high, consistent margin is one of the early signs of a durable advantage, while a low one flags a fiercely competitive industry where no one builds a lasting edge. The test isn't foolproof — track ten years of margins to confirm consistency. Three operating costs can still strip a high-margin company of its edge: heavy R&D, high selling/administrative costs, and high interest on debt."}, {"chapter": 11, "title": "Operating Expenses: Where Warren Keeps a Careful Eye", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000\nSelling General & Admin,2100\nResearch & Development,1000\nDepreciation,700\nOperating Profit,3200"], "summary": "Below gross profit sit operating expenses: R&D, selling/administrative costs, depreciation and amortization, restructuring and impairment charges, and a catch-all \"other.\" Summed and subtracted from gross profit, they yield operating profit or loss. Because each affects long-term economics, the next chapters examine them one by one."}, {"chapter": 12, "title": "Selling, General, and Administrative Expenses", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000\nSelling General & Admin,2100\nResearch & Development,1000\nInterest,700\nOperating Profit,3200"], "summary": "SGA covers selling, general, and administrative costs — salaries, advertising, travel, legal fees, commissions, payroll. As a share of gross profit it varies but stays consistent in strong firms (Coca-Cola ~59%, Moody's ~25%, P&G ~61%), with \"consistently\" the key word. Firms without a durable edge swing wildly (GM 28%–83%; Ford 89%–780%, i.e. heavy losses) because when sales fall, SGA persists. Lower is better — under 30% is excellent, 30%–80% can still indicate an advantage, but readings near or above 100% suggest a brutally competitive industry. Even low SGA can be undone by heavy R&D (Intel), high capex, or debt interest (Goodyear). Warren avoids consistently high-SGA businesses, and those wrecked by R&D, capex, or debt, at any price."}, {"chapter": 13, "title": "Research and Development: Why Warren Stays Away from It", "tables": ["Line Item,Amount ($ millions)\nRevenue,10000\nCost of Goods Sold,3000\nGross Profit,7000\nSelling General & Admin,2100\nResearch & Development,1000\nDepreciation,700\nOperating Profit,3200"], "summary": "An edge built on a patent or technology is fragile — patents expire (pharma) and newer tech can displace today's leader (why Microsoft feared Google). Such firms must spend heavily on R&D plus the selling/admin cost of relaunching products — Merck spends ~29% of gross profit on R&D plus ~49% on SGA (78% combined) and loses its edge if it fails to invent the next blockbuster before patents lapse; Intel must spend ~30% on R&D or fall behind within years. By contrast, Moody's (no R&D, ~25% SGA) and Coca-Cola (no R&D, ~59% SGA) carry no such risk. Warren's rule: heavy R&D signals an inherent flaw that keeps long-term economics uncertain — and if it's not a sure thing, he's not interested."}]};
+
+const ROUTES = [
+  { name: 'local relay', wrap: u => 'http://127.0.0.1:8787/sec?url=' + encodeURIComponent(u) },
+  { name: 'direct',      wrap: u => u },
+  { name: 'allorigins',  wrap: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { name: 'corsproxy',   wrap: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
+  { name: 'codetabs',    wrap: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
+];
+
+const US_EXCHANGES = new Set(['NASDAQ', 'NYSE', 'OTC']);
+const TICKER_REGISTRY_URL = 'https://www.sec.gov/files/company_tickers.json';
+
+/* ===PURE-START=== ------------------------------------------------
+   Pure data logic — no DOM. Kept separate so it can be unit-tested.
+------------------------------------------------------------------- */
+
+/* Metric definitions. Tags are searched in order across the
+   us-gaap and ifrs-full taxonomies (IFRS covers 20-F filers
+   like TSM and ARM). type: flow = duration, instant = point-in-time. */
+const METRICS = [
+  { sect: 'Income statement' },
+  { key:'revenue', label:'Revenue', type:'flow', tags:[
+      ['us-gaap','RevenueFromContractWithCustomerExcludingAssessedTax'],
+      ['us-gaap','Revenues'],
+      ['us-gaap','SalesRevenueNet'],
+      ['us-gaap','RevenueFromContractWithCustomerIncludingAssessedTax'],
+      ['us-gaap','SalesRevenueGoodsNet'],
+      ['ifrs-full','Revenue'],
+      ['ifrs-full','RevenueFromContractsWithCustomers'] ]},
+  { key:'cor', label:'Cost of revenue', type:'flow', tags:[
+      ['us-gaap','CostOfRevenue'],
+      ['us-gaap','CostOfGoodsAndServicesSold'],
+      ['us-gaap','CostOfGoodsSold'],
+      ['ifrs-full','CostOfSales'] ]},
+  { key:'gp', label:'Gross profit', type:'flow', derive:'gp', tags:[
+      ['us-gaap','GrossProfit'],
+      ['ifrs-full','GrossProfit'] ]},
+  { key:'opinc', label:'Operating income', type:'flow', tags:[
+      ['us-gaap','OperatingIncomeLoss'],
+      ['ifrs-full','ProfitLossFromOperatingActivities'] ]},
+  { key:'netinc', label:'Net income', type:'flow', tags:[
+      ['us-gaap','NetIncomeLoss'],
+      ['us-gaap','ProfitLoss'],
+      ['ifrs-full','ProfitLossAttributableToOwnersOfParent'],
+      ['ifrs-full','ProfitLoss'] ]},
+  { key:'eps', label:'EPS (diluted)', type:'flow', pershare:true, tags:[
+      ['us-gaap','EarningsPerShareDiluted'],
+      ['us-gaap','EarningsPerShareBasicAndDiluted'],
+      ['ifrs-full','DilutedEarningsLossPerShare'] ]},
+  { sect: 'Balance sheet' },
+  { key:'cash', label:'Cash & equivalents', type:'instant', tags:[
+      ['us-gaap','CashAndCashEquivalentsAtCarryingValue'],
+      ['us-gaap','CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents'],
+      ['ifrs-full','CashAndCashEquivalents'] ]},
+  { key:'assets', label:'Total assets', type:'instant', tags:[
+      ['us-gaap','Assets'],
+      ['ifrs-full','Assets'] ]},
+  { key:'liab', label:'Total liabilities', type:'instant', derive:'liab', tags:[
+      ['us-gaap','Liabilities'],
+      ['ifrs-full','Liabilities'] ]},
+  { key:'equity', label:"Stockholders' equity", type:'instant', tags:[
+      ['us-gaap','StockholdersEquity'],
+      ['us-gaap','StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'],
+      ['ifrs-full','EquityAttributableToOwnersOfParent'],
+      ['ifrs-full','Equity'] ]},
+  { sect: 'Cash flow' },
+  { key:'ocf', label:'Operating cash flow', type:'flow', tags:[
+      ['us-gaap','NetCashProvidedByUsedInOperatingActivities'],
+      ['us-gaap','NetCashProvidedByUsedInOperatingActivitiesContinuingOperations'],
+      ['ifrs-full','CashFlowsFromUsedInOperatingActivities'] ]},
+  { key:'capex', label:'Capital expenditure', type:'flow', outflow:true, tags:[
+      ['us-gaap','PaymentsToAcquirePropertyPlantAndEquipment'],
+      ['us-gaap','PaymentsToAcquireProductiveAssets'],
+      ['ifrs-full','PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities'] ]},
+  { key:'fcf', label:'Free cash flow', type:'flow', derive:'fcf', calc:true, tags:[] },
+];
+
+const DAY = 86400000;
+
+function durationDays(p) {
+  if (!p.start || !p.end) return null;
+  return Math.round((new Date(p.end) - new Date(p.start)) / DAY);
+}
+
+function isAnnual(p)    { const d = durationDays(p); return d !== null && d >= 330 && d <= 400; }
+function isQuarterly(p) { const d = durationDays(p); return d !== null && d >= 80  && d <= 100; }
+
+/* Validate an uploaded watchlist object. Returns a cleaned copy of the
+   entries or throws an Error whose message is safe to show the user.
+   company + ticker are required; the other fields fall back to "NONE"
+   (category to "Uncategorised") so slightly-sparse files still load. */
+const WATCHLIST_KEYS = ['company','category','ticker','exchange','country','date_spotted'];
+function validateWatchlist(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    throw new Error('Top level must be a JSON object like {"investments":[…]}.');
+  if (!Array.isArray(data.investments))
+    throw new Error('Missing "investments" — the file needs a top-level "investments" array.');
+  if (!data.investments.length)
+    throw new Error('The "investments" array is empty.');
+  return data.investments.map((e, i) => {
+    const where = `entry ${i + 1}`;
+    if (!e || typeof e !== 'object' || Array.isArray(e))
+      throw new Error(`Each investment must be an object — ${where} is not.`);
+    for (const k of ['company', 'ticker']) {
+      if (typeof e[k] !== 'string' || !e[k].trim())
+        throw new Error(`Missing "${k}" on ${where}${e.company ? ` ("${e.company}")` : ''}.`);
+    }
+    const out = {};
+    for (const k of WATCHLIST_KEYS) {
+      out[k] = (typeof e[k] === 'string' && e[k].trim())
+        ? e[k].trim()
+        : (k === 'category' ? 'Uncategorised' : 'NONE');
+    }
+    return out;
+  });
+}
+
+/* Pick the first tag that exists and has data; prefer USD units. */
+function findSeries(facts, tags, pershare) {
+  for (const [tax, tag] of tags) {
+    const node = facts?.[tax]?.[tag];
+    if (!node || !node.units) continue;
+    const unitKeys = Object.keys(node.units);
+    if (!unitKeys.length) continue;
+    let unit = null;
+    if (pershare) unit = unitKeys.find(u => /USD\/shares/i.test(u)) || unitKeys[0];
+    else unit = unitKeys.includes('USD') ? 'USD' : unitKeys[0];
+    const pts = node.units[unit];
+    if (pts && pts.length) return { unit, tag, points: pts };
+  }
+  return null;
+}
+
+/* Dedupe a point list by period end — the API repeats each figure once
+   per filing it appeared in (comparatives), so keep the latest-filed
+   value, which also picks up restatements. */
+function dedupeByEnd(points) {
+  const m = new Map();
+  for (const p of points) {
+    const prev = m.get(p.end);
+    if (!prev || (p.filed || '') > (prev.filed || '')) m.set(p.end, p);
+  }
+  return m;
+}
+
+/* Build the table model: columns (period ends) + per-metric values. */
+function buildModel(facts, mode) {
+  const flowFilter = mode === 'annual' ? isAnnual : isQuarterly;
+  const series = {};
+  for (const m of METRICS) {
+    if (m.sect || m.calc) continue;
+    const s = findSeries(facts, m.tags, m.pershare);
+    if (!s) continue;
+    const filtered = m.type === 'flow' ? s.points.filter(flowFilter) : s.points.filter(p => !p.start || durationDays(p) === 0);
+    series[m.key] = { unit: s.unit, tag: s.tag, byEnd: dedupeByEnd(filtered) };
+  }
+
+  /* Columns come from flow metrics (income + cash flow), newest first. */
+  const flowKeys = METRICS.filter(m => m.key && m.type === 'flow' && !m.calc).map(m => m.key);
+  const ends = new Set();
+  for (const k of flowKeys) if (series[k]) for (const e of series[k].byEnd.keys()) ends.add(e);
+  let cols = [...ends].sort().reverse().slice(0, mode === 'annual' ? 6 : 8);
+
+  /* Fallback: instant-only data (unlikely) */
+  if (!cols.length) {
+    for (const k of Object.keys(series)) for (const e of series[k].byEnd.keys()) ends.add(e);
+    cols = [...ends].sort().reverse().slice(0, 6);
+  }
+
+  const val = (key, end) => {
+    const s = series[key];
+    if (!s) return null;
+    const p = s.byEnd.get(end);
+    if (p) return p.val;
+    /* instant metrics: tolerate a few days' drift vs the flow end date */
+    const target = new Date(end).getTime();
+    let best = null, bestDiff = 8 * DAY;
+    for (const [e, q] of s.byEnd) {
+      const diff = Math.abs(new Date(e).getTime() - target);
+      if (diff < bestDiff) { bestDiff = diff; best = q; }
+    }
+    return best ? best.val : null;
+  };
+
+  const rows = [];
+  for (const m of METRICS) {
+    if (m.sect) { rows.push({ sect: m.sect }); continue; }
+    const cells = cols.map(end => {
+      let v = val(m.key, end);
+      if (v === null && m.derive === 'gp')  { const r = val('revenue', end), c = val('cor', end);   if (r !== null && c !== null) v = r - c; }
+      if (v === null && m.derive === 'liab'){ const a = val('assets', end),  q = val('equity', end); if (a !== null && q !== null) v = a - q; }
+      if (m.derive === 'fcf') { const o = val('ocf', end), c = val('capex', end); v = (o !== null && c !== null) ? o - c : null; }
+      if (v !== null && m.outflow) v = -Math.abs(v);
+      return v;
+    });
+    if (cells.every(c => c === null) && !m.calc) { rows.push({ ...m, cells, empty: true }); continue; }
+    rows.push({ ...m, cells });
+  }
+
+  /* Dominant currency for the footnote */
+  const units = {};
+  for (const k of Object.keys(series)) {
+    if (series[k].unit && !/shares/i.test(series[k].unit)) units[series[k].unit] = (units[series[k].unit] || 0) + 1;
+  }
+  const currency = Object.entries(units).sort((a, b) => b[1] - a[1])[0]?.[0] || 'USD';
+
+  return { cols, rows, currency, series };
+}
+
+const CUR_SYMBOL = { USD:'$', TWD:'NT$', EUR:'€', GBP:'£', JPY:'¥', KRW:'₩', CNY:'CN¥' };
+
+function fmtMoneyMillions(v) {
+  if (v === null || v === undefined) return null;
+  const m = v / 1e6;
+  const abs = Math.abs(m);
+  const digits = abs > 0 && abs < 10 ? 1 : 0;
+  const s = abs.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return { text: v < 0 ? `(${s})` : s, neg: v < 0 };
+}
+
+function fmtEps(v) {
+  if (v === null || v === undefined) return null;
+  const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return { text: v < 0 ? `(${s})` : s, neg: v < 0 };
+}
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtColLabel(end) {
+  const d = new Date(end + 'T00:00:00Z');
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+
+function padCik(cik) { return String(cik).padStart(10, '0'); }
+
+/* ===PURE-END=== -------------------------------------------------- */
+
+/* ---------------- fetch plumbing ---------------- */
+let preferredRoute = null;
+async function fetchJson(url, onRoute) {
+  const order = preferredRoute
+    ? [preferredRoute, ...ROUTES.filter(r => r.name !== preferredRoute.name)]
+    : ROUTES;
+  const failures = [];
+  for (const route of order) {
+    try {
+      const res = await fetch(route.wrap(url), { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      preferredRoute = route;
+      if (onRoute) onRoute(route.name, failures);
+      return data;
+    } catch (e) {
+      failures.push(route.name);
+    }
+  }
+  const err = new Error('All routes failed: ' + failures.join(', '));
+  err.failures = failures;
+  throw err;
+}
+
+/* ---------------- app state ---------------- */
+let WATCHLIST = [];            // set once the user loads a .json (or the example)
+let tickerMap = null;          // TICKER -> {cik, title}
+let registryError = false;
+let selected = null;           // watchlist entry
+let mode = 'annual';
+const factsCache = new Map();  // cik -> companyfacts json
+
+/* ---------------- els ---------------- */
+const $ = id => document.getElementById(id);
+const navEl = $('watchlist'), mainEl = $('main');
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------------- watchlist render ---------------- */
+function entryStatus(e) {
+  if (e.exchange === 'NONE') return 'na';
+  if (!US_EXCHANGES.has(e.exchange)) return 'foreign';
+  if (!tickerMap) return 'pending';
+  return tickerMap.has(e.ticker.toUpperCase()) ? 'ok' : 'notfound';
+}
+
+function renderWatchlist() {
+  const frag = document.createDocumentFragment();
+  let lastCat = null;
+  for (const e of WATCHLIST) {
+    if (e.category !== lastCat) {
+      const h = document.createElement('div');
+      h.className = 'cat'; h.dataset.cat = e.category;
+      h.textContent = e.category;
+      frag.appendChild(h);
+      lastCat = e.category;
+    }
+    const b = document.createElement('button');
+    b.className = 'co'; b.dataset.id = e.id; b.dataset.status = entryStatus(e);
+    b.dataset.hay = (e.company + ' ' + e.ticker + ' ' + e.category + ' ' + e.exchange).toLowerCase();
+    b.innerHTML = `<span class="dot"></span><span class="tk">${esc(e.ticker)}</span><span class="nm">${esc(e.company)}</span><span class="ex">${esc(e.exchange)}</span>`;
+    b.addEventListener('click', () => select(e));
+    frag.appendChild(b);
+  }
+  const note = document.createElement('div');
+  note.className = 'nav-note';
+  note.textContent = '● filled = files with the SEC. Non-US listings (LSE, XETRA, KRX, Gettex, Euronext) and indices/commodities/FX have no EDGAR filings.';
+  frag.appendChild(note);
+  navEl.replaceChildren(frag);
+  applyFilter();
+}
+
+function refreshStatuses() {
+  for (const b of navEl.querySelectorAll('.co')) {
+    const e = WATCHLIST[+b.dataset.id];
+    b.dataset.status = entryStatus(e);
+  }
+}
+
+/* ---------------- search filter ---------------- */
+function applyFilter() {
+  if (!WATCHLIST.length) { $('matchcount').textContent = ''; return; }
+  const q = $('search').value.trim().toLowerCase();
+  let shown = 0;
+  const catHas = new Map();
+  for (const b of navEl.querySelectorAll('.co')) {
+    const hit = !q || b.dataset.hay.includes(q);
+    b.classList.toggle('hidden', !hit);
+    if (hit) { shown++; catHas.set(WATCHLIST[+b.dataset.id].category, true); }
+  }
+  for (const h of navEl.querySelectorAll('.cat')) {
+    h.classList.toggle('hidden', q && !catHas.get(h.dataset.cat));
+  }
+  $('matchcount').textContent = q ? `${shown} / ${WATCHLIST.length}` : `${WATCHLIST.length} instruments`;
+}
+
+function firstVisibleSelectable() {
+  for (const b of navEl.querySelectorAll('.co:not(.hidden)')) return WATCHLIST[+b.dataset.id];
+  return null;
+}
+
+/* ---------------- watchlist loading ---------------- */
+function renderLoaderCard(errmsg) {
+  mainEl.innerHTML = `
+    <div class="loadcard">
+      <div class="lc-head">Load a watchlist</div>
+      <div class="lc-body">
+        <p>This ledger reads a <b>.json</b> watchlist shaped like the bundled <span class="mono">investments.json</span>:</p>
+        <div class="schema">{ "investments": [
+    { "company": "Micron Technology", "category": "RAM", "ticker": "MU",
+      "exchange": "NASDAQ", "country": "United States", "date_spotted": "01/02/2026" },
+    …
+] }</div>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Choose or drop a watchlist .json file">
+          Drop your .json here — or click to browse
+        </div>
+        <div class="btnrow">
+          <button class="btn primary" id="examplebtn" type="button">Load the example list</button>
+          <button class="btn" id="howbtn" type="button">How do I make one? → AI tab</button>
+        </div>
+        ${errmsg ? `<div class="loaderr">✗ ${esc(errmsg)}</div>` : ''}
+        <input type="file" id="filein" accept=".json,application/json" hidden>
+      </div>
+    </div>`;
+
+  const dz = $('dropzone'), fi = $('filein');
+  dz.addEventListener('click', () => fi.click());
+  dz.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); fi.click(); }
+  });
+  for (const t of ['dragover', 'dragenter']) dz.addEventListener(t, ev => { ev.preventDefault(); dz.classList.add('drag'); });
+  for (const t of ['dragleave', 'drop'])     dz.addEventListener(t, ev => { ev.preventDefault(); dz.classList.remove('drag'); });
+  dz.addEventListener('drop', ev => handleFile(ev.dataTransfer.files[0]));
+  fi.addEventListener('change', () => handleFile(fi.files[0]));
+  $('examplebtn').addEventListener('click', () => {
+    try { applyWatchlist(EXAMPLE_WATCHLIST, 'example list (investments.json)'); }
+    catch (e) { renderLoaderCard(String(e.message || e)); }
+  });
+  $('howbtn').addEventListener('click', () => setTab('prompt'));
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!/\.json$/i.test(file.name) && file.type !== 'application/json') {
+    renderLoaderCard(`${file.name} doesn't look like a .json file.`);
+    return;
+  }
+  const rd = new FileReader();
+  rd.onload = () => {
+    let data;
+    try { data = JSON.parse(rd.result); }
+    catch (e) { renderLoaderCard(`${file.name} is not valid JSON — ${e.message}`); return; }
+    try { applyWatchlist(data, file.name); }
+    catch (e) { renderLoaderCard(`${file.name}: ${e.message || e}`); }
+  };
+  rd.onerror = () => renderLoaderCard(`Could not read ${file.name}.`);
+  rd.readAsText(file);
+}
+
+function applyWatchlist(data, sourceName) {
+  const entries = validateWatchlist(data);   // throws with a user-facing message
+  WATCHLIST = entries.map((e, i) => ({ ...e, id: i }));
+  selected = null;
+  $('search').value = '';
+  renderWatchlist();
+  $('formno').textContent = `WL-${WATCHLIST.length} / SEC XBRL`;
+  $('newlistbtn').hidden = false;
+  updateRegStatus();
+  renderStamp('Select a filer', `${esc(sourceName)} loaded — ${WATCHLIST.length} instruments. Pick a company from the watchlist; statements are pulled straight from SEC EDGAR as filed.`);
+}
+
+/* ---------------- selection & rendering ---------------- */
+function markSelected() {
+  for (const b of navEl.querySelectorAll('.co')) b.classList.toggle('sel', selected && +b.dataset.id === selected.id);
+}
+
+async function select(e) {
+  selected = e;
+  markSelected();
+  const status = entryStatus(e);
+
+  if (status === 'na') return renderStamp('Not an SEC filer', `${esc(e.company)} is an index, commodity, currency or crypto instrument — there are no corporate filings behind it.`);
+  if (status === 'foreign') return renderStamp('No filings on record', `${esc(e.company)} is listed on ${esc(e.exchange)} and does not report to the SEC. Its filings live with the ${esc(e.exchange)} regulator instead.`);
+  if (status === 'pending') return renderStamp('Registry still loading', 'The EDGAR ticker registry has not loaded yet — give it a second, or hit Retry in the status bar.');
+  if (status === 'notfound') return renderStamp('Ticker not in EDGAR registry', `${esc(e.ticker)} does not appear in the SEC's ticker file — usually an unsponsored ADR whose issuer never registered (no 10-K/20-F to fetch).`);
+
+  const { cik, title } = tickerMap.get(e.ticker.toUpperCase());
+  renderLoading(e);
+  try {
+    let facts = factsCache.get(cik);
+    if (!facts) {
+      const url = `https://data.sec.gov/api/xbrl/companyfacts/CIK${padCik(cik)}.json`;
+      const data = await fetchJson(url, updateRoute);
+      facts = data.facts || {};
+      factsCache.set(cik, facts);
+    }
+    if (selected !== e) return; // user moved on mid-flight
+    renderCompany(e, cik, title, facts);
+  } catch (err) {
+    if (selected !== e) return;
+    renderStamp('Retrieval failed', `Could not reach data.sec.gov via any route (${esc(err.failures ? err.failures.join(', ') : String(err))}). Best fix: run the bundled relay — <b>python edgar_relay.py</b> in this file's folder — then retry. It declares your identity to the SEC, which the public proxies can't do.`);
+  }
+}
+
+function renderStamp(text, sub) {
+  mainEl.innerHTML = `<div class="stampwrap"><div class="stamp">${text}</div><div class="stampsub">${sub}</div></div>`;
+}
+
+function renderLoading(e) {
+  mainEl.innerHTML = `<div class="loading">RETRIEVING ${esc(e.ticker)} FROM EDGAR&nbsp;<span class="caret"></span><br><br>companyfacts can run to several MB for large filers — a few seconds is normal.</div>`;
+}
+
+function renderCompany(e, cik, secTitle, facts) {
+  const model = buildModel(facts, mode);
+  const sym = CUR_SYMBOL[model.currency] || (model.currency + ' ');
+
+  if (!model.cols.length) {
+    const why = mode === 'quarterly'
+      ? 'No quarterly XBRL on file — foreign 20-F filers (and some others) report full-year only. Switch to Annual.'
+      : 'No annual XBRL periods found in this company’s facts file.';
+    return renderStamp('No periods on file', why);
+  }
+
+  let html = `
+    <div class="cohead">
+      <h2>${esc(e.company)}</h2>
+      <span class="meta">${esc(e.ticker)} · ${esc(e.exchange)} · CIK ${padCik(cik)}</span>
+      <span class="meta"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${padCik(cik)}&type=10-K&dateb=&owner=include&count=40" target="_blank" rel="noopener">Filings on EDGAR ↗</a></span>
+    </div>
+    <div class="regname">SEC registrant: ${esc(secTitle || e.company)} · ${esc(e.category)} · spotted ${esc(e.date_spotted)}</div>
+    <div class="ledgerwrap"><table>
+    <thead><tr><th>${mode === 'annual' ? 'Fiscal years ended' : 'Quarters ended'}</th>${model.cols.map(c => `<th>${fmtColLabel(c)}</th>`).join('')}</tr></thead><tbody>`;
+
+  for (const r of model.rows) {
+    if (r.sect) { html += `<tr class="sect"><td colspan="${model.cols.length + 1}">${esc(r.sect)}</td></tr>`; continue; }
+    const label = r.calc ? r.label + ' ᶜ' : r.label;
+    html += `<tr><td>${esc(label)}</td>`;
+    r.cells.forEach(v => {
+      const f = r.pershare ? fmtEps(v) : fmtMoneyMillions(v);
+      html += f ? `<td class="${f.neg ? 'neg' : ''}">${f.text}</td>` : `<td class="na">—</td>`;
+    });
+    html += '</tr>';
+  }
+
+  html += `</tbody></table></div>
+    <div class="footnotes">
+      Figures in <b>millions of ${esc(model.currency)}</b> (${esc(sym)}) except per-share amounts · negatives shown <span style="color:var(--ruling)">(in burgundy)</span>, accounting style<br>
+      ᶜ calculated: operating cash flow less capital expenditure · gross profit / total liabilities derived from components where not separately tagged<br>
+      Values as filed (latest filing wins, so restatements are reflected) · Source: SEC EDGAR company facts, pulled live
+    </div>`;
+
+  mainEl.innerHTML = html;
+}
+
+/* ---------------- registry bootstrap ---------------- */
+function updateRoute(name, failures) {
+  $('routestatus').innerHTML = failures.length
+    ? `route: <b>${esc(name)}</b> <span class="bad">(${esc(failures.join(' ✗, '))} ✗)</span>`
+    : `route: ${esc(name)}`;
+}
+
+function updateRegStatus() {
+  if (!tickerMap) return;
+  const base = `Registry loaded — ${tickerMap.size.toLocaleString()} SEC filers`;
+  const eligible = WATCHLIST.filter(e => entryStatus(e) === 'ok').length;
+  $('regstatus').textContent = WATCHLIST.length
+    ? `${base} · ${eligible} of your ${WATCHLIST.length} instruments file with EDGAR`
+    : `${base} · load a watchlist to begin`;
+}
+
+async function loadRegistry() {
+  registryError = false;
+  $('retrybtn').hidden = true;
+  $('regstatus').textContent = 'Loading EDGAR ticker registry…';
+  try {
+    const data = await fetchJson(TICKER_REGISTRY_URL, updateRoute);
+    tickerMap = new Map();
+    for (const k of Object.keys(data)) {
+      const row = data[k];
+      if (row && row.ticker) tickerMap.set(String(row.ticker).toUpperCase(), { cik: row.cik_str, title: row.title });
+    }
+    updateRegStatus();
+    refreshStatuses();
+  } catch (err) {
+    registryError = true;
+    tickerMap = null;
+    $('regstatus').innerHTML = `<span class="bad">Registry failed — every route blocked. Run the relay: <b>python edgar_relay.py</b> (same folder), then retry.</span>`;
+    $('retrybtn').hidden = false;
+  }
+}
+
+/* ---------------- tabs ---------------- */
+const TAB_NAMES = ['ledger', 'prompt', 'buffett'];
+function setTab(t) {
+  for (const name of TAB_NAMES) {
+    $('pane-' + name).hidden = name !== t;
+    $('tab-' + name).setAttribute('aria-selected', name === t);
+  }
+}
+for (const name of TAB_NAMES) $('tab-' + name).addEventListener('click', () => setTab(name));
+
+/* ---------------- Warren Buffett book tab ---------------- */
+const bookEl = $('bookpane');
+
+function csvToTable(csv) {
+  const rows = csv.trim().split('\n').map(r => r.split(','));
+  const head = rows.shift();
+  let h = '<div class="ledgerwrap"><table><thead><tr>'
+        + head.map(c => `<th>${esc(c)}</th>`).join('')
+        + '</tr></thead><tbody>';
+  for (const r of rows) h += '<tr>' + r.map(c => `<td>${esc(c)}</td>`).join('') + '</tr>';
+  return h + '</tbody></table></div>';
+}
+
+function renderBookList() {
+  let h = `<h2>${esc(BUFFETT_BOOK.book)}</h2>
+    <p class="lede">Chapter notes — chapter, title, exhibit tables and summary.</p>
+    <div class="orn" aria-hidden="true">● ◆ ●</div>`;
+  for (const ch of BUFFETT_BOOK.chapters) {
+    h += `<section class="chapblock">
+      <div class="chaphead"><span class="chno">CH ${ch.chapter}</span><h3>${esc(ch.title)}</h3></div>`;
+    if (ch.tables && ch.tables.length) {
+      h += '<div class="chaptables">';
+      ch.tables.forEach((t, n) => {
+        h += `<div class="exlabel">Exhibit${ch.tables.length > 1 ? ' ' + (n + 1) : ''}</div>` + csvToTable(t);
+      });
+      h += '</div>';
+    }
+    h += `<p class="chsum">${esc(ch.summary)}</p></section>`;
+  }
+  bookEl.innerHTML = h;
+}
+
+/* ---------------- copy prompt ---------------- */
+$('copyprompt').addEventListener('click', async () => {
+  const text = $('prompttext').textContent;
+  const btn = $('copyprompt');
+  const done = () => {
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = 'Copy prompt'; }, 1600);
+  };
+  try {
+    await navigator.clipboard.writeText(text);
+    done();
+  } catch {
+    const ta = document.createElement('textarea');   // file:// fallback
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    done();
+  }
+});
+
+/* ---------------- wiring ---------------- */
+$('search').addEventListener('input', applyFilter);
+$('search').addEventListener('keydown', ev => {
+  if (ev.key === 'Enter') { const e = firstVisibleSelectable(); if (e) select(e); }
+  if (ev.key === 'Escape') { ev.target.value = ''; applyFilter(); }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === '/' && document.activeElement !== $('search') && !$('pane-ledger').hidden) { ev.preventDefault(); $('search').focus(); }
+});
+$('btn-annual').addEventListener('click', () => setMode('annual'));
+$('btn-quarterly').addEventListener('click', () => setMode('quarterly'));
+function setMode(m) {
+  if (mode === m) return;
+  mode = m;
+  $('btn-annual').setAttribute('aria-pressed', m === 'annual');
+  $('btn-quarterly').setAttribute('aria-pressed', m === 'quarterly');
+  if (selected) select(selected);
+}
+$('retrybtn').addEventListener('click', loadRegistry);
+
+/* dark mode: pure inversion via [data-theme="dark"] custom properties */
+const themeBtn = $('themetoggle');
+function applyTheme(t) {
+  if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+  themeBtn.textContent = t === 'dark' ? '◐ Light' : '◐ Dark';
+  themeBtn.setAttribute('aria-pressed', t === 'dark');
+}
+themeBtn.addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('edgar-theme', next); } catch {}
+  applyTheme(next);
+});
+try { applyTheme(localStorage.getItem('edgar-theme') || 'light'); } catch { applyTheme('light'); }
+
+$('newlistbtn').addEventListener('click', () => {
+  setTab('ledger');
+  selected = null;
+  markSelected();
+  renderLoaderCard();
+});
+
+navEl.innerHTML = '<div class="nav-note">No watchlist loaded yet — load a .json in the main pane, or start from the example.</div>';
+renderLoaderCard();
+renderBookList();
+loadRegistry();
+</script>
+</body>
+</html>
