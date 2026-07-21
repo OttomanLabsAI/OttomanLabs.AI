@@ -25,7 +25,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-IDENTITY = "email@email.com"   # <-- set_identity: what the SEC sees as your User-Agent
+IDENTITY = "web@ottomanlabs.ai"   # <-- set_identity: what the SEC sees as your User-Agent
 PORT = 8787
 ALLOWED_HOSTS = {"sec.gov", "www.sec.gov", "data.sec.gov"}
 PAGE = Path(__file__).with_name("edgar-ledger.html")
