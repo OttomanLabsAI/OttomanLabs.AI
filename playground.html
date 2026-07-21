@@ -199,6 +199,28 @@
   .cs-zoom button{ width:26px; height:26px; padding:0; font-size:1rem; line-height:1;
     background:var(--paper); color:var(--ink); border:1px solid var(--hair); cursor:pointer; }
   .cs-zoom button:hover{ background:var(--ink); color:var(--paper); }
+  /* ── import geometry card ── */
+  .gi-body{ display:flex; flex-direction:column; gap:.55rem; }
+  .gi-drop{ border:1px dashed var(--ink-35); padding:.55rem .7rem; display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; }
+  .gi-drop.over{ border-color:var(--ink); background:rgba(17,17,17,.05); }
+  .gi-hint{ font-family:var(--font-serif); font-style:italic; font-size:.76rem; color:var(--ink-60); }
+  .gi-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .gi-list li{ display:flex; align-items:center; gap:.5rem; font-family:var(--font-brand); font-size:.72rem;
+    border-bottom:1px dashed var(--ink-35); padding:.28rem 0; min-width:0; }
+  .gi-list li.bad{ color:var(--ink-60); }
+  .gi-list .fmt{ border:1px solid var(--ink); padding:.05rem .35rem; font-size:.58rem; letter-spacing:.12em;
+    text-transform:uppercase; flex:0 0 auto; }
+  .gi-list .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:34%; }
+  .gi-list .info{ color:var(--ink-60); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gi-list .x{ background:none; border:0; color:var(--ink-60); cursor:pointer; font-size:.95rem; line-height:1; padding:0 .2rem; }
+  .gi-list .x:hover{ color:#B01018; }
+  .gi-viewwrap{ position:relative; }
+  #giView{ display:block; width:100%; height:auto; border:1px solid var(--hair); cursor:grab; touch-action:none; }
+  .gi-zoom{ position:absolute; right:8px; top:8px; display:flex; flex-direction:column; gap:4px; }
+  .gi-zoom button{ width:26px; height:26px; padding:0; font-size:.95rem; line-height:1;
+    background:var(--paper); color:var(--ink); border:1px solid var(--hair); cursor:pointer; }
+  .gi-zoom button:hover{ background:var(--ink); color:var(--paper); }
+  .gi-stats{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
   .cs-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); text-align:center; padding:.15rem .9rem .1rem; }
   .cs-exports{ padding:.5rem 1.1rem .35rem; justify-content:center; }
@@ -629,6 +651,31 @@
         <ul class="di-list" id="diList"></ul>
       </div>
     </div>
+    <div class="draw-sec geoimp">
+      <div class="draw-cap">
+        <b>Import Geometry</b>
+        <span>obj &middot; stl &middot; dxf &middot; svg &middot; ply &middot; gltf &middot; usd &middot; more</span>
+      </div>
+      <div class="gi-body">
+        <div class="gi-drop" id="giDrop">
+          <input type="file" id="giFile" multiple hidden
+            accept=".obj,.stl,.dxf,.svg,.ply,.off,.gltf,.glb,.usd,.usda,.gcode,.nc,.ngc,.xyz,.csv,.txt,.pts,.asc,.json,.step,.stp,.ifc">
+          <button id="giBrowse" class="di-browse" type="button">Browse&hellip;</button>
+          <span class="gi-hint">or drop files &mdash; OBJ &middot; STL (ascii/binary) &middot; DXF &middot; SVG &middot; PLY (ascii/binary) &middot; OFF &middot; glTF/GLB &middot; USD (ascii) &middot; G-code &middot; XYZ/CSV points &middot; JSON mesh &middot; STEP &amp; IFC points</span>
+        </div>
+        <ul class="gi-list" id="giList"></ul>
+        <div class="gi-viewwrap">
+          <canvas id="giView" aria-label="Imported geometry — drag to orbit, right-drag to pan, wheel to zoom"></canvas>
+          <div class="gi-zoom">
+            <button id="giZin" type="button" aria-label="Zoom in">+</button>
+            <button id="giZout" type="button" aria-label="Zoom out">&minus;</button>
+            <button id="giFit" type="button" aria-label="Fit view" title="Fit">&#8865;</button>
+          </div>
+        </div>
+        <div class="gi-stats" id="giStats">no geometry yet &mdash; import files to see them here</div>
+        <div class="pg-hint">drag to orbit &middot; right-drag to pan &middot; wheel zooms &middot; untick a file to hide it &middot; &times; removes it</div>
+      </div>
+    </div>
     <div class="draw-sec graphs">
       <div class="draw-cap">
         <b>Graphs</b>
@@ -699,7 +746,7 @@
         </select>
       </div>
       <div class="cs-boardwrap cs-viewwrap">
-        <canvas id="csView" aria-label="Column 3D view — drag to orbit, wheel or buttons to zoom"></canvas>
+        <canvas id="csView" aria-label="Column 3D view — drag to orbit, right-drag to pan, wheel or buttons to zoom"></canvas>
         <div class="cs-zoom">
           <button id="csZin" type="button" aria-label="Zoom in">+</button>
           <button id="csZout" type="button" aria-label="Zoom out">&minus;</button>
@@ -720,7 +767,7 @@
         <input type="file" id="csSetFile" accept="application/json,.json" hidden>
         <span class="pg-note" id="csNoteSet"></span>
       </div>
-      <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom; drag the column to orbit, wheel or the +/&minus; buttons to zoom</div>
+      <div class="pg-hint">choose a nation, then a family, then a size &mdash; or go custom; drag the column to orbit, right-drag to pan, wheel or the +/&minus; buttons to zoom</div>
     </div>
   </div>
 
@@ -3444,7 +3491,7 @@
   var allowCustom = !ONLY || !ONLY.length || ONLY.indexOf('custom') >= 0;
 
   var state = { nation:'uk', fam:'ub', size:0, custom:false, h:5, hUnit:'m',
-                yaw:-0.7, pitch:0.42, zoom:1,
+                yaw:-0.7, pitch:0.42, zoom:1, panx:0, pany:0,
                 cd: { h:300, b:150, tw:8, tf:12, r:10, w:150, d:300, dia:400, shape:'rect' } };
   window.__cs = state;
   var HF = { m:1000, mm:1, ft:304.8 };
@@ -3659,7 +3706,8 @@
     faces.forEach(function(f){
       v2.beginPath();
       f.q.forEach(function(p, k){
-        k ? v2.lineTo(w/2 + p.x * S, h/2 - p.z * S) : v2.moveTo(w/2 + p.x * S, h/2 - p.z * S);
+        k ? v2.lineTo(w/2 + state.panx + p.x * S, h/2 + state.pany - p.z * S)
+          : v2.moveTo(w/2 + state.panx + p.x * S, h/2 + state.pany - p.z * S);
       });
       v2.closePath();
       v2.fillStyle = fc; v2.strokeStyle = fc; v2.lineWidth = 1;
@@ -3675,26 +3723,32 @@
       if(e0 || e1){
         v2.strokeStyle = ec; v2.lineWidth = 0.9;
         v2.beginPath();
-        if(e0){ v2.moveTo(w/2 + B[i0].x * S, h/2 - B[i0].z * S); v2.lineTo(w/2 + T[i0].x * S, h/2 - T[i0].z * S); }
-        if(e1){ v2.moveTo(w/2 + B[i1].x * S, h/2 - B[i1].z * S); v2.lineTo(w/2 + T[i1].x * S, h/2 - T[i1].z * S); }
+        if(e0){ v2.moveTo(w/2 + state.panx + B[i0].x * S, h/2 + state.pany - B[i0].z * S); v2.lineTo(w/2 + state.panx + T[i0].x * S, h/2 + state.pany - T[i0].z * S); }
+        if(e1){ v2.moveTo(w/2 + state.panx + B[i1].x * S, h/2 + state.pany - B[i1].z * S); v2.lineTo(w/2 + state.panx + T[i1].x * S, h/2 + state.pany - T[i1].z * S); }
         v2.stroke();
       }
     });
   }
   if(view){
-    var orb = false, lx = 0, ly = 0;
+    var orb = false, panning = false, lx = 0, ly = 0;
+    view.addEventListener('contextmenu', function(e){ e.preventDefault(); });
     view.addEventListener('pointerdown', function(e){
-      orb = true; lx = e.clientX; ly = e.clientY;
+      if(e.button === 2) panning = true; else orb = true;
+      lx = e.clientX; ly = e.clientY;
       view.setPointerCapture(e.pointerId);
     });
     view.addEventListener('pointermove', function(e){
-      if(!orb) return;
-      state.yaw += (e.clientX - lx) * 0.008;
-      state.pitch = Math.max(-1.4, Math.min(1.4, state.pitch + (e.clientY - ly) * 0.008));
+      if(!orb && !panning) return;
+      var dx = e.clientX - lx, dy = e.clientY - ly;
       lx = e.clientX; ly = e.clientY;
+      if(panning){ state.panx += dx; state.pany += dy; }
+      else {
+        state.yaw += dx * 0.008;
+        state.pitch = Math.max(-1.4, Math.min(1.4, state.pitch + dy * 0.008));
+      }
       drawView();
     });
-    view.addEventListener('pointerup', function(){ orb = false; });
+    view.addEventListener('pointerup', function(){ orb = false; panning = false; });
     function zoomBy(f){
       state.zoom = Math.max(0.2, Math.min(40, state.zoom * f));
       drawView();
@@ -4012,7 +4066,7 @@
     if(view){
       var w2 = view.clientWidth;
       if(w2){
-        var h2 = Math.round(w2 * 0.8), dpr2 = window.devicePixelRatio || 1;
+        var h2 = Math.round(w2 * 0.8), dpr2 = Math.max(window.devicePixelRatio || 1, 2);
         view.style.height = h2 + 'px';
         view.width = Math.round(w2 * dpr2); view.height = Math.round(h2 * dpr2);
         v2.setTransform(dpr2, 0, 0, dpr2, 0, 0);
@@ -4021,8 +4075,689 @@
     redraw();
   }
   window.addEventListener('resize', resize);
+  if(window.ResizeObserver && view) new ResizeObserver(resize).observe(view);
   new MutationObserver(redraw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
   fillNations(); fillFams(); fillSizes(); buildCustom();
+  resize();
+})();
+</script>
+<script id="geoImpEngine">
+(function(){
+  "use strict";
+  /* ── import geometry: as many CAD flavours as a browser can parse bare-
+     handed. Text formats are parsed properly (OBJ, STL ascii, DXF, SVG,
+     PLY ascii, OFF, glTF, USD ascii, G-code, XYZ/CSV, JSON mesh); binary
+     STL, binary little-endian PLY and GLB are decoded with DataView;
+     STEP and IFC get their cartesian points lifted out plus an entity
+     census. Everything lands in one orbitable wireframe view. ── */
+  var view = document.getElementById('giView');
+  if(!view) return;
+  var g = view.getContext('2d');
+  var drop = document.getElementById('giDrop'), fileIn = document.getElementById('giFile');
+  var browse = document.getElementById('giBrowse'), listEl = document.getElementById('giList');
+  var statsEl = document.getElementById('giStats');
+  var TAU = Math.PI * 2, UID = 1;
+  var FILES = [];   /* {id,name,fmt,vis,polys,dots,ptsN,triN,note} */
+  var cam = { yaw: -0.7, pitch: 0.5, zoom: 1, panx: 0, pany: 0 };
+  var COLS = ['#111111', '#B01018', '#5A5A5A', '#3E5C76', '#7A5C2E', '#A9A9A9'];
+
+  function paper(){ return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#FFFFFF'; }
+  function ink(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111'; }
+  function hair(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-35').trim() || '#A9A9A9'; }
+
+  /* ---------- parse helpers ---------- */
+  function num(s){ var v = parseFloat(s); return isNaN(v) ? 0 : v; }
+  function edgesFromFaces(verts, faces, cap){
+    /* faces: arrays of vertex indices — emit each face loop as a polyline */
+    var polys = [], budget = cap || 90000, spent = 0;
+    var step = 1;
+    var total = 0;
+    faces.forEach(function(f){ total += f.length; });
+    if(total > budget) step = Math.ceil(total / budget);
+    for(var i = 0; i < faces.length; i += step){
+      var f = faces[i], loop = [];
+      for(var j = 0; j < f.length; j++){
+        var v = verts[f[j]];
+        if(v) loop.push(v);
+      }
+      if(loop.length > 1){ loop.push(loop[0]); polys.push(loop); }
+      spent += f.length;
+    }
+    return polys;
+  }
+
+  function parseOBJ(text){
+    var verts = [], faces = [], polys = [];
+    text.split('\n').forEach(function(ln){
+      var t = ln.trim().split(/\s+/);
+      if(t[0] === 'v') verts.push([num(t[1]), num(t[2]), num(t[3])]);
+      else if(t[0] === 'f') faces.push(t.slice(1).map(function(w){
+        var i = parseInt(w.split('/')[0], 10);
+        return i < 0 ? verts.length + i : i - 1;
+      }));
+      else if(t[0] === 'l'){
+        var lp = t.slice(1).map(function(w){ var i = parseInt(w, 10); return verts[i < 0 ? verts.length + i : i - 1]; }).filter(Boolean);
+        if(lp.length > 1) polys.push(lp);
+      }
+    });
+    return { polys: polys.concat(edgesFromFaces(verts, faces)), ptsN: verts.length, triN: faces.length };
+  }
+
+  function parseSTLA(text){
+    var polys = [], tri = [], m, triN = 0;
+    var re = /vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+)/g;
+    var all = [];
+    while((m = re.exec(text))) all.push([num(m[1]), num(m[2]), num(m[3])]);
+    var step = all.length / 3 > 30000 ? Math.ceil(all.length / 3 / 30000) : 1;
+    for(var i = 0; i + 2 < all.length; i += 3 * step){
+      polys.push([all[i], all[i + 1], all[i + 2], all[i]]);
+      triN++;
+    }
+    return { polys: polys, ptsN: all.length, triN: Math.floor(all.length / 3) };
+  }
+  function parseSTLB(buf){
+    var dv = new DataView(buf);
+    if(buf.byteLength < 84) return null;
+    var n = dv.getUint32(80, true);
+    if(84 + n * 50 > buf.byteLength) return null;
+    var polys = [], step = n > 30000 ? Math.ceil(n / 30000) : 1;
+    for(var i = 0; i < n; i += step){
+      var o = 84 + i * 50 + 12, t = [];
+      for(var v = 0; v < 3; v++)
+        t.push([dv.getFloat32(o + v * 12, true), dv.getFloat32(o + v * 12 + 4, true), dv.getFloat32(o + v * 12 + 8, true)]);
+      t.push(t[0]);
+      polys.push(t);
+    }
+    return { polys: polys, ptsN: n * 3, triN: n };
+  }
+
+  function parseDXF(text){
+    var lines = text.split(/\r\n|\r|\n/), i = 0;
+    function pair(){ if(i + 1 >= lines.length) return null; var c = parseInt(lines[i].trim(), 10); var v = lines[i + 1]; i += 2; return [c, v]; }
+    var polys = [], dots = [], ptsN = 0, inEnts = false;
+    var cur = null, curKind = '', pl = null, plClosed = false, pv = [];
+    function circle(cx, cy, cz, r, a0, a1){
+      var p = [], n = Math.max(12, Math.round(Math.abs(a1 - a0) / TAU * 48));
+      for(var k = 0; k <= n; k++){
+        var a = a0 + (a1 - a0) * k / n;
+        p.push([cx + r * Math.cos(a), cy + r * Math.sin(a), cz]);
+      }
+      return p;
+    }
+    function flushEntity(){
+      if(!cur) return;
+      var d = cur;
+      if(curKind === 'LINE') polys.push([[d[10]||0, d[20]||0, d[30]||0], [d[11]||0, d[21]||0, d[31]||0]]);
+      else if(curKind === 'CIRCLE') polys.push(circle(d[10]||0, d[20]||0, d[30]||0, d[40]||0, 0, TAU));
+      else if(curKind === 'ARC') polys.push(circle(d[10]||0, d[20]||0, d[30]||0, d[40]||0, (d[50]||0) * Math.PI/180, ((d[51]||0) < (d[50]||0) ? (d[51]||0) + 360 : (d[51]||0)) * Math.PI/180));
+      else if(curKind === 'POINT') dots.push([d[10]||0, d[20]||0, d[30]||0]);
+      else if(curKind === 'ELLIPSE'){
+        var mx = d[11]||0, my = d[21]||0, mz = d[31]||0, ratio = d[40]||1;
+        var a0 = d[41]||0, a1 = (d[42] == null ? TAU : d[42]);
+        var L = Math.hypot(mx, my), ang = Math.atan2(my, mx), p = [];
+        for(var k = 0; k <= 48; k++){
+          var t = a0 + (a1 - a0) * k / 48;
+          var ex = Math.cos(t) * L, ey = Math.sin(t) * L * ratio;
+          p.push([(d[10]||0) + ex * Math.cos(ang) - ey * Math.sin(ang),
+                  (d[20]||0) + ex * Math.sin(ang) + ey * Math.cos(ang), mz]);
+        }
+        polys.push(p);
+      }
+      else if(curKind === '3DFACE'){
+        var q = [[d[10]||0,d[20]||0,d[30]||0],[d[11]||0,d[21]||0,d[31]||0],[d[12]||0,d[22]||0,d[32]||0]];
+        if(d[13] != null && (d[13] !== d[12] || d[23] !== d[22])) q.push([d[13]||0,d[23]||0,d[33]||0]);
+        q.push(q[0]); polys.push(q);
+      }
+      else if(curKind === 'SPLINE' && cur.ctrl && cur.ctrl.length > 1) polys.push(cur.ctrl);
+      cur = null; curKind = '';
+    }
+    while(i + 1 < lines.length){
+      var p = pair();
+      if(!p) break;
+      var code = p[0], val = String(p[1]).trim();
+      if(code === 0){
+        if(val === 'SECTION' || val === 'ENDSEC'){ flushEntity(); var nx = pair(); if(nx && String(nx[1]).trim() === 'ENTITIES') inEnts = true; if(val === 'ENDSEC') inEnts = false; continue; }
+        if(!inEnts){ continue; }
+        /* close any running polyline chains */
+        if(val === 'VERTEX'){ cur = {}; curKind = 'VERTEX'; continue; }
+        if(val === 'SEQEND'){ if(pv.length > 1){ if(plClosed) pv.push(pv[0]); polys.push(pv); } pv = []; flushEntity(); continue; }
+        if(curKind === 'VERTEX'){ if(cur && cur[10] != null) pv.push([cur[10]||0, cur[20]||0, cur[30]||0]); cur = null; curKind = ''; }
+        else flushEntity();
+        if(pl){ if(pl.length > 1){ if(plClosed) pl.push(pl[0]); polys.push(pl); } pl = null; }
+        if(val === 'LWPOLYLINE'){ pl = []; plClosed = false; curKind = 'LWPOLYLINE'; cur = {}; }
+        else if(val === 'POLYLINE'){ pv = []; plClosed = false; curKind = 'POLYLINE'; cur = {}; }
+        else if(val === 'SPLINE'){ cur = { ctrl: [] }; curKind = 'SPLINE'; }
+        else if(['LINE','CIRCLE','ARC','POINT','ELLIPSE','3DFACE'].indexOf(val) >= 0){ cur = {}; curKind = val; }
+        continue;
+      }
+      if(curKind === 'LWPOLYLINE' && pl){
+        if(code === 10) pl.push([num(val), 0, 0]);
+        else if(code === 20 && pl.length) pl[pl.length - 1][1] = num(val);
+        else if(code === 70) plClosed = (parseInt(val, 10) & 1) === 1;
+        continue;
+      }
+      if(curKind === 'POLYLINE' && code === 70){ plClosed = (parseInt(val, 10) & 1) === 1; continue; }
+      if(curKind === 'SPLINE' && cur){
+        if(code === 10) cur.ctrl.push([num(val), 0, 0]);
+        else if(code === 20 && cur.ctrl.length) cur.ctrl[cur.ctrl.length - 1][1] = num(val);
+        else if(code === 30 && cur.ctrl.length) cur.ctrl[cur.ctrl.length - 1][2] = num(val);
+        continue;
+      }
+      if(cur) cur[code] = num(val);
+    }
+    if(pl && pl.length > 1) polys.push(pl);
+    if(pv.length > 1) polys.push(pv);
+    flushEntity();
+    polys.forEach(function(q){ ptsN += q.length; });
+    return { polys: polys, dots: dots, ptsN: ptsN + dots.length, triN: 0 };
+  }
+
+  function parseSVG(text){
+    var doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    var svg = doc.documentElement;
+    if(!svg || svg.nodeName !== 'svg') return null;
+    var host = document.createElement('div');
+    host.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:10px;height:10px;overflow:hidden';
+    document.body.appendChild(host);
+    host.appendChild(svg);
+    var polys = [];
+    svg.querySelectorAll('path,rect,circle,ellipse,line,polyline,polygon').forEach(function(elm){
+      try{
+        var L = elm.getTotalLength();
+        if(!isFinite(L) || L <= 0) return;
+        var n = Math.max(8, Math.min(240, Math.round(L / 2)));
+        var p = [];
+        for(var k = 0; k <= n; k++){
+          var pt = elm.getPointAtLength(L * k / n);
+          p.push([pt.x, -pt.y, 0]);   /* svg y grows down — flip */
+        }
+        polys.push(p);
+      }catch(e){}
+    });
+    host.remove();
+    var ptsN = 0; polys.forEach(function(q){ ptsN += q.length; });
+    return { polys: polys, ptsN: ptsN, triN: 0 };
+  }
+
+  function parsePLY(buf, text){
+    var head = text.slice(0, 2048);
+    if(head.indexOf('ply') !== 0) return null;
+    var hEnd = text.indexOf('end_header');
+    if(hEnd < 0) return null;
+    var header = text.slice(0, hEnd).split('\n').map(function(s){ return s.trim(); });
+    var fmtLn = header.find(function(s){ return s.indexOf('format') === 0; }) || '';
+    var binary = fmtLn.indexOf('binary_little_endian') >= 0;
+    var els = [], curEl = null;
+    header.forEach(function(s){
+      var t = s.split(/\s+/);
+      if(t[0] === 'element'){ curEl = { name: t[1], count: parseInt(t[2], 10), props: [] }; els.push(curEl); }
+      else if(t[0] === 'property' && curEl){
+        if(t[1] === 'list') curEl.props.push({ list: true, ct: t[2], it: t[3], name: t[4] });
+        else curEl.props.push({ list: false, t: t[1], name: t[2] });
+      }
+    });
+    var SZ = { char:1, uchar:1, int8:1, uint8:1, short:2, ushort:2, int16:2, uint16:2, int:4, uint:4, int32:4, uint32:4, float:4, float32:4, double:8, float64:8 };
+    var verts = [], faces = [];
+    if(binary){
+      var off = text.indexOf('end_header');
+      /* find the byte offset of end_header + newline in the raw buffer */
+      var u8 = new Uint8Array(buf);
+      var marker = 'end_header';
+      var bOff = -1;
+      for(var i = 0; i < Math.min(u8.length, 4096); i++){
+        var ok = true;
+        for(var j = 0; j < marker.length; j++) if(u8[i + j] !== marker.charCodeAt(j)){ ok = false; break; }
+        if(ok){ bOff = i + marker.length; break; }
+      }
+      if(bOff < 0) return null;
+      while(u8[bOff] === 13 || u8[bOff] === 10) bOff++;
+      var dv = new DataView(buf);
+      function rd(t){
+        var v;
+        switch(t){
+          case 'float': case 'float32': v = dv.getFloat32(bOff, true); break;
+          case 'double': case 'float64': v = dv.getFloat64(bOff, true); break;
+          case 'uchar': case 'uint8': v = dv.getUint8(bOff); break;
+          case 'char': case 'int8': v = dv.getInt8(bOff); break;
+          case 'short': case 'int16': v = dv.getInt16(bOff, true); break;
+          case 'ushort': case 'uint16': v = dv.getUint16(bOff, true); break;
+          case 'uint': case 'uint32': v = dv.getUint32(bOff, true); break;
+          default: v = dv.getInt32(bOff, true);
+        }
+        bOff += SZ[t] || 4;
+        return v;
+      }
+      els.forEach(function(elm){
+        for(var n = 0; n < elm.count; n++){
+          var row = {};
+          elm.props.forEach(function(pr){
+            if(pr.list){
+              var cnt = rd(pr.ct), arr = [];
+              for(var k = 0; k < cnt; k++) arr.push(rd(pr.it));
+              row[pr.name] = arr;
+            } else row[pr.name] = rd(pr.t);
+          });
+          if(elm.name === 'vertex') verts.push([row.x || 0, row.y || 0, row.z || 0]);
+          if(elm.name === 'face'){ var f = row.vertex_indices || row.vertex_index; if(f) faces.push(f); }
+        }
+      });
+    } else {
+      var body = text.slice(hEnd + 'end_header'.length).replace(/^\s+/, '').split('\n');
+      var li = 0;
+      els.forEach(function(elm){
+        for(var n = 0; n < elm.count && li < body.length; n++, li++){
+          var t = body[li].trim().split(/\s+/), row = {}, ti = 0;
+          elm.props.forEach(function(pr){
+            if(pr.list){
+              var cnt = parseInt(t[ti++], 10), arr = [];
+              for(var k = 0; k < cnt; k++) arr.push(parseInt(t[ti++], 10));
+              row[pr.name] = arr;
+            } else row[pr.name] = num(t[ti++]);
+          });
+          if(elm.name === 'vertex') verts.push([row.x || 0, row.y || 0, row.z || 0]);
+          if(elm.name === 'face'){ var f = row.vertex_indices || row.vertex_index; if(f) faces.push(f); }
+        }
+      });
+    }
+    return { polys: edgesFromFaces(verts, faces), dots: faces.length ? [] : verts, ptsN: verts.length, triN: faces.length };
+  }
+
+  function parseOFF(text){
+    var t = text.replace(/#[^\n]*/g, '').split(/\s+/).filter(Boolean);
+    if(t[0] !== 'OFF') return null;
+    var nv = parseInt(t[1], 10), nf = parseInt(t[2], 10), i = 4;
+    var verts = [], faces = [];
+    for(var v = 0; v < nv; v++){ verts.push([num(t[i]), num(t[i+1]), num(t[i+2])]); i += 3; }
+    for(var f = 0; f < nf; f++){
+      var c = parseInt(t[i++], 10), fc = [];
+      for(var k = 0; k < c; k++) fc.push(parseInt(t[i++], 10));
+      faces.push(fc);
+    }
+    return { polys: edgesFromFaces(verts, faces), ptsN: nv, triN: nf };
+  }
+
+  function parseGLTF(json, bin){
+    try{
+      var buffers = (json.buffers || []).map(function(b, i){
+        if(bin && i === 0 && !b.uri) return bin;
+        if(b.uri && b.uri.indexOf('data:') === 0){
+          var b64 = b.uri.slice(b.uri.indexOf(',') + 1);
+          var s = atob(b64), u = new Uint8Array(s.length);
+          for(var k = 0; k < s.length; k++) u[k] = s.charCodeAt(k);
+          return u.buffer;
+        }
+        return null;
+      });
+      function accessor(ai){
+        var a = json.accessors[ai], bv = json.bufferViews[a.bufferView];
+        var buf = buffers[bv.buffer];
+        if(!buf) return null;
+        var off = (bv.byteOffset || 0) + (a.byteOffset || 0);
+        var n = a.count, comp = { SCALAR:1, VEC2:2, VEC3:3, VEC4:4 }[a.type] || 3;
+        var dv = new DataView(buf), out = [], stride = bv.byteStride || 0;
+        function read(idx, c){
+          var base = off + (stride ? idx * stride : idx * comp * ({5126:4,5125:4,5123:2,5121:1}[a.componentType] || 4)) + c * ({5126:4,5125:4,5123:2,5121:1}[a.componentType] || 4);
+          switch(a.componentType){
+            case 5126: return dv.getFloat32(base, true);
+            case 5125: return dv.getUint32(base, true);
+            case 5123: return dv.getUint16(base, true);
+            case 5121: return dv.getUint8(base);
+            default: return dv.getInt16(base, true);
+          }
+        }
+        for(var i = 0; i < n; i++){
+          if(comp === 1) out.push(read(i, 0));
+          else { var v = []; for(var c = 0; c < comp; c++) v.push(read(i, c)); out.push(v); }
+        }
+        return out;
+      }
+      var polys = [], ptsN = 0, triN = 0;
+      (json.meshes || []).forEach(function(mesh){
+        (mesh.primitives || []).forEach(function(pr){
+          if(pr.attributes == null || pr.attributes.POSITION == null) return;
+          var pos = accessor(pr.attributes.POSITION);
+          if(!pos) return;
+          ptsN += pos.length;
+          var faces = [];
+          if(pr.indices != null){
+            var idx = accessor(pr.indices);
+            for(var i = 0; i + 2 < idx.length; i += 3) faces.push([idx[i], idx[i+1], idx[i+2]]);
+          } else {
+            for(var i2 = 0; i2 + 2 < pos.length; i2 += 3) faces.push([i2, i2+1, i2+2]);
+          }
+          triN += faces.length;
+          polys = polys.concat(edgesFromFaces(pos, faces));
+        });
+      });
+      if(!polys.length) return null;
+      return { polys: polys, ptsN: ptsN, triN: triN };
+    }catch(e){ return null; }
+  }
+  function parseGLB(buf){
+    var dv = new DataView(buf);
+    if(dv.getUint32(0, true) !== 0x46546C67) return null;   /* 'glTF' */
+    var len = dv.getUint32(8, true), off = 12, json = null, bin = null;
+    while(off < len){
+      var clen = dv.getUint32(off, true), ctype = dv.getUint32(off + 4, true);
+      var chunk = buf.slice(off + 8, off + 8 + clen);
+      if(ctype === 0x4E4F534A) json = JSON.parse(new TextDecoder().decode(chunk));
+      else if(ctype === 0x004E4942) bin = chunk;
+      off += 8 + clen + (clen % 4 ? 4 - clen % 4 : 0);
+    }
+    return json ? parseGLTF(json, bin) : null;
+  }
+
+  function parseUSDA(text){
+    if(text.indexOf('#usda') !== 0) return null;
+    var polys = [], ptsN = 0, triN = 0, m;
+    var re = /point3f\[\]\s+points\s*=\s*\[([^\]]*)\]/g;
+    var cRe = /int\[\]\s+faceVertexCounts\s*=\s*\[([^\]]*)\]/g;
+    var iRe = /int\[\]\s+faceVertexIndices\s*=\s*\[([^\]]*)\]/g;
+    var ptsL = [], cntL = [], idxL = [];
+    while((m = re.exec(text))) ptsL.push(m[1]);
+    while((m = cRe.exec(text))) cntL.push(m[1]);
+    while((m = iRe.exec(text))) idxL.push(m[1]);
+    for(var k = 0; k < ptsL.length; k++){
+      var verts = [];
+      var vRe = /\(([^)]*)\)/g, vm;
+      while((vm = vRe.exec(ptsL[k]))){
+        var c = vm[1].split(',').map(num);
+        verts.push([c[0] || 0, c[1] || 0, c[2] || 0]);
+      }
+      ptsN += verts.length;
+      if(cntL[k] && idxL[k]){
+        var counts = cntL[k].split(',').map(function(s){ return parseInt(s, 10); }).filter(function(v){ return !isNaN(v); });
+        var idx = idxL[k].split(',').map(function(s){ return parseInt(s, 10); }).filter(function(v){ return !isNaN(v); });
+        var faces = [], at = 0;
+        counts.forEach(function(c2){ faces.push(idx.slice(at, at + c2)); at += c2; });
+        triN += faces.length;
+        polys = polys.concat(edgesFromFaces(verts, faces));
+      } else if(verts.length > 1) polys.push(verts);
+    }
+    if(!polys.length) return null;
+    return { polys: polys, ptsN: ptsN, triN: triN };
+  }
+
+  function parseGcode(text){
+    var polys = [], cur = null, x = 0, y = 0, z = 0, ptsN = 0;
+    text.split('\n').forEach(function(ln){
+      ln = ln.replace(/;.*$/, '').replace(/\(.*?\)/g, '').trim().toUpperCase();
+      if(!ln) return;
+      var mG = ln.match(/^[GN\d\s.]*G0?([01])\b/);
+      if(!mG){ if(!/^G/.test(ln) && !/[XYZ]/.test(ln)) return; }
+      var rapid = mG ? mG[1] === '0' : false;
+      var mx = ln.match(/X(-?[\d.]+)/), my = ln.match(/Y(-?[\d.]+)/), mz = ln.match(/Z(-?[\d.]+)/);
+      if(!mx && !my && !mz) return;
+      if(mx) x = num(mx[1]);
+      if(my) y = num(my[1]);
+      if(mz) z = num(mz[1]);
+      if(rapid){ if(cur && cur.length > 1) polys.push(cur); cur = [[x, y, z]]; }
+      else { if(!cur) cur = []; cur.push([x, y, z]); ptsN++; }
+    });
+    if(cur && cur.length > 1) polys.push(cur);
+    if(!polys.length) return null;
+    return { polys: polys, ptsN: ptsN, triN: 0 };
+  }
+
+  function parseXYZ(text){
+    var dots = [];
+    text.split('\n').forEach(function(ln){
+      var t = ln.trim().split(/[,;\s\t]+/).filter(Boolean);
+      if(t.length < 2) return;
+      var a = t.map(num);
+      if(t.every(function(w, i){ return !isNaN(parseFloat(w)) || i > 2; }))
+        dots.push([a[0], a[1], a[2] || 0]);
+    });
+    if(dots.length < 2) return null;
+    if(dots.length > 25000){
+      var step = Math.ceil(dots.length / 25000), d2 = [];
+      for(var i = 0; i < dots.length; i += step) d2.push(dots[i]);
+      dots = d2;
+    }
+    return { polys: [], dots: dots, ptsN: dots.length, triN: 0 };
+  }
+
+  function parseJSONMesh(obj){
+    var verts = obj.vertices || obj.verts || obj.points || null;
+    if(!verts || !verts.length) return null;
+    if(typeof verts[0] === 'number'){
+      var v2 = [];
+      for(var i = 0; i + 2 < verts.length; i += 3) v2.push([verts[i], verts[i+1], verts[i+2]]);
+      verts = v2;
+    }
+    var faces = obj.faces || obj.indices || null, edges = obj.edges || null;
+    var polys = [];
+    if(faces && faces.length){
+      if(typeof faces[0] === 'number'){
+        var f2 = [];
+        for(var j = 0; j + 2 < faces.length; j += 3) f2.push([faces[j], faces[j+1], faces[j+2]]);
+        faces = f2;
+      }
+      polys = edgesFromFaces(verts, faces);
+    } else if(edges && edges.length){
+      edges.forEach(function(e){ if(verts[e[0]] && verts[e[1]]) polys.push([verts[e[0]], verts[e[1]]]); });
+    }
+    return { polys: polys, dots: polys.length ? [] : verts, ptsN: verts.length, triN: faces ? faces.length : 0 };
+  }
+
+  function parseSTEPish(text, kind){
+    var dots = [], m;
+    var re = /CARTESIAN_POINT\s*\(\s*'[^']*'\s*,\s*\(([^)]*)\)/gi;
+    while((m = re.exec(text)) && dots.length < 25000){
+      var c = m[1].split(',').map(num);
+      dots.push([c[0] || 0, c[1] || 0, c[2] || 0]);
+    }
+    if(kind === 'ifc' && !dots.length){
+      re = /IFCCARTESIANPOINT\s*\(\s*\(([^)]*)\)/gi;
+      while((m = re.exec(text)) && dots.length < 25000){
+        var c2 = m[1].split(',').map(num);
+        dots.push([c2[0] || 0, c2[1] || 0, c2[2] || 0]);
+      }
+    }
+    if(!dots.length) return null;
+    var census = {};
+    var eRe = /=\s*(IFC[A-Z0-9_]+|[A-Z_][A-Z0-9_]{3,})\s*\(/g;
+    var n = 0;
+    while((m = eRe.exec(text)) && n < 200000){ census[m[1]] = (census[m[1]] || 0) + 1; n++; }
+    var top = Object.keys(census).sort(function(a, b){ return census[b] - census[a]; }).slice(0, 3)
+      .map(function(k){ return k.toLowerCase() + ' ×' + census[k]; }).join(', ');
+    return { polys: [], dots: dots, ptsN: dots.length, triN: 0,
+             note: 'points only — ' + (top || 'entity census unavailable') };
+  }
+
+  /* ---------- dispatch ---------- */
+  function sniff(name, text, buf){
+    var ext = (name.split('.').pop() || '').toLowerCase();
+    try{
+      if(ext === 'obj') return { fmt: 'OBJ', d: parseOBJ(text) };
+      if(ext === 'stl') return text.slice(0, 6).toLowerCase().indexOf('solid') === 0 && /facet/i.test(text.slice(0, 800))
+        ? { fmt: 'STL', d: parseSTLA(text) } : { fmt: 'STL·bin', d: parseSTLB(buf) };
+      if(ext === 'dxf') return { fmt: 'DXF', d: parseDXF(text) };
+      if(ext === 'svg') return { fmt: 'SVG', d: parseSVG(text) };
+      if(ext === 'ply') return { fmt: 'PLY', d: parsePLY(buf, text) };
+      if(ext === 'off') return { fmt: 'OFF', d: parseOFF(text) };
+      if(ext === 'gltf') return { fmt: 'glTF', d: parseGLTF(JSON.parse(text), null) };
+      if(ext === 'glb') return { fmt: 'GLB', d: parseGLB(buf) };
+      if(ext === 'usd' || ext === 'usda') return { fmt: 'USD', d: parseUSDA(text) };
+      if(ext === 'gcode' || ext === 'nc' || ext === 'ngc') return { fmt: 'G-code', d: parseGcode(text) };
+      if(ext === 'xyz' || ext === 'csv' || ext === 'txt' || ext === 'pts' || ext === 'asc') return { fmt: 'points', d: parseXYZ(text) };
+      if(ext === 'json') return { fmt: 'JSON', d: parseJSONMesh(JSON.parse(text)) };
+      if(ext === 'step' || ext === 'stp') return { fmt: 'STEP', d: parseSTEPish(text, 'step') };
+      if(ext === 'ifc') return { fmt: 'IFC', d: parseSTEPish(text, 'ifc') };
+    }catch(e){ return { fmt: ext.toUpperCase(), d: null }; }
+    return { fmt: ext.toUpperCase() || '?', d: null };
+  }
+
+  /* ---------- files ---------- */
+  function addFiles(list){
+    [].forEach.call(list, function(f){
+      var rd = new FileReader();
+      rd.onload = function(){
+        var buf = rd.result;
+        var text = '';
+        try{ text = new TextDecoder().decode(new Uint8Array(buf, 0, Math.min(buf.byteLength, 30 * 1024 * 1024))); }catch(e){}
+        var out = sniff(f.name, text, buf);
+        FILES.push({ id: UID++, name: f.name, fmt: out.fmt, vis: true,
+                     polys: (out.d && out.d.polys) || [], dots: (out.d && out.d.dots) || [],
+                     ptsN: out.d ? out.d.ptsN : 0, triN: out.d ? out.d.triN : 0,
+                     note: out.d ? (out.d.note || '') : 'could not parse',
+                     ok: !!(out.d && ((out.d.polys && out.d.polys.length) || (out.d.dots && out.d.dots.length))) });
+        renderList(); fit(); draw();
+      };
+      rd.readAsArrayBuffer(f);
+    });
+  }
+  function renderList(){
+    listEl.innerHTML = '';
+    FILES.forEach(function(f){
+      var li = document.createElement('li');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = f.vis;
+      cb.addEventListener('change', function(){ f.vis = cb.checked; draw(); updateStats(); });
+      var fmt = document.createElement('span'); fmt.className = 'fmt'; fmt.textContent = f.fmt;
+      var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = f.name;
+      var info = document.createElement('span'); info.className = 'info';
+      info.textContent = f.ok
+        ? (f.polys.length ? f.polys.length.toLocaleString() + ' curves · ' : '') +
+          (f.triN ? f.triN.toLocaleString() + ' faces · ' : '') +
+          f.ptsN.toLocaleString() + ' pts' + (f.note ? ' · ' + f.note : '')
+        : f.note;
+      var x = document.createElement('button');
+      x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.title = 'Remove';
+      x.addEventListener('click', function(){
+        FILES = FILES.filter(function(o){ return o.id !== f.id; });
+        renderList(); fit(); draw();
+      });
+      li.append(cb, fmt, nm, info, x);
+      if(!f.ok) li.className = 'bad';
+      listEl.appendChild(li);
+    });
+    updateStats();
+  }
+  function updateStats(){
+    var vis = FILES.filter(function(f){ return f.vis && f.ok; });
+    if(!vis.length){ statsEl.textContent = FILES.length ? 'nothing visible — tick a file' : 'no geometry yet — import files to see them here'; return; }
+    var c = 0, p = 0, t = 0;
+    vis.forEach(function(f){ c += f.polys.length; p += f.ptsN; t += f.triN; });
+    statsEl.textContent = vis.length + ' file' + (vis.length > 1 ? 's' : '') + ' · ' +
+      c.toLocaleString() + ' curves · ' + t.toLocaleString() + ' faces · ' + p.toLocaleString() + ' points';
+  }
+
+  /* ---------- view ---------- */
+  var FITS = 1, CTR = [0, 0, 0];
+  function fit(){
+    var lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity], any = false;
+    FILES.forEach(function(f){
+      if(!f.vis || !f.ok) return;
+      var scan = function(p){
+        any = true;
+        for(var a = 0; a < 3; a++){ if(p[a] < lo[a]) lo[a] = p[a]; if(p[a] > hi[a]) hi[a] = p[a]; }
+      };
+      f.polys.forEach(function(q){ q.forEach(scan); });
+      (f.dots || []).forEach(scan);
+    });
+    if(!any){ FITS = 1; CTR = [0, 0, 0]; return; }
+    CTR = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2];
+    var d = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
+    FITS = 1 / d;
+  }
+  function project(p, w, h){
+    var x = (p[0] - CTR[0]) * FITS, y = (p[1] - CTR[1]) * FITS, z = (p[2] - CTR[2]) * FITS;
+    var cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+    var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    var rx = x * cy - y * sy, ry = x * sy + y * cy;
+    var vz = ry * cp - z * sp * -1;
+    var vy = ry * sp + z * cp;
+    var S = Math.min(w, h) * 0.72 * cam.zoom;
+    return [w / 2 + cam.panx + rx * S, h / 2 + cam.pany - vy * S];
+  }
+  function draw(){
+    var w = view.clientWidth, h = view.clientHeight;
+    if(!w) return;
+    g.clearRect(0, 0, w, h);
+    var ci = 0;
+    FILES.forEach(function(f){
+      if(!f.vis || !f.ok) return;
+      var col = COLS[ci++ % COLS.length];
+      g.strokeStyle = col; g.fillStyle = col;
+      g.lineWidth = 0.9; g.globalAlpha = 0.82;
+      g.beginPath();
+      f.polys.forEach(function(q){
+        for(var k = 0; k < q.length; k++){
+          var pt = project(q[k], w, h);
+          k ? g.lineTo(pt[0], pt[1]) : g.moveTo(pt[0], pt[1]);
+        }
+      });
+      g.stroke();
+      (f.dots || []).forEach(function(p){
+        var pt = project(p, w, h);
+        g.fillRect(pt[0] - 1, pt[1] - 1, 2, 2);
+      });
+      g.globalAlpha = 1;
+    });
+    if(!FILES.some(function(f){ return f.vis && f.ok; })){
+      g.fillStyle = hair();
+      g.font = 'italic 13px Georgia, serif';
+      g.textAlign = 'center';
+      g.fillText('drop OBJ · STL · DXF · SVG · PLY · OFF · glTF · USD · G-code · points here', w / 2, h / 2);
+      g.textAlign = 'start';
+    }
+  }
+
+  /* orbit / pan / zoom */
+  var dragging = false, panning = false, lx = 0, ly = 0;
+  view.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  view.addEventListener('pointerdown', function(e){
+    if(e.button === 2) panning = true; else dragging = true;
+    lx = e.clientX; ly = e.clientY;
+    view.setPointerCapture(e.pointerId);
+  });
+  view.addEventListener('pointermove', function(e){
+    if(!dragging && !panning) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY;
+    if(panning){ cam.panx += dx; cam.pany += dy; }
+    else {
+      cam.yaw += dx * 0.008;
+      cam.pitch = Math.max(-1.5, Math.min(1.5, cam.pitch + dy * 0.008));
+    }
+    draw();
+  });
+  view.addEventListener('pointerup', function(){ dragging = panning = false; });
+  function zoomBy(f){ cam.zoom = Math.max(0.1, Math.min(60, cam.zoom * f)); draw(); }
+  view.addEventListener('wheel', function(e){ e.preventDefault(); zoomBy(Math.exp(-e.deltaY * 0.0012)); }, { passive: false });
+  var zin = document.getElementById('giZin'), zout = document.getElementById('giZout'), zfit = document.getElementById('giFit');
+  if(zin) zin.addEventListener('click', function(){ zoomBy(1.3); });
+  if(zout) zout.addEventListener('click', function(){ zoomBy(1 / 1.3); });
+  if(zfit) zfit.addEventListener('click', function(){ cam.zoom = 1; cam.panx = 0; cam.pany = 0; fit(); draw(); });
+
+  /* input */
+  if(browse) browse.addEventListener('click', function(){ fileIn.value = ''; fileIn.click(); });
+  if(fileIn) fileIn.addEventListener('change', function(){ addFiles(fileIn.files); });
+  if(drop){
+    ['dragenter', 'dragover'].forEach(function(ev){
+      drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function(ev){
+      drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+    });
+    drop.addEventListener('drop', function(e){
+      if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    });
+  }
+
+  function resize(){
+    var w = view.clientWidth;
+    if(!w) return;
+    var h = Math.round(w * 0.72), dpr = window.devicePixelRatio || 1;
+    view.style.height = h + 'px';
+    view.width = Math.round(w * dpr); view.height = Math.round(h * dpr);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  window.__gi = { files: FILES, cam: cam };
   resize();
 })();
 </script>
@@ -4095,6 +4830,17 @@
         'Reproduce the current state: nation ' + (s.nation || 'uk') + ', family ' + (s.fam || 'ub') +
         (s.custom ? ', custom dimensions ' + JSON.stringify(s.cd) : ', size index ' + (s.size || 0)) + '.',
         'Style: white board, thin grey hairlines, 2px black ink, uppercase micro-labels.'].join('\n');
+      } },
+    { sel:'.geoimp', title:'Import Geometry', engines:['geoImpEngine'], only:'GI_ONLY', file:'import-geometry.html',
+      prompt: function(){
+        var n = (window.__gi && window.__gi.files) ? window.__gi.files.length : 0;
+        return ['Build an "Import Geometry" viewer as one self-contained HTML file with no libraries.',
+        '',
+        'A browse button and drag-drop zone accepting many CAD flavours, each parsed by hand: OBJ (v/f/l, negative indices), STL both ascii and binary (DataView over 50-byte triangles), DXF entities (LINE, LWPOLYLINE, POLYLINE/VERTEX/SEQEND, CIRCLE, ARC, ELLIPSE, SPLINE control polygon, POINT, 3DFACE), SVG (DOMParser + getPointAtLength sampling, y flipped), PLY ascii and binary little-endian (typed properties incl. list faces), OFF, glTF and GLB (accessor/bufferView decode of POSITION and indices, data: URIs and the GLB BIN chunk), USD ascii (points / faceVertexCounts / faceVertexIndices), G-code toolpaths (modal G0/G1, rapids split polylines), XYZ/CSV point clouds, generic JSON meshes {vertices, faces|edges}, and STEP/IFC cartesian-point extraction with an entity census.',
+        'Everything lands in one orbitable wireframe canvas: left-drag orbits, right-drag pans, wheel and +/- buttons zoom, a fit button recentres and rescales. The file list shows a format badge, curve/face/point counts, a visibility tick and a remove button; files cycle ink, burgundy and grey strokes; meshes draw as face-loop wireframes under an edge budget that strides oversized models; point clouds draw as pixel dots.',
+        '',
+        'Currently loaded: ' + n + ' file(s).',
+        'Style: white board, thin hairline border, uppercase micro-labels, serif italic hints.'].join('\n');
       } },
     { sel:'.graphs', title:'Graphs', engines:['graphsEngine'], only:'GR_ONLY', file:'graphs.html',
       units:[ { id:'xy', label:'XY' }, { id:'pol', label:'Polar' },
