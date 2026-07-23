@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<title>Gherkin Studio — OttomanLabs.AI</title>
+<meta name="description" content="The Gherkin Studio by OttomanLabs.AI — one board with the 3D tower in the middle and every parameter around it: exoskeleton height, levels and diagrid on one side, floor levels, plates and wedges on the other, with Revit-ready CSV exports and the pyGherkin add-in.">
+<link rel="canonical" href="https://ottomanlabs.ai/gherkin-studio.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="Gherkin Studio — OttomanLabs.AI">
+<meta property="og:description" content="The 3D tower in the middle, every parameter around it — exoskeleton and floors, sub-sectioned, with Revit-ready exports.">
+<meta property="og:url" content="https://ottomanlabs.ai/gherkin-studio.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gherkin Studio — OttomanLabs.AI">
+<meta name="twitter:description" content="The 3D tower in the middle, every parameter around it — exoskeleton and floors, sub-sectioned, with Revit-ready exports.">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<style>
+  /* canvas-read variables — the same palette the dashboard's Total model uses */
+  :root{
+    --accent:#111111; --accent-2:#5A5A5A; --muted:#8A8A86;
+    --c-ink:#111111; --c-paper:#FFFFFF; --c-band:#E4E4E0; --c-custom:#F2F2EF;
+  }
+  [data-theme="dark"]{
+    --muted:#8A8A86;
+    --c-ink:#FFFFFF; --c-paper:#111111; --c-band:#2B2B2B; --c-custom:#222222;
+  }
+
+  .title-strip{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:.5rem 1.3rem; border:1px solid var(--hair);
+    padding:.8rem 1rem; margin-bottom:var(--gap); text-align:center;
+  }
+  .title-strip .name{ font-family:var(--font-display); font-size:1.35rem; }
+  .title-strip a{ color:var(--ink-60); text-decoration:none; border-bottom:1px solid var(--hair); }
+  .title-strip a:hover{ color:var(--ink); border-bottom-color:var(--ink); }
+
+  /* ── the board: exoskeleton rail · model · floors rail ── */
+  .studio{ display:grid; grid-template-columns:300px minmax(0,1fr) 300px; gap:var(--gap); align-items:start; }
+  .rail{ display:flex; flex-direction:column; gap:var(--gap); min-width:0; }
+  .sec-h{
+    font-family:var(--font-brand); font-weight:600; font-size:.66rem;
+    letter-spacing:.3em; text-transform:uppercase; color:var(--ink);
+    border-bottom:1px solid var(--ink); padding:.2rem .1rem .45rem; margin:0;
+    display:flex; align-items:baseline; justify-content:space-between; gap:.6rem;
+  }
+  .sec-h small{ font-family:var(--font-serif); font-style:italic; font-weight:400;
+    font-size:.72rem; letter-spacing:0; text-transform:none; color:var(--ink-60); }
+
+  .centre{ display:flex; flex-direction:column; gap:var(--gap); min-width:0;
+    position:sticky; top:var(--gap); }
+  .model-bar{
+    border:1px solid var(--hair); background:var(--paper);
+    display:flex; align-items:center; gap:.5rem 1.1rem; flex-wrap:wrap;
+    padding:.6rem .8rem;
+  }
+  .model-bar button{
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-weight:500; font-size:.62rem;
+    letter-spacing:.2em; text-transform:uppercase; cursor:pointer;
+    padding:.5rem .7rem .42rem;
+  }
+  .model-bar button:hover{ background:var(--ink); color:var(--paper); }
+  .model-hint{ font-family:var(--font-serif); font-style:italic; font-size:.84rem;
+    color:var(--ink-60); margin-left:auto; }
+  .plot-wrap{ position:relative; border:1px solid var(--hair); background:var(--paper);
+    flex:none; height:min(76vh, 820px); min-width:0; padding:6px;
+    display:flex; align-items:center; justify-content:center; }
+  canvas{ display:block; }
+  #studioModel{ cursor:grab; touch-action:none; }
+  #studioModel:active{ cursor:grabbing; }
+  .readout{
+    border:1px solid var(--hair); background:var(--paper); padding:.55rem .8rem;
+    font-family:var(--font-brand); font-size:.72rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-60); text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .readout b{ color:var(--ink); font-weight:600; }
+
+  /* ── parameter rows ── */
+  input[type=number]{
+    width:62px; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-size:.8rem; font-variant-numeric:tabular-nums;
+    padding:.32rem .35rem; border-radius:0;
+  }
+  input[type=number]:focus{ outline:2px solid var(--ink); outline-offset:1px; }
+  .row input[type=number]{ flex:0 0 auto; }
+  .row.off label, .row.off .val{ color:var(--ink-35); }
+  .row.off input{ opacity:.45; pointer-events:none; }
+  .statline{ font-family:var(--font-serif); font-style:italic; font-size:.9rem;
+    color:var(--ink-60); margin-top:.5rem; line-height:1.55; }
+  .statline b{ font-family:var(--font-brand); font-style:normal; color:var(--ink);
+    font-variant-numeric:tabular-nums; }
+
+  /* ── downloads ── */
+  .dl-list{ display:flex; flex-direction:column; gap:.5rem; margin-top:.6rem; }
+  .dl-list a, .dl-list button{
+    display:block; width:100%; text-align:center; text-decoration:none; cursor:pointer;
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-weight:500; font-size:.62rem;
+    letter-spacing:.2em; text-transform:uppercase; padding:.55rem .7rem .47rem;
+  }
+  .dl-list a:hover, .dl-list button:hover{ background:var(--ink); color:var(--paper); }
+  .dl-list a.pyg-dl{ background:var(--ink); color:var(--paper); }
+  .dl-list a.pyg-dl:hover{ background:var(--paper); color:var(--ink); }
+  .revit-note{ font-family:var(--font-serif); font-style:italic; font-size:.84rem;
+    color:var(--ink-60); line-height:1.55; margin-top:.6rem; }
+
+  @media (max-width:1100px){
+    .studio{ grid-template-columns:1fr; }
+    .centre{ order:-1; position:static; }
+    .plot-wrap{ height:clamp(340px, 58vh, 620px); }
+  }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+<script>
+  // theme-aware ink as an rgba string for canvas drawing (reads fresh, never stale)
+  window.inkA = function(a){
+    return (document.documentElement.getAttribute('data-theme') === 'dark')
+      ? 'rgba(255,255,255,' + a + ')'
+      : 'rgba(17,17,17,' + a + ')';
+  };
+
+  // Save a batch of text files, asking WHERE for each one — same helper as the
+  // dashboard, so exports land in a chosen folder with the browser remembering
+  // the last-used location between files.
+  window.saveCSVBatch = (function(){
+    function triggerDownload(f){
+      var blob = f.blob || new Blob([f.text], { type:(f.mime || 'text/csv;charset=utf-8') });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = f.name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+    }
+    function anchorDownload(files){
+      var i = -1, pending = [];
+      function clearPending(){
+        pending.forEach(clearTimeout); pending = [];
+        window.removeEventListener('focus', advance);
+      }
+      function advance(){
+        clearPending();
+        i++;
+        if(i >= files.length){ hideContinue(); return; }
+        triggerDownload(files[i]);
+        if(i + 1 >= files.length){ hideContinue(); return; }
+        askContinue(files[i + 1], advance);
+        pending.push(setTimeout(function(){
+          if(document.hasFocus()){
+            pending.push(setTimeout(function(){
+              if(document.hasFocus()) advance();
+              else window.addEventListener('focus', advance);
+            }, 900));
+          } else {
+            window.addEventListener('focus', advance);
+          }
+        }, 600));
+      }
+      advance();
+    }
+    var noticeEl = null;
+    function fallbackNotice(){
+      try { if(localStorage.getItem('ol-save-notice') === 'off') return; } catch(e){}
+      if(noticeEl) return;
+      noticeEl = document.createElement('div');
+      noticeEl.style.cssText = 'position:fixed;right:1rem;bottom:1rem;z-index:9999;max-width:22rem;' +
+        'padding:.8rem 1rem;background:var(--ink,#111);color:var(--paper,#fff);cursor:pointer;' +
+        'font-size:.85rem;line-height:1.45;transition:opacity .6s;';
+      noticeEl.textContent = 'Files were handed to the browser’s downloader. If it didn’t ask ' +
+        'where to save, turn on “Ask where to save each file” in the browser’s download ' +
+        'settings. (Click to dismiss for good.)';
+      noticeEl.onclick = function(){
+        try { localStorage.setItem('ol-save-notice', 'off'); } catch(e){}
+        noticeEl.remove(); noticeEl = null;
+      };
+      document.body.appendChild(noticeEl);
+      setTimeout(function(){ if(noticeEl){ noticeEl.style.opacity = '0'; } }, 9000);
+      setTimeout(function(){ if(noticeEl){ noticeEl.remove(); noticeEl = null; } }, 9700);
+    }
+    var nextBtn = null;
+    function askContinue(f, onGo){
+      if(!nextBtn){
+        nextBtn = document.createElement('button');
+        nextBtn.id = 'saveBatchNext';
+        nextBtn.style.cssText = 'position:fixed;right:1rem;bottom:1rem;z-index:9999;' +
+          'padding:.65rem 1.1rem;background:var(--ink,#111);color:var(--paper,#fff);' +
+          'border:0;cursor:pointer;font:inherit;letter-spacing:.08em;';
+        document.body.appendChild(nextBtn);
+      }
+      nextBtn.textContent = '↓ Save next: ' + f.name;
+      nextBtn.hidden = false;
+      nextBtn.onclick = function(){ nextBtn.hidden = true; onGo(); };
+    }
+    function hideContinue(){ if(nextBtn) nextBtn.hidden = true; }
+    function saveOne(f){
+      var mime = (f.mime || 'text/csv').split(';')[0];
+      var ext = '.' + f.name.split('.').pop();
+      var acc = {}; acc[mime] = [ext];
+      return window.showSaveFilePicker({
+        id:'gherkin-export',
+        suggestedName: f.name,
+        types: [{ description: ext.slice(1).toUpperCase() + ' file', accept: acc }]
+      }).then(function(fh){
+        return fh.createWritable().then(function(ws){
+          return ws.write(f.blob || f.text).then(function(){ return ws.close(); });
+        });
+      });
+    }
+    return function(files){
+      if(!files || !files.length) return;
+      if(!window.showSaveFilePicker){ anchorDownload(files); fallbackNotice(); return; }
+      (function next(i){
+        if(i >= files.length){ hideContinue(); return; }
+        saveOne(files[i])
+          .then(function(){ next(i + 1); })
+          .catch(function(err){
+            if(err && err.name === 'AbortError'){ hideContinue(); return; }
+            askContinue(files[i], function(){ next(i); });
+          });
+      })(0);
+    };
+  })();
+
+  // Route the pyGherkin zip download through a save dialog where supported.
+  document.addEventListener('click', function(ev){
+    if(!window.showSaveFilePicker) return;
+    var a = ev.target && ev.target.closest ? ev.target.closest('a.pyg-dl') : null;
+    if(!a) return;
+    ev.preventDefault();
+    fetch(a.getAttribute('href'))
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(function(blob){
+        window.saveCSVBatch([{ name:'pyGherkin.extension.zip', blob:blob, mime:'application/zip' }]);
+      })
+      .catch(function(){ window.location.href = a.href; });
+  });
+</script>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
+    <a href="stocks.html">Stocks</a>
+    <a href="reading.html">Reading</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <div class="title-strip">
+    <span class="ital">The</span>
+    <span class="name">GHERKIN</span>
+    <span class="caps caps-tight muted" style="font-size:.62rem">Studio &middot; the model in the middle, every parameter around it</span>
+    <a class="caps caps-tight" style="font-size:.62rem" href="gherkin.html">Full dashboard &rarr;</a>
+  </div>
+
+  <div class="studio">
+
+    <!-- ════════ EXOSKELETON ════════ -->
+    <aside class="rail" aria-label="Exoskeleton parameters">
+      <h2 class="sec-h">Exoskeleton <small>shell &amp; diagrid</small></h2>
+
+      <div class="card">
+        <h2>Building</h2>
+        <div class="row">
+          <label for="pHeight">Height (m)</label>
+          <input type="range" id="pHeight" min="20" max="400" step="1" value="180">
+          <input type="number" id="pHeightNum" min="20" max="500" step="1" value="180">
+        </div>
+        <div class="row">
+          <label for="pBaseDia">Base &Oslash; (m)</label>
+          <input type="range" id="pBaseDia" min="0" max="80" step="0.5" value="49">
+          <input type="number" id="pBaseDiaNum" min="0" max="120" step="0.5" value="49">
+        </div>
+        <div class="row">
+          <label for="pBellyDia">Belly &Oslash; (m)</label>
+          <input type="range" id="pBellyDia" min="0" max="80" step="0.5" value="56">
+          <input type="number" id="pBellyDiaNum" min="0" max="120" step="0.5" value="56">
+        </div>
+        <div class="row">
+          <label for="pBellyH">Belly height (%)</label>
+          <input type="range" id="pBellyH" min="10" max="90" step="1" value="42">
+          <input type="number" id="pBellyHNum" min="10" max="90" step="1" value="42">
+        </div>
+        <div class="row">
+          <label for="pCrown">Crown fullness</label>
+          <input type="range" id="pCrown" min="0" max="90" step="1" value="55">
+          <input type="number" id="pCrownNum" min="0" max="90" step="1" value="55">
+        </div>
+        <div class="statline">A rounded profile: base &oslash; up to the belly, then a closing crown &mdash; the classic gherkin curve, no drawing needed.</div>
+      </div>
+
+      <div class="card">
+        <h2>Levels</h2>
+        <div class="row">
+          <label for="pLevelH">Level height (m)</label>
+          <input type="range" id="pLevelH" min="2" max="50" step="0.5" value="10">
+          <input type="number" id="pLevelHNum" min="1" max="200" step="0.5" value="10">
+        </div>
+        <div class="row">
+          <label for="pTopOff">Top offset (m)</label>
+          <input type="range" id="pTopOff" min="0" max="5" step="0.1" value="2">
+          <input type="number" id="pTopOffNum" min="0" max="500" step="0.5" value="2">
+        </div>
+        <div class="row">
+          <label for="pBotOff">Bottom offset (m)</label>
+          <input type="range" id="pBotOff" min="0" max="250" step="0.5" value="0">
+          <input type="number" id="pBotOffNum" min="0" max="500" step="0.5" value="0">
+        </div>
+        <div class="statline">Frame <b id="oFrameLo">0.0</b> &ndash; <b id="oFrameHi">178.0</b> m &middot; <b id="oExoLevels">0</b> levels &middot; top bay <b id="oTopBay">0.0</b> m</div>
+      </div>
+
+      <div class="card">
+        <h2>Diagrid</h2>
+        <div class="row">
+          <label for="pPoints">Points around</label>
+          <input type="range" id="pPoints" min="3" max="40" step="1" value="18">
+          <input type="number" id="pPointsNum" min="3" max="60" step="1" value="18">
+        </div>
+        <div class="statline"><b id="oMembers">0</b> members &middot; <b id="oConns">0</b> connections &middot; braces cross to the next level, ring beams close each ring.</div>
+      </div>
+    </aside>
+
+    <!-- ════════ MODEL ════════ -->
+    <section class="centre" aria-label="3D model">
+      <div class="model-bar">
+        <label class="toggle"><input type="checkbox" id="tFloors" checked> Floors</label>
+        <label class="toggle"><input type="checkbox" id="tDiagrid" checked> Diagrid</label>
+        <label class="toggle"><input type="checkbox" id="tRings" checked> Ring beams</label>
+        <label class="toggle"><input type="checkbox" id="tNodes" checked> Nodes</label>
+        <label class="toggle"><input type="checkbox" id="tShaded" checked> Shaded</label>
+        <button id="tReset" type="button">Reset view</button>
+        <span class="model-hint">drag to orbit &middot; wheel zooms &middot; double-click resets</span>
+      </div>
+      <div class="plot-wrap"><canvas id="studioModel" aria-label="The Gherkin — orbitable 3D model"></canvas></div>
+      <div class="readout" id="oReadout">&mdash;</div>
+    </section>
+
+    <!-- ════════ FLOORS ════════ -->
+    <aside class="rail" aria-label="Floor parameters">
+      <h2 class="sec-h">Floors <small>levels &amp; plates</small></h2>
+
+      <div class="card">
+        <h2>Levels</h2>
+        <div class="toggles" style="grid-template-columns:1fr">
+          <label class="toggle"><input type="checkbox" id="fMatch" checked> Match exoskeleton levels</label>
+        </div>
+        <div class="row" id="rowSplits">
+          <label for="pSplits">Splits per bay</label>
+          <input type="range" id="pSplits" min="0" max="5" step="1" value="1">
+          <input type="number" id="pSplitsNum" min="0" max="10" step="1" value="1">
+        </div>
+        <div class="row off" id="rowF2F">
+          <label for="pF2F">Floor-to-floor (m)</label>
+          <input type="range" id="pF2F" min="2" max="20" step="0.5" value="4">
+          <input type="number" id="pF2FNum" min="0.5" max="50" step="0.5" value="4">
+        </div>
+        <div class="statline"><b id="oFloors">0</b> floors &middot; every <b id="oFloorH">0.0</b> m</div>
+      </div>
+
+      <div class="card">
+        <h2>Plates</h2>
+        <div class="row">
+          <label for="pOffset">&Oslash; offset (m)</label>
+          <input type="range" id="pOffset" min="-20" max="20" step="0.5" value="-1">
+          <input type="number" id="pOffsetNum" min="-20" max="20" step="0.5" value="-1">
+        </div>
+        <div class="row">
+          <label for="pThick">Thickness (mm)</label>
+          <input type="range" id="pThick" min="100" max="1000" step="50" value="400">
+          <input type="number" id="pThickNum" min="50" max="2000" step="50" value="400">
+        </div>
+        <div class="row">
+          <label for="pCoreDia">Core &Oslash; (m)</label>
+          <input type="range" id="pCoreDia" min="0" max="30" step="0.5" value="0">
+          <input type="number" id="pCoreDiaNum" min="0" max="60" step="0.5" value="0">
+        </div>
+        <div class="row">
+          <label for="pCoreTop">Core top level</label>
+          <input type="range" id="pCoreTop" min="0" max="0" step="1" value="0">
+          <input type="number" id="pCoreTopNum" min="0" max="0" step="1" value="0">
+        </div>
+        <div class="statline"><b id="oPlates">0</b> plates &middot; &Oslash; <b id="oMinDia">&ndash;</b> to <b id="oMaxDia">&ndash;</b> m</div>
+      </div>
+
+      <div class="card">
+        <h2>Wedges</h2>
+        <div class="row">
+          <label for="pWedgeN">Wedges</label>
+          <input type="range" id="pWedgeN" min="0" max="12" step="1" value="6">
+          <input type="number" id="pWedgeNNum" min="0" max="12" step="1" value="6">
+        </div>
+        <div class="row">
+          <label for="pWedgeD">Point distance (m)</label>
+          <input type="range" id="pWedgeD" min="0" max="20" step="0.5" value="5">
+          <input type="number" id="pWedgeDNum" min="0" max="20" step="0.5" value="5">
+        </div>
+        <div class="row">
+          <label for="pTwist">Twist / floor (&deg;)</label>
+          <input type="range" id="pTwist" min="0" max="30" step="0.5" value="2.5">
+          <input type="number" id="pTwistNum" min="0" max="30" step="0.5" value="2.5">
+        </div>
+        <div class="statline" id="oWedges">&mdash;</div>
+      </div>
+
+      <h2 class="sec-h">Downloads <small>add-in &amp; data</small></h2>
+      <div class="card">
+        <div class="dl-list">
+          <a class="pyg-dl" href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+          <button id="dlExo" type="button">Exoskeleton CSVs</button>
+          <button id="dlFloors" type="button">Floor CSVs</button>
+          <button id="dlJson" type="button">Settings JSON</button>
+        </div>
+        <div class="revit-note">Units: meters, origin at the centre, base at Z=0. Exoskeleton gives <b>levels</b>, <b>framing</b> and <b>connections</b>; floors give <b>exoskeleton-levels</b>, <b>floor-ssl-levels</b> and <b>floor-plates</b> with each slab&rsquo;s full outline &mdash; the same files the dashboard exports, ready for the pyGherkin add-in.</div>
+      </div>
+    </aside>
+  </div>
+
+  <p class="credits">Drawn live in the browser &middot; drag the tower to orbit &middot; &copy; 2026 OttomanLabs.AI</p>
+</main>
+
+<script>
+/* ---- Gherkin Studio: a parametric profile drives the whole tower — the
+       exoskeleton levels, diagrid and ring beams, and the floor plates —
+       rendered in one orbitable view with the dashboard's export formats. ---- */
+(function(){
+  "use strict";
+
+  function el(id){ return document.getElementById(id); }
+  var css = {};
+  function FC(name){
+    if(css[name]) return css[name];
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    css[name] = v || '#888'; return css[name];
+  }
+  window.addEventListener('themechange', function(){ css = {}; });
+  function r5(x){ return Math.round(x * 1e5) / 1e5; }
+  function f1(x){ return (Math.round(x * 10) / 10).toFixed(1); }
+  function f3(x){ return (Math.round(x * 1000) / 1000).toString(); }
+
+  /* ── parameters ── */
+  var S = {
+    H:180, baseDia:49, bellyDia:56, bellyH:42, crown:55,
+    levelH:10, topOff:2, botOff:0, N:18,
+    match:true, splits:1, f2f:4,
+    offset:-1, thick:400, coreDia:0, coreTop:0,
+    wedgeN:6, wedgeD:5, twist:2.5
+  };
+
+  /* ── profile: two bezier arcs, base → belly → crown, sampled to a lookup ── */
+  var PROF = [];
+  function buildProfile(){
+    PROF = [];
+    var H = S.H, rB = S.baseDia / 2, rM = S.bellyDia / 2;
+    var zB = Math.max(1, Math.min(H - 1, H * S.bellyH / 100));
+    var i, t, mt;
+    // base → belly: quadratic, zero slope arriving at the belly
+    for(i = 0; i <= 60; i++){
+      t = i / 60; mt = 1 - t;
+      PROF.push({
+        z: mt * mt * 0 + 2 * mt * t * (zB * 0.5) + t * t * zB,
+        r: mt * mt * rB + 2 * mt * t * rM + t * t * rM
+      });
+    }
+    // belly → apex: cubic, zero slope leaving the belly, dome-ish crown
+    var c1z = zB + (H - zB) * (S.crown / 100);
+    var c2z = H - (H - zB) * 0.10, c2r = rM * 0.30;
+    for(i = 1; i <= 200; i++){
+      t = i / 200; mt = 1 - t;
+      PROF.push({
+        z: mt*mt*mt * zB + 3*mt*mt*t * c1z + 3*mt*t*t * c2z + t*t*t * H,
+        r: mt*mt*mt * rM + 3*mt*mt*t * rM  + 3*mt*t*t * c2r + 0
+      });
+    }
+  }
+  function radiusAt(z){
+    if(!PROF.length) return 0;
+    if(z <= PROF[0].z) return Math.max(0, PROF[0].r);
+    for(var i = 1; i < PROF.length; i++){
+      if(PROF[i].z >= z){
+        var a = PROF[i - 1], b = PROF[i];
+        var f = (b.z - a.z) > 1e-9 ? (z - a.z) / (b.z - a.z) : 0;
+        return Math.max(0, a.r + (b.r - a.r) * f);
+      }
+    }
+    return Math.max(0, PROF[PROF.length - 1].r);
+  }
+
+  /* ── levels (identical stepping to the dashboard) ── */
+  function frameSpan(){
+    var lo = Math.max(0, S.botOff);
+    var hi = Math.max(lo, S.H - S.topOff);
+    return { lo: lo, hi: hi, len: hi - lo };
+  }
+  function exoLevelZs(){
+    var fs = frameSpan();
+    if(fs.len <= 1e-6) return [ +fs.lo.toFixed(3) ];
+    var zs = [ +fs.lo.toFixed(3) ];
+    var step = Math.max(1, S.levelH);
+    var guard = Math.max(5e-4, step * 0.01);
+    for(var z = fs.lo + step; z < fs.hi - guard; z += step) zs.push(+z.toFixed(3));
+    var hiR = +fs.hi.toFixed(3);
+    if(zs[zs.length - 1] !== hiR) zs.push(hiR);
+    return zs;
+  }
+  function floorZs(){
+    var fs = frameSpan(), zs = [], primaries = [];
+    if(S.match){
+      var ex = exoLevelZs();
+      for(var k = 0; k < ex.length; k++){
+        zs.push(ex[k]); primaries.push(true);
+        if(k < ex.length - 1 && S.splits > 0){
+          var stepK = (ex[k + 1] - ex[k]) / (S.splits + 1);
+          for(var j = 1; j <= S.splits; j++){
+            zs.push(ex[k] + stepK * j); primaries.push(false);
+          }
+        }
+      }
+    } else {
+      var s = Math.max(0.5, S.f2f);
+      for(var zf = fs.lo; zf <= fs.hi + 1e-6; zf += s){
+        zs.push(zf); primaries.push(true);
+      }
+    }
+    return { zs: zs, primaries: primaries };
+  }
+
+  /* ── plate outline: the disc with the wedges cut out (dashboard geometry) ── */
+  function discOutline(r){
+    var pts = [], M = 72;
+    for(var i = 0; i <= M; i++){
+      var th = 2 * Math.PI * i / M;
+      pts.push({ x: r * Math.cos(th), y: r * Math.sin(th) });
+    }
+    return pts;
+  }
+  function plateOutline(r, rot){
+    var pts = [], i;
+    if(S.wedgeN < 1 || S.wedgeD >= r - 1e-9 || S.wedgeD <= 1e-9){
+      var M = 72;
+      for(i = 0; i <= M; i++){
+        var th = 2 * Math.PI * i / M + rot;
+        pts.push({ x: r * Math.cos(th), y: r * Math.sin(th) });
+      }
+      return pts;
+    }
+    var dW = S.wedgeD;
+    var sg = 2 * Math.PI / S.wedgeN, hs = sg / 2;
+    var tu = -dW * Math.cos(hs) + Math.sqrt(Math.max(0, dW * dW * Math.cos(hs) * Math.cos(hs) + r * r - dW * dW));
+    var hx = dW + tu * Math.cos(hs), hy = tu * Math.sin(hs);
+    var del = Math.atan2(hy, hx);
+    var arcSpan = sg - 2 * del;
+    if(arcSpan <= 1e-6) return null;
+    var steps = Math.max(3, Math.round(arcSpan / 0.06));
+    for(var k = 0; k < S.wedgeN; k++){
+      var b = k * sg - Math.PI / 2 + rot;
+      for(i = 0; i <= steps; i++){
+        var a = b + del + arcSpan * i / steps;
+        pts.push({ x: r * Math.cos(a), y: r * Math.sin(a) });
+      }
+      var bn = b + sg;
+      pts.push({ x: dW * Math.cos(bn), y: dW * Math.sin(bn) });
+    }
+    pts.push({ x: pts[0].x, y: pts[0].y });
+    return pts;
+  }
+  function discSegments(r, rot){
+    return [
+      { t:'A', cx:0, cy:0, r:r, a0:rot,           a1:rot + Math.PI },
+      { t:'A', cx:0, cy:0, r:r, a0:rot + Math.PI, a1:rot + 2 * Math.PI }
+    ];
+  }
+  function plateSegments(r, rot){
+    if(S.wedgeN < 1 || S.wedgeD >= r - 1e-9 || S.wedgeD <= 1e-9) return discSegments(r, rot);
+    var dW = S.wedgeD;
+    var sg = 2 * Math.PI / S.wedgeN, hs = sg / 2;
+    var tu = -dW * Math.cos(hs) + Math.sqrt(Math.max(0, dW * dW * Math.cos(hs) * Math.cos(hs) + r * r - dW * dW));
+    var hx = dW + tu * Math.cos(hs), hy = tu * Math.sin(hs);
+    var del = Math.atan2(hy, hx);
+    var arcSpan = sg - 2 * del;
+    if(arcSpan <= 1e-6) return null;
+    var segs = [];
+    for(var k = 0; k < S.wedgeN; k++){
+      var b = k * sg - Math.PI / 2 + rot;
+      var aStart = b + del, aEnd = b + del + arcSpan;
+      segs.push({ t:'A', cx:0, cy:0, r:r, a0:aStart, a1:aEnd });
+      var rimEnd = { x:r * Math.cos(aEnd), y:r * Math.sin(aEnd) };
+      var bn = b + sg, tip = { x:dW * Math.cos(bn), y:dW * Math.sin(bn) };
+      var nStart = bn + del, rimNext = { x:r * Math.cos(nStart), y:r * Math.sin(nStart) };
+      segs.push({ t:'L', x0:rimEnd.x, y0:rimEnd.y, x1:tip.x,     y1:tip.y });
+      segs.push({ t:'L', x0:tip.x,    y0:tip.y,    x1:rimNext.x, y1:rimNext.y });
+    }
+    return segs;
+  }
+  function encodeBoundary(segs){
+    if(!segs) return '';
+    return segs.map(function(sg){
+      if(sg.t === 'A') return ['A', r5(sg.cx), r5(sg.cy), r5(sg.r), r5(sg.a0), r5(sg.a1)].join(' ');
+      return ['L', r5(sg.x0), r5(sg.y0), r5(sg.x1), r5(sg.y1)].join(' ');
+    }).join(' | ');
+  }
+  function loopArea(pts){
+    if(!pts || pts.length < 4) return 0;
+    var s2 = 0;
+    for(var i = 0; i < pts.length - 1; i++){
+      s2 += pts[i].x * pts[i + 1].y - pts[i + 1].x * pts[i].y;
+    }
+    return Math.abs(s2) / 2;
+  }
+
+  /* ── framing members + connection hubs (dashboard export geometry) ── */
+  function vsub(a,b){ return {x:a.x-b.x, y:a.y-b.y, z:a.z-b.z}; }
+  function vdot(a,b){ return a.x*b.x + a.y*b.y + a.z*b.z; }
+  function vcross(a,b){ return {x:a.y*b.z-a.z*b.y, y:a.z*b.x-a.x*b.z, z:a.x*b.y-a.y*b.x}; }
+  function vnorm(v){ var L = Math.hypot(v.x,v.y,v.z) || 1; return {x:v.x/L, y:v.y/L, z:v.z/L}; }
+  function vperp(v,a){ var d = vdot(v,a); return {x:v.x-d*a.x, y:v.y-d*a.y, z:v.z-d*a.z}; }
+  function beamRotation(s, e){
+    var axis = vnorm(vsub(e, s));
+    var up0 = vperp({x:0,y:0,z:1}, axis);
+    if(Math.hypot(up0.x,up0.y,up0.z) < 1e-6) up0 = vperp({x:1,y:0,z:0}, axis);
+    up0 = vnorm(up0);
+    if(Math.abs(e.z - s.z) < 1e-6) return { theta: 0, up: up0 };
+    var d = { x:(s.x+e.x)/2, y:(s.y+e.y)/2, z:0 };
+    if(Math.hypot(d.x, d.y) < 1e-9) d = { x:1, y:0, z:0 };
+    var up1 = vnorm(vperp(d, axis));
+    var theta = Math.atan2(vdot(vcross(up0, up1), axis), vdot(up0, up1));
+    return { theta: theta, up: up1 };
+  }
+  function pushMember(arr, li, lname, s, e, startK, endLevel, endK, group){
+    var L = Math.hypot(e.x - s.x, e.y - s.y, e.z - s.z);
+    if(L < 1e-9) return;
+    var rot = beamRotation(s, e);
+    arr.push({ group:(group || 'Diagonal'), levelIndex:li, levelName:lname,
+               startLevel:li, startK:startK, endLevel:endLevel, endK:endK,
+               sx:s.x, sy:s.y, sz:s.z, ex:e.x, ey:e.y, ez:e.z,
+               length:L, rotDeg:rot.theta * 180 / Math.PI, rotRad:rot.theta,
+               ux:rot.up.x, uy:rot.up.y, uz:rot.up.z });
+  }
+  function buildConnections(members){
+    var map = {};
+    function touch(li, k, x, y, z, id){
+      var key = li + ':' + k;
+      if(!map[key]) map[key] = { levelIndex:li, k:k, x:x, y:y, z:z, ids:[] };
+      map[key].ids.push(id);
+    }
+    members.forEach(function(m, idx){
+      var id = idx + 1;
+      touch(m.startLevel, m.startK, m.sx, m.sy, m.sz, id);
+      touch(m.endLevel,   m.endK,   m.ex, m.ey, m.ez, id);
+    });
+    var maxLevel = -Infinity, minLevel = Infinity;
+    Object.keys(map).forEach(function(key){
+      var li = map[key].levelIndex;
+      if(li > maxLevel) maxLevel = li;
+      if(li < minLevel) minLevel = li;
+    });
+    var hubs = Object.keys(map).map(function(key){
+      var hb = map[key];
+      var type = (hb.levelIndex === minLevel) ? 'Base'
+               : (hb.levelIndex === maxLevel) ? 'Apex'
+               : 'Interior';
+      return { id:0, levelIndex:hb.levelIndex, k:hb.k, type:type, degree:hb.ids.length,
+               x:hb.x, y:hb.y, z:hb.z, members:hb.ids.slice() };
+    });
+    hubs.sort(function(a, b){ return (a.levelIndex - b.levelIndex) || (a.k - b.k); });
+    hubs.forEach(function(hb, i){ hb.id = i + 1; });
+    return hubs;
+  }
+
+  /* ── the computed model (rebuilt on every input) ── */
+  var M = { exoZ:[], exoR:[], floors:[], members:[], connections:[], plates:[] };
+  function effRadius(r){
+    if(r <= 1e-6) return 0;
+    var re = r + S.offset / 2;
+    return re > 1e-6 ? re : 0;
+  }
+  function twistRad(){ return S.twist * Math.PI / 180; }
+  function coreRadius(){ return S.coreDia / 2; }
+
+  function recompute(){
+    buildProfile();
+    M.exoZ = exoLevelZs();
+    M.exoR = M.exoZ.map(radiusAt);
+
+    var fz = floorZs();
+    M.floors = fz.zs.map(function(z, i){
+      return { z:+z.toFixed(3), r:radiusAt(z), primary:fz.primaries[i], label:'SSL LEVEL ' + i };
+    });
+
+    // members with the dashboard's staggered export nodes
+    var N = Math.max(3, Math.round(S.N)), radii = M.exoR;
+    function nodesAt(i){
+      var z = M.exoZ[i], r = radii[i] || 0, off = (i % 2 === 1) ? Math.PI / N : 0, arr = [];
+      for(var k = 0; k < N; k++){ var a = 2 * Math.PI * k / N + off; arr.push({ x:r*Math.cos(a), y:r*Math.sin(a), z:z }); }
+      return arr;
+    }
+    var Ldraw = radii.length;
+    while(Ldraw > 2 && (radii[Ldraw - 1] || 0) < 1e-6 && (radii[Ldraw - 2] || 0) < 1e-6) Ldraw--;
+    var Lstart = 0;
+    while(Lstart < Ldraw - 1 && (radii[Lstart] || 0) < 1e-6) Lstart++;
+    var members = [];
+    for(var li = Lstart; li < Ldraw - 1; li++){
+      var lo = nodesAt(li), up = nodesAt(li + 1);
+      var aOff = (li % 2 === 0) ? -1 : 0, bOff = (li % 2 === 0) ? 0 : 1;
+      for(var k = 0; k < N; k++){
+        var j1 = ((k + aOff) % N + N) % N, j2 = ((k + bOff) % N + N) % N;
+        pushMember(members, li, 'Level ' + (li + 1), lo[k], up[j1], k, li + 1, j1);
+        pushMember(members, li, 'Level ' + (li + 1), lo[k], up[j2], k, li + 1, j2);
+      }
+    }
+    for(var lr = Lstart; lr < Ldraw; lr++){
+      var rn = nodesAt(lr);
+      for(var kr = 0; kr < N; kr++){
+        var kr2 = (kr + 1) % N;
+        if(kr2 === kr) continue;
+        if(N === 2 && kr === 1) continue;
+        pushMember(members, lr, 'Level ' + (lr + 1), rn[kr], rn[kr2], kr, lr, kr2, 'Ring');
+      }
+    }
+    M.members = members;
+    M.connections = buildConnections(members);
+
+    // plates for the exports (and the min/max readout)
+    var tM = S.thick / 1000, plates = [];
+    M.floors.forEach(function(L, i){
+      var re = effRadius(L.r || 0);
+      if(re <= 0) return;
+      var rotP = i * twistRad();
+      var ringP = plateOutline(re, rotP);
+      if(!ringP) return;
+      var wedged = (S.wedgeN >= 1 && S.wedgeD > 1e-9 && S.wedgeD < re - 1e-9);
+      var area = wedged ? loopArea(ringP) : Math.PI * re * re;
+      var cr = coreRadius();
+      var hole = null, holeSegs = null, holeArea = 0;
+      if(cr > 1e-6 && i <= S.coreTop && cr < re - 1e-6){
+        hole = discOutline(cr);
+        holeSegs = discSegments(cr, 0);
+        holeArea = Math.PI * cr * cr;
+      }
+      plates.push({ level:i, name:L.label, elevation:L.z, radius:re, dia:re * 2,
+                    thickness:tM, rot: rotP * 180 / Math.PI,
+                    form: wedged ? 'wedged' : 'disc', shape:'',
+                    outline: ringP, segments: plateSegments(re, rotP),
+                    hole: hole, holeSegments: holeSegs, coreDia: hole ? cr * 2 : 0,
+                    area:(area - holeArea), volume:(area - holeArea) * tM });
+    });
+    M.plates = plates;
+
+    // core-top slider range follows the floor count
+    var maxIdx = Math.max(0, M.floors.length - 1);
+    var ct = el('pCoreTop'), ctn = el('pCoreTopNum');
+    ct.max = maxIdx; ctn.max = maxIdx;
+    if(S.coreTop > maxIdx){ S.coreTop = maxIdx; ct.value = maxIdx; ctn.value = maxIdx; }
+
+    readout();
+    render();
+  }
+
+  function readout(){
+    var fs = frameSpan(), n = M.exoZ.length;
+    el('oFrameLo').textContent = f1(fs.lo);
+    el('oFrameHi').textContent = f1(fs.hi);
+    el('oExoLevels').textContent = n;
+    el('oTopBay').textContent = f1(n >= 2 ? (M.exoZ[n-1] - M.exoZ[n-2]) : 0);
+    el('oMembers').textContent = M.members.length;
+    el('oConns').textContent = M.connections.length;
+    el('oFloors').textContent = M.floors.length;
+    var spacing;
+    if(S.match){
+      var bay = (n >= 2) ? (M.exoZ[1] - M.exoZ[0]) : 0;
+      spacing = bay / (S.splits + 1);
+    } else {
+      spacing = Math.max(0.5, S.f2f);
+    }
+    el('oFloorH').textContent = f1(spacing);
+    el('oPlates').textContent = M.plates.length;
+    var minD = Infinity, maxD = -Infinity;
+    M.plates.forEach(function(pl){
+      if(pl.dia < minD) minD = pl.dia;
+      if(pl.dia > maxD) maxD = pl.dia;
+    });
+    el('oMinDia').textContent = M.plates.length ? f1(minD) : '–';
+    el('oMaxDia').textContent = M.plates.length ? f1(maxD) : '–';
+    el('oWedges').innerHTML = (S.wedgeN >= 1 && S.wedgeD > 0)
+      ? '<b>' + S.wedgeN + '</b> cuts per plate · twisting <b>' + f3(S.twist) + '°</b> per floor'
+      : 'Whole discs — raise the point distance to cut the wedges in.';
+    el('oReadout').innerHTML =
+      '<b>' + M.exoZ.length + '</b> exo levels · <b>' + M.members.length + '</b> members · <b>' +
+      M.connections.length + '</b> nodes · <b>' + M.floors.length + '</b> floors · <b>' +
+      M.plates.length + '</b> plates';
+  }
+
+  /* ── projection + orbitable render (the dashboard's Total model look) ── */
+  function project(x, y, z, A, B){
+    var ca = Math.cos(A), sa = Math.sin(A);
+    var rx = x * ca - y * sa;
+    var ry = x * sa + y * ca;
+    var cb = Math.cos(B), sb = Math.sin(B);
+    return { x: rx, y: -(ry * sb + z * cb), depth: ry * cb - z * sb };
+  }
+  function emptyNote(ctx, w, h, msg){
+    ctx.fillStyle = FC('--muted');
+    ctx.font = '12px "Afacad Flux",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(msg, w / 2, h / 2);
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+
+  var v = { canvas: el('studioModel'), ctx: null, w:0, h:0, az:0.6, pitch:0.95, zoom:1 };
+  v.ctx = v.canvas.getContext('2d');
+
+  function render(){
+    var ctx = v.ctx, w = v.w, h = v.h;
+    if(w <= 0 || h <= 0) return;
+    ctx.clearRect(0, 0, w, h);
+
+    var A = v.az, B = v.pitch, t = S.thick / 1000;
+    var showFloors = el('tFloors').checked, showGrid = el('tDiagrid').checked;
+    var showRings = el('tRings').checked, showNodes = el('tNodes').checked;
+    var shaded = el('tShaded').checked;
+    var plates = [], all = [], i, s, k;
+
+    if(showFloors){
+      for(i = 0; i < M.floors.length; i++){
+        var L = M.floors[i], re = effRadius(L.r || 0);
+        if(re <= 0) continue;
+        var rotP = i * twistRad();
+        var ring = plateOutline(re, rotP);
+        if(!ring) continue;
+        var bot = [], top = [];
+        for(s = 0; s < ring.length; s++){
+          var pb = project(ring[s].x, ring[s].y, L.z, A, B);
+          var pt = project(ring[s].x, ring[s].y, L.z + t, A, B);
+          bot.push(pb); top.push(pt); all.push(pb, pt);
+        }
+        var cr = coreRadius(), hole = null;
+        if(cr > 1e-6 && i <= S.coreTop && cr < re - 1e-6){
+          hole = discOutline(cr).map(function(p){ return project(p.x, p.y, L.z + t, A, B); });
+        }
+        plates.push({ bot: bot, top: top, hole: hole, z: L.z });
+      }
+    }
+
+    var NN = Math.max(3, Math.round(S.N));
+    var nodePts = [];
+    for(k = 0; k < M.exoR.length; k++){
+      var rr = M.exoR[k];
+      if(rr <= 1e-6){ nodePts.push(null); continue; }
+      var zk = M.exoZ[k], nd = [];
+      for(var jn = 0; jn < NN; jn++){
+        var thn = 2 * Math.PI * jn / NN - Math.PI / 2;
+        var pn = project(rr * Math.cos(thn), rr * Math.sin(thn), zk, A, B);
+        nd.push(pn); all.push(pn);
+      }
+      nodePts.push(nd);
+    }
+
+    if(!all.length){
+      emptyNote(ctx, w, h, 'Widen the profile to build the tower');
+      return;
+    }
+    all.push(project(0, 0, 0, A, B), project(0, 0, S.H, A, B));
+
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for(i = 0; i < all.length; i++){
+      var Pp = all[i];
+      if(Pp.x < minX) minX = Pp.x; if(Pp.x > maxX) maxX = Pp.x;
+      if(Pp.y < minY) minY = Pp.y; if(Pp.y > maxY) maxY = Pp.y;
+    }
+    var bw = Math.max(1e-6, maxX - minX), bh = Math.max(1e-6, maxY - minY);
+    var fit = Math.min(w / bw, h / bh) * 0.84 * v.zoom;
+    var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
+    function SS(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
+
+    if(shaded){
+      /* shaded plates, far → near, ordered by plate-centre depth */
+      var order = plates.map(function(pl, idx){
+        var c = project(0, 0, pl.z + t * 0.5, A, B);
+        return { idx: idx, d: c.depth };
+      }).sort(function(a, b){ return b.d - a.d; });
+
+      order.forEach(function(orr){
+        var pl = plates[orr.idx];
+        var Msam = pl.bot.length - 1;
+        var ni = 0;
+        for(var q = 0; q < Msam; q++){ if(pl.bot[q].depth < pl.bot[ni].depth) ni = q; }
+        var span = Msam >> 1, halfspan = span >> 1;
+        var botArc = [], topArc = [];
+        for(var q2 = -halfspan; q2 <= halfspan; q2++){
+          var ii = ((ni + q2) % Msam + Msam) % Msam;
+          botArc.push(pl.bot[ii]); topArc.push(pl.top[ii]);
+        }
+        ctx.beginPath();
+        var p0 = SS(botArc[0]); ctx.moveTo(p0.x, p0.y);
+        for(var q3 = 1; q3 < botArc.length; q3++){ var ps = SS(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
+        for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = SS(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
+        ctx.closePath();
+        ctx.fillStyle = FC('--c-band'); ctx.fill();
+        ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.beginPath();
+        var t1 = SS(pl.top[0]); ctx.moveTo(t1.x, t1.y);
+        for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = SS(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
+        ctx.closePath();
+        ctx.fillStyle = FC('--c-paper');
+        ctx.fill();
+        ctx.stroke();
+        if(pl.hole){
+          ctx.beginPath();
+          var h0 = SS(pl.hole[0]); ctx.moveTo(h0.x, h0.y);
+          for(var q6 = 1; q6 < pl.hole.length; q6++){ var hp = SS(pl.hole[q6]); ctx.lineTo(hp.x, hp.y); }
+          ctx.closePath();
+          ctx.fillStyle = FC('--c-band'); ctx.fill();
+          ctx.stroke();
+        }
+      });
+    } else {
+      ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
+      plates.forEach(function(pl){
+        ctx.beginPath();
+        var p0 = SS(pl.bot[0]); ctx.moveTo(p0.x, p0.y);
+        for(var q = 1; q < pl.bot.length; q++){ var pq = SS(pl.bot[q]); ctx.lineTo(pq.x, pq.y); }
+        ctx.closePath(); ctx.stroke();
+        ctx.beginPath();
+        var tp0 = SS(pl.top[0]); ctx.moveTo(tp0.x, tp0.y);
+        for(var q2 = 1; q2 < pl.top.length; q2++){ var tq = SS(pl.top[q2]); ctx.lineTo(tq.x, tq.y); }
+        ctx.closePath(); ctx.stroke();
+        if(pl.hole){
+          ctx.beginPath();
+          var h0 = SS(pl.hole[0]); ctx.moveTo(h0.x, h0.y);
+          for(var q3 = 1; q3 < pl.hole.length; q3++){ var hq = SS(pl.hole[q3]); ctx.lineTo(hq.x, hq.y); }
+          ctx.closePath(); ctx.stroke();
+        }
+      });
+    }
+
+    /* the exoskeleton wraps it: diagrid braces + horizontal ring beams */
+    ctx.strokeStyle = inkA(.9);
+    ctx.lineWidth = 1.1;
+    if(showGrid){
+      for(k = 0; k + 1 < nodePts.length; k++){
+        var ndLo = nodePts[k], ndUp = nodePts[k + 1];
+        if(!ndLo || !ndUp) continue;
+        for(var j = 0; j < NN; j++){
+          var P1 = SS(ndLo[j]);
+          var PR = SS(ndUp[(j + 1) % NN]);
+          var PL = SS(ndUp[(j - 1 + NN) % NN]);
+          ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PR.x, PR.y); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PL.x, PL.y); ctx.stroke();
+        }
+      }
+    }
+    if(showRings){
+      for(k = 0; k < nodePts.length; k++){
+        var ndr = nodePts[k];
+        if(!ndr) continue;
+        for(var jr = 0; jr < NN; jr++){
+          var Pa = SS(ndr[jr]), Pb = SS(ndr[(jr + 1) % NN]);
+          ctx.beginPath(); ctx.moveTo(Pa.x, Pa.y); ctx.lineTo(Pb.x, Pb.y); ctx.stroke();
+        }
+      }
+    }
+    if(showNodes){
+      ctx.fillStyle = FC('--c-paper');
+      ctx.strokeStyle = FC('--c-ink');
+      ctx.lineWidth = 1;
+      for(k = 0; k < nodePts.length; k++){
+        var ndp = nodePts[k];
+        if(!ndp) continue;
+        for(var j2 = 0; j2 < NN; j2++){
+          var pd = SS(ndp[j2]);
+          ctx.beginPath(); ctx.arc(pd.x, pd.y, 2.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  /* ── canvas sizing + orbit ── */
+  function resize(){
+    var wrap = v.canvas.parentElement;
+    var w = wrap.clientWidth - 12, h = wrap.clientHeight - 12;
+    var dpr = window.devicePixelRatio || 1;
+    v.w = w; v.h = h;
+    v.canvas.style.width = w + 'px'; v.canvas.style.height = h + 'px';
+    v.canvas.width = Math.round(w * dpr); v.canvas.height = Math.round(h * dpr);
+    v.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    render();
+  }
+  window.addEventListener('resize', resize);
+
+  var dragging = false, lx = 0, ly = 0;
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    v.az += (e.clientX - lx) * 0.01;
+    v.pitch += (e.clientY - ly) * 0.01;
+    v.pitch = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, v.pitch));
+    lx = e.clientX; ly = e.clientY;
+    render();
+  }
+  function stopDrag(){
+    dragging = false;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', stopDrag);
+    document.removeEventListener('pointercancel', stopDrag);
+  }
+  v.canvas.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    dragging = true; lx = e.clientX; ly = e.clientY;
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', stopDrag);
+    document.addEventListener('pointercancel', stopDrag);
+  });
+  v.canvas.addEventListener('wheel', function(e){
+    e.preventDefault();
+    v.zoom *= (e.deltaY < 0) ? 1.1 : 1 / 1.1;
+    v.zoom = Math.max(0.3, Math.min(6, v.zoom));
+    render();
+  }, { passive: false });
+  v.canvas.addEventListener('dblclick', function(){ v.az = 0.6; v.pitch = 0.95; v.zoom = 1; render(); });
+  el('tReset').addEventListener('click', function(){ v.az = 0.6; v.pitch = 0.95; v.zoom = 1; render(); });
+
+  ['tFloors','tDiagrid','tRings','tNodes','tShaded'].forEach(function(id){
+    el(id).addEventListener('change', render);
+  });
+  window.addEventListener('themechange', function(){ css = {}; render(); });
+
+  /* ── parameter wiring: slider + number pairs share one state key ── */
+  function bindPair(key, id, lo, hi){
+    var r = el(id), n = el(id + 'Num');
+    function set(val, from){
+      if(!isFinite(val)) val = S[key];
+      val = Math.min(hi, Math.max(lo, val));
+      S[key] = val;
+      if(from !== r) r.value = val;
+      if(from !== n) n.value = val;
+      recompute();
+    }
+    r.addEventListener('input', function(){ set(parseFloat(this.value), r); });
+    n.addEventListener('input', function(){ set(parseFloat(this.value), n); });
+  }
+  bindPair('H',       'pHeight',  20, 500);
+  bindPair('baseDia', 'pBaseDia',  0, 120);
+  bindPair('bellyDia','pBellyDia', 0, 120);
+  bindPair('bellyH',  'pBellyH',  10, 90);
+  bindPair('crown',   'pCrown',    0, 90);
+  bindPair('levelH',  'pLevelH',   1, 200);
+  bindPair('topOff',  'pTopOff',   0, 500);
+  bindPair('botOff',  'pBotOff',   0, 500);
+  bindPair('N',       'pPoints',   3, 60);
+  bindPair('splits',  'pSplits',   0, 10);
+  bindPair('f2f',     'pF2F',    0.5, 50);
+  bindPair('offset',  'pOffset', -20, 20);
+  bindPair('thick',   'pThick',   50, 2000);
+  bindPair('coreDia', 'pCoreDia',  0, 60);
+  bindPair('coreTop', 'pCoreTop',  0, 9999);
+  bindPair('wedgeN',  'pWedgeN',   0, 12);
+  bindPair('wedgeD',  'pWedgeD',   0, 20);
+  bindPair('twist',   'pTwist',    0, 30);
+
+  var fMatchEl = el('fMatch');
+  function applyMatchVis(){
+    el('rowSplits').classList.toggle('off', !S.match);
+    el('rowF2F').classList.toggle('off', S.match);
+  }
+  fMatchEl.addEventListener('change', function(){
+    S.match = this.checked;
+    applyMatchVis();
+    recompute();
+  });
+
+  /* ── exports: the dashboard's CSV formats, byte-compatible headers ── */
+  function levelsCSV(){
+    var rows = ['index,name,elevation_m,radius_m,uid'];
+    M.exoZ.forEach(function(z, i){
+      rows.push([i, 'Level ' + (i + 1), r5(z), r5(M.exoR[i] || 0), 'L-' + i].join(','));
+    });
+    return rows.join('\n');
+  }
+  function framingCSV(){
+    var rows = ['id,uid,group,level_index,level_name,start_x_m,start_y_m,start_z_m,end_x_m,end_y_m,end_z_m,length_m,rotation_deg,rotation_rad,up_x,up_y,up_z'];
+    M.members.forEach(function(m, idx){
+      var uid = (m.group === 'Ring' ? 'R-' : 'F-') + m.startLevel + '-' + m.startK + '-' + m.endK;
+      rows.push([idx+1, uid, m.group, m.levelIndex, m.levelName, r5(m.sx), r5(m.sy), r5(m.sz),
+                 r5(m.ex), r5(m.ey), r5(m.ez), r5(m.length), r5(m.rotDeg), r5(m.rotRad),
+                 r5(m.ux), r5(m.uy), r5(m.uz)].join(','));
+    });
+    return rows.join('\n');
+  }
+  function connectionsCSV(){
+    var rows = ['id,uid,type,level_index,point_index,x_m,y_m,z_m,member_count,member_ids'];
+    M.connections.forEach(function(c){
+      var uid = 'C-' + c.levelIndex + '-' + c.k;
+      rows.push([c.id, uid, c.type, c.levelIndex, c.k, r5(c.x), r5(c.y), r5(c.z),
+                 c.degree, '"' + c.members.join(' ') + '"'].join(','));
+    });
+    return rows.join('\n');
+  }
+  function exoLevelsCSV(){
+    var rows = ['index,name,elevation_m,spline_radius_m'];
+    M.exoZ.forEach(function(z, i){
+      rows.push([i, 'EXOSKELETON LEVEL ' + i, r5(z), r5(M.exoR[i] || 0)].join(','));
+    });
+    return rows.join('\n');
+  }
+  function sslLevelsCSV(){
+    var rows = ['index,name,type,elevation_m,spline_radius_m'];
+    M.floors.forEach(function(L, i){
+      rows.push([i, L.label, (L.primary ? 'Primary' : 'Secondary'), r5(L.z), r5(L.r || 0)].join(','));
+    });
+    return rows.join('\n');
+  }
+  function platesCSV(){
+    var rows = ['id,uid,level_name,center_x_m,center_y_m,base_z_m,radius_m,diameter_m,core_dia_m,thickness_mm,rotation_deg,form,shape,wedges,point_dist_m,area_m2,volume_m3,vertex_count,vertices_xy_m,boundary'];
+    M.plates.forEach(function(pl, idx){
+      var ring = pl.outline || [];
+      var verts = ring.map(function(pt){ return r5(pt.x) + ' ' + r5(pt.y); }).join(';');
+      var boundary = encodeBoundary(pl.segments);
+      if(pl.holeSegments){
+        boundary += ' ; HOLE ; ' + encodeBoundary(pl.holeSegments);
+      }
+      rows.push([idx + 1, 'FL-' + pl.level, pl.name, 0, 0, r5(pl.elevation), r5(pl.radius), r5(pl.dia),
+                 r5(pl.coreDia || 0),
+                 Math.round(pl.thickness * 1000), r5(pl.rot), pl.form, pl.shape,
+                 (pl.form === 'wedged' ? S.wedgeN : 0), (pl.form === 'wedged' ? r5(S.wedgeD) : 0),
+                 r5(pl.area), r5(pl.volume), ring.length,
+                 '"' + verts + '"', '"' + boundary + '"'].join(','));
+    });
+    return rows.join('\n');
+  }
+
+  el('dlExo').addEventListener('click', function(){
+    window.saveCSVBatch([
+      { name:'levels.csv',      text:levelsCSV() },
+      { name:'framing.csv',     text:framingCSV() },
+      { name:'connections.csv', text:connectionsCSV() }
+    ]);
+  });
+  el('dlFloors').addEventListener('click', function(){
+    window.saveCSVBatch([
+      { name:'exoskeleton-levels.csv', text:exoLevelsCSV() },
+      { name:'floor-ssl-levels.csv',   text:sslLevelsCSV() },
+      { name:'floor-plates.csv',       text:platesCSV() }
+    ]);
+  });
+  el('dlJson').addEventListener('click', function(){
+    var out = { page:'gherkin-studio', version:1, params:{} };
+    Object.keys(S).forEach(function(k2){ out.params[k2] = S[k2]; });
+    window.saveCSVBatch([{ name:'gherkin-studio-settings.json',
+      text:JSON.stringify(out, null, 2), mime:'application/json' }]);
+  });
+
+  window.__studio = { S:S, M:M, v:v, recompute:recompute };
+
+  applyMatchVis();
+  recompute();
+  resize();
+})();
+</script>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
+  function paint(dark){
+    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
+    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+    window.dispatchEvent(new Event('themechange'));
+  }
+  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
+  paint(saved);
+  if(btn) btn.addEventListener('click', function(){
+    var dark = root.getAttribute('data-theme')!=='dark';
+    paint(dark);
+    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  });
+})();
+</script>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="stocks.html">Stock Picks</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+</body>
+</html>

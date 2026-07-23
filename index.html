@@ -467,11 +467,11 @@
 
   // dash / tut: destinations for the two entry options (null = coming soon)
   var PROJECTS = [
-    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london' },
-    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20, theme:'city' },
-    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32, theme:'dubai' },
-    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48, theme:'regency' },
-    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58, theme:'odense' }
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london', foot:0.44 },
+    { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20, theme:'city', foot:0.38 },
+    { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32, theme:'dubai', foot:0.42 },
+    { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48, theme:'regency', foot:0.58 },
+    { the:'Dymak',   name:'HQ',       chip:'Dymak HQ',         dash:'dymak.html',     tut:'dymak-tutorial.html', draw:drawDymak, shadow:0.58, theme:'odense', foot:0.62 }
   ];
   var TAU = Math.PI * 2;
   var idx = 0;                 // selected project
@@ -595,7 +595,7 @@
         // soft shadow cast on the sea far below the floating island
         ctx.fillStyle = 'rgba(10,44,62,.22)';
         ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.85, s * 0.52, s * 0.075, 0, 0, TAU); ctx.fill();
-        voxIsland(ctx, g.x, g.y, s, -rot, THEMES[p.theme] || THEMES.london);
+        voxIsland(ctx, g.x, g.y, s, -rot, THEMES[p.theme] || THEMES.london, p.foot);
         ctx.fillStyle = 'rgba(0,0,0,.16)';
         ctx.beginPath(); ctx.ellipse(g.x, g.y + s * 0.012, s * p.shadow, s * 0.05, 0, 0, TAU); ctx.fill();
         p.draw(ctx, g.x, g.y, s, -rot);                        // models face the orbiting camera
@@ -762,22 +762,39 @@
       for(var i = 0; i < pts.length; i++){ d += pts[i].d; z += f.pts[i][2]; }
       var br = (f.az == null) ? 1.1 : (0.78 + 0.26 * Math.cos(f.az + yaw - LIGHT));
       var uv = null;
-      if(f.pts.length === 4){
-        /* texel grid in the face's own u/v basis: ~0.045 model units per
-           texel, 5 pattern units per texel, so the tile bakes onto the block
-           and rides with it as the camera orbits */
+      if(f.pts.length >= 3){
+        /* texel grid in the face's own planar u/v basis (~0.045 model units
+           per texel, 5 pattern units per texel) — works for quads and the
+           round island tops alike, and rides with the camera */
         var m = f.pts;
-        var eu = Math.hypot(m[1][0]-m[0][0], m[1][1]-m[0][1], m[1][2]-m[0][2]);
-        var ev = Math.hypot(m[3][0]-m[0][0], m[3][1]-m[0][1], m[3][2]-m[0][2]);
+        var U = [m[1][0]-m[0][0], m[1][1]-m[0][1], m[1][2]-m[0][2]];
+        var lu = Math.hypot(U[0], U[1], U[2]) || 1;
+        U = [U[0]/lu, U[1]/lu, U[2]/lu];
+        var W3 = [m[2][0]-m[0][0], m[2][1]-m[0][1], m[2][2]-m[0][2]];
+        var N3 = [U[1]*W3[2]-U[2]*W3[1], U[2]*W3[0]-U[0]*W3[2], U[0]*W3[1]-U[1]*W3[0]];
+        var ln = Math.hypot(N3[0], N3[1], N3[2]) || 1;
+        N3 = [N3[0]/ln, N3[1]/ln, N3[2]/ln];
+        var V3 = [N3[1]*U[2]-N3[2]*U[1], N3[2]*U[0]-N3[0]*U[2], N3[0]*U[1]-N3[1]*U[0]];
+        var u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+        for(var mi = 0; mi < m.length; mi++){
+          var du = (m[mi][0]-m[0][0])*U[0] + (m[mi][1]-m[0][1])*U[1] + (m[mi][2]-m[0][2])*U[2];
+          var dvv = (m[mi][0]-m[0][0])*V3[0] + (m[mi][1]-m[0][1])*V3[1] + (m[mi][2]-m[0][2])*V3[2];
+          if(du < u0) u0 = du; if(du > u1) u1 = du;
+          if(dvv < v0) v0 = dvv; if(dvv > v1) v1 = dvv;
+        }
+        var eu = (u1 - u0) || 0.01, ev = (v1 - v0) || 0.01;
+        var O = [m[0][0] + U[0]*u0 + V3[0]*v0, m[0][1] + U[1]*u0 + V3[1]*v0, m[0][2] + U[2]*u0 + V3[2]*v0];
+        var pO = prj(O[0], O[1], O[2]);
+        var pU = prj(O[0]+U[0]*eu, O[1]+U[1]*eu, O[2]+U[2]*eu);
+        var pV = prj(O[0]+V3[0]*ev, O[1]+V3[1]*ev, O[2]+V3[2]*ev);
         var tu = Math.max(2, Math.round(eu / 0.045)) * 5;
         var tv = Math.max(2, Math.round(ev / 0.045)) * 5;
-        var sux = pts[1].x - pts[0].x, suy = pts[1].y - pts[0].y;
-        var svx = pts[3].x - pts[0].x, svy = pts[3].y - pts[0].y;
+        var sux = pU.x - pO.x, suy = pU.y - pO.y, svx = pV.x - pO.x, svy = pV.y - pO.y;
         /* tiny faces skip the texel pass — flat fill reads the same and
            the per-face clip work is what lags */
         if(Math.abs(sux * svy - suy * svx) > 150)
           uv = { a: sux/tu, b: suy/tu, c: svx/tv, d: svy/tv,
-                 e: pts[0].x, f: pts[0].y, w: tu, h: tv };
+                 e: pO.x, f: pO.y, w: tu, h: tv };
       }
       return { pts: pts, d: d / pts.length, z: z / pts.length, col: shade(f.col, br), base: f.col, br: br, uv: uv };
     }).sort(function(a, b){
@@ -811,23 +828,35 @@
       ctx.strokeStyle = lineCol || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1; ctx.stroke();
     });
   }
-  window.__vox = { mkProj: mkProj, slab: slab, sq: sq, paintVox: paintVox };
-  function voxIsland(ctx, x0, gy, sc, yaw, th){
-    var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
-    [ /* half, dx, dy, z0, z1 — the chunky stepped landmass, kept lean */
-      [0.68,  0.00,  0.00, -0.075, 0,      th.top,  th.side],
-      [0.34,  0.52, -0.34, -0.075, 0,      th.top,  th.side],
-      [0.58,  0.02,  0.02, -0.21, -0.075,  th.dirt, th.dirt],
-      [0.44,  0.02, -0.02, -0.34, -0.21,   th.dirt2, th.dirt2],
-      [0.26, -0.02,  0.04, -0.50, -0.34,   th.stone, th.stone]
+  function circPlan(r, n){
+    var p = [];
+    for(var i = 0; i < n; i++){
+      var a = TAU * i / n;
+      p.push([r * Math.cos(a), r * Math.sin(a)]);
+    }
+    return p;
+  }
+  /* three-disc island: grass, mud, then stone — same thickness, radius
+     shrinking as it goes down */
+  function isleStack(faces, R, th){
+    var T = 0.15;
+    [ [R,        -T,     0,      th.top,   th.side],
+      [R * 0.82, -2 * T, -T,     th.dirt,  th.dirt2 || th.dirt],
+      [R * 0.64, -3 * T, -2 * T, th.stone, th.stone]
     ].forEach(function(q){
-      var f0 = faces.length;
-      slab(faces, sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
-      faces[faces.length - 1].col = q[5];              /* top face keeps the top colour */
+      slab(faces, circPlan(q[0], 22), q[1], q[2], q[4]);
+      faces[faces.length - 1].col = q[3];
     });
+  }
+  window.__vox = { mkProj: mkProj, slab: slab, sq: sq, paintVox: paintVox, isleStack: isleStack };
+  function voxIsland(ctx, x0, gy, sc, yaw, th, foot){
+    var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    var R = Math.max(0.30, foot || 0.62);
+    isleStack(faces, R, th);
     var d = [];
     th.deco(d);
-    d.forEach(function(c){ slab(faces, sq(c[0], c[1], c[2]), c[3], c[4], c[5]); });
+    var ds = R / 0.62;   /* deco keeps its ring position relative to the disc */
+    d.forEach(function(c){ slab(faces, sq(c[0] * ds, c[1] * ds, c[2]), c[3], c[4], c[5]); });
     paintVox(ctx, faces, prj, yaw, 'rgba(0,0,0,.14)');
   }
 
@@ -1443,14 +1472,7 @@
           ctx.beginPath(); ctx.ellipse(g.x, g.y + ik * 0.52, ik * 0.55, ik * 0.09, 0, 0, TAU); ctx.fill();
           if(window.__vox){
             var V = window.__vox, vprj = V.mkProj(g.x, g.y, ik, YAW), vfaces = [];
-            [[0.62, 0.00, 0.00, -0.09, 0, '#7CC96F', '#5CA455'],
-             [0.30, 0.48, -0.30, -0.09, 0, '#7CC96F', '#5CA455'],
-             [0.46, 0.02, 0.02, -0.26, -0.09, '#8B5A3C', '#8B5A3C'],
-             [0.24, -0.02, 0.03, -0.40, -0.26, '#8C9096', '#8C9096']]
-            .forEach(function(q){
-              V.slab(vfaces, V.sq(q[1], q[2], q[0]), q[3], q[4], q[6]);
-              vfaces[vfaces.length - 1].col = q[5];
-            });
+            V.isleStack(vfaces, 0.62, { top:'#7CC96F', side:'#5CA455', dirt:'#8B5A3C', dirt2:'#7A4E33', stone:'#8C9096' });
             V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
           }
           tree(g.x + ik * 0.42, g.y + ik * 0.06, h * 0.05);
