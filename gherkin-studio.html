@@ -62,23 +62,42 @@
   .scheme-hole .readout b, .scheme-hole .statline b{ color:#FFD9A0; }
   .scheme-hole input[type=range], .scheme-hole .toggle input{ accent-color:#FFB25E; }
   .scheme-hole input[type=number]{ background:#0A0C14; border-color:#242A3C; }
-  .scheme-hole .ts-btn, .scheme-hole .model-bar button, .scheme-hole .board-actions button,
+  .scheme-hole .ts-btn, .scheme-hole .model-bar button,
   .scheme-hole .dl-list a, .scheme-hole .dl-list button{ background:#0A0C14; border-color:#242A3C; }
   .scheme-hole .ts-btn:hover, .scheme-hole .ts-btn.active,
-  .scheme-hole .model-bar button:hover, .scheme-hole .board-actions button:hover,
+  .scheme-hole .model-bar button:hover,
   .scheme-hole .dl-list a:hover, .scheme-hole .dl-list button:hover{
     background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
   .scheme-hole .dl-list a.pyg-dl{ background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
   .scheme-hole .dl-list a.pyg-dl:hover{ background:#0A0C14; color:#FFD9A0; }
 
-  /* ── centre tabs + spline board ── */
-  .ctabs{ padding:0; gap:.4rem 1.4rem; }
+  /* ── the Building Profile pop-over: edit the spline over the live model ── */
+  .spl-pop{ position:absolute; left:14px; top:14px; z-index:3; width:min(48%, 400px);
+    background:var(--paper); border:1px solid var(--ink); padding:.55rem;
+    display:flex; flex-direction:column; gap:.45rem; }
+  .spl-pop[hidden]{ display:none; }
+  .spl-cap{ display:flex; align-items:center; justify-content:space-between; }
+  .spl-cap b{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.22em; text-transform:uppercase; }
+  .spl-cap button{ background:none; border:0; color:var(--ink-60); cursor:pointer;
+    font-size:1.05rem; line-height:1; padding:0 .15rem; }
+  .spl-cap button:hover{ color:var(--ink); }
   #splBoard{ cursor:crosshair; touch-action:none; display:block; }
-  .board-actions{ position:absolute; top:.5rem; right:.5rem; display:flex; gap:.4rem; z-index:2; }
-  .board-actions button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+  .spl-foot{ display:flex; align-items:center; gap:.4rem; }
+  .spl-foot button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
-    padding:.3rem .55rem; cursor:pointer; opacity:.92; }
-  .board-actions button:hover{ background:var(--ink); color:var(--paper); }
+    padding:.3rem .55rem; cursor:pointer; }
+  .spl-foot button:hover{ background:var(--ink); color:var(--paper); }
+  .spl-foot span{ font-family:var(--font-serif); font-style:italic; font-size:.74rem;
+    color:var(--ink-60); margin-left:auto; }
+  .model-bar button.active{ background:var(--ink); color:var(--paper); }
+  .scheme-hole .spl-pop{ background:#0A0C14; border-color:#FFB25E; }
+  .scheme-hole .spl-foot button{ background:#0A0C14; border-color:#242A3C; }
+  .scheme-hole .spl-foot button:hover{ background:#FFB25E; color:#0A0C14; }
+  .scheme-hole .model-bar button.active{ background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
+  @media (max-width:719px){
+    .spl-pop{ width:min(86%, 400px); }
+  }
 
   /* ── the board: exoskeleton rail · model · floors rail ── */
   .studio{ display:grid; grid-template-columns:300px minmax(0,1fr) 300px; gap:var(--gap); align-items:start; }
@@ -315,7 +334,7 @@
           <input type="range" id="pHeight" min="20" max="400" step="1" value="100">
           <input type="number" id="pHeightNum" min="20" max="500" step="1" value="100">
         </div>
-        <div class="statline">The profile is a drawn spline &mdash; open the model&rsquo;s <b>Spline</b> tab to edit it. Radii scale with the height.</div>
+        <div class="statline">The profile is a drawn spline &mdash; press <b>Building Profile</b> on the model to edit it over the live tower. Radii scale with the height.</div>
       </div>
 
       <div class="card">
@@ -351,11 +370,8 @@
 
     <!-- ════════ MODEL ════════ -->
     <section class="centre" aria-label="3D model">
-      <div class="tabs ctabs">
-        <button id="cTabModel" class="tab active" type="button">3D Model</button>
-        <button id="cTabSpline" class="tab" type="button">Spline</button>
-      </div>
       <div class="model-bar" id="modelBar">
+        <button id="btnProfile" type="button">Building Profile</button>
         <label class="toggle"><input type="checkbox" id="tFloors" checked> Floors</label>
         <label class="toggle"><input type="checkbox" id="tDiagrid" checked> Diagrid</label>
         <label class="toggle"><input type="checkbox" id="tRings" checked> Ring beams</label>
@@ -364,15 +380,19 @@
         <button id="tReset" type="button">Reset view</button>
         <span class="model-hint">drag to orbit &middot; right-drag pans &middot; wheel zooms &middot; double-click resets</span>
       </div>
-      <div class="model-bar" id="splBar" hidden>
-        <span class="model-hint" style="margin-left:0">click to add a point &middot; drag to move &middot; right-click deletes &middot; x is the radius, y the height &mdash; the tower follows live</span>
-      </div>
-      <div class="plot-wrap" id="modelWrap"><canvas id="studioModel" aria-label="The Gherkin — orbitable 3D model"></canvas></div>
-      <div class="plot-wrap" id="splWrap" hidden>
-        <canvas id="splBoard" aria-label="Profile spline — click to add points, drag to move, right-click to delete"></canvas>
-        <div class="board-actions">
-          <button id="splUndo" type="button">Undo</button>
-          <button id="splClear" type="button">Clear</button>
+      <div class="plot-wrap" id="modelWrap">
+        <canvas id="studioModel" aria-label="The Gherkin — orbitable 3D model"></canvas>
+        <div class="spl-pop" id="splPop" hidden>
+          <div class="spl-cap">
+            <b>Building Profile</b>
+            <button id="splClose" type="button" aria-label="Close the profile board">&times;</button>
+          </div>
+          <canvas id="splBoard" aria-label="Building profile — click to add points, drag to move, right-click to delete"></canvas>
+          <div class="spl-foot">
+            <button id="splUndo" type="button">Undo</button>
+            <button id="splClear" type="button">Clear</button>
+            <span>the tower follows live</span>
+          </div>
         </div>
       </div>
       <div class="readout" id="oReadout">&mdash;</div>
@@ -383,7 +403,7 @@
       <h2 class="sec-h">Floors <small>levels &amp; plates</small></h2>
 
       <div class="card">
-        <h2>Levels</h2>
+        <h2>Floor Levels</h2>
         <div class="toggles" style="grid-template-columns:1fr">
           <label class="toggle"><input type="checkbox" id="fMatch" checked> Match exoskeleton levels</label>
         </div>
@@ -926,8 +946,8 @@
   })();
   var HC = {
     brace:'rgba(255,150,50,.95)', ring:'rgba(255,132,38,.85)', glow:'#FF7A1E',
-    node:'#FFC97E', nodeEdge:'#FF8C2E',
-    plateSide:'#170E06', plateTop:'#0B0D15', plateEdge:'rgba(255,132,38,.9)'
+    node:'#E63A50', nodeEdge:'#FF8090', nodeGlow:'#C81428',
+    plateGlow:'#3E9EFF', plateSide:'#0E1830', plateTop:'#0B1322', plateEdge:'rgba(125,200,255,.95)'
   };
   function paintSpace(ctx, w, h){
     ctx.fillStyle = '#05060A';
@@ -1012,7 +1032,7 @@
     function SS(Pq){ return { x: w / 2 + v.panx + (Pq.x - cc.x) * fit,
                               y: h / 2 + v.pany + (Pq.y - cc.y) * fit }; }
 
-    if(hole){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 7; }
+    if(hole){ ctx.shadowColor = HC.plateGlow; ctx.shadowBlur = 7; }
     if(shaded){
       /* shaded plates, far → near, ordered by plate-centre depth */
       var order = plates.map(function(pl, idx){
@@ -1055,7 +1075,7 @@
         }
       });
     } else {
-      ctx.strokeStyle = hole ? HC.brace : FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
+      ctx.strokeStyle = hole ? HC.plateEdge : FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
       plates.forEach(function(pl){
         ctx.beginPath();
         var p0 = SS(pl.bot[0]); ctx.moveTo(p0.x, p0.y);
@@ -1106,7 +1126,7 @@
       ctx.fillStyle = hole ? HC.node : FC('--c-paper');
       ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
       ctx.lineWidth = 1;
-      if(hole) ctx.shadowBlur = 10;
+      if(hole){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
       for(k = 0; k < nodePts.length; k++){
         var ndp = nodePts[k];
         if(!ndp) continue;
@@ -1181,11 +1201,11 @@
   /* ── the spline board: draw the profile the tower follows ── */
   var bd = { canvas: el('splBoard'), ctx: null, side: 0, inset: 18, scale: 1 };
   bd.ctx = bd.canvas.getContext('2d');
-  var splWrap = el('splWrap'), modelWrap = el('modelWrap');
+  var splPop = el('splPop'), modelWrap = el('modelWrap');
 
   function sizeBoard(){
-    if(splWrap.hidden) return;
-    var side = Math.min(splWrap.clientWidth, splWrap.clientHeight) - 12;
+    if(splPop.hidden) return;
+    var side = Math.min(splPop.clientWidth - 18, modelWrap.clientHeight - 116);
     if(side < 40) return;
     var dpr = window.devicePixelRatio || 1;
     bd.side = side;
@@ -1197,7 +1217,7 @@
   }
 
   function paintBoard(){
-    if(splWrap.hidden || bd.side < 40) return;
+    if(splPop.hidden || bd.side < 40) return;
     var ctx = bd.ctx, sc = bd.scale, inset = bd.inset;
     var hole = isHole();
     var cAccent = hole ? '#FFB25E' : FC('--accent');
@@ -1331,20 +1351,16 @@
     if(SP.pts.length){ pushUndo(); SP.pts = []; SP.sel = -1; recompute(); }
   });
 
-  /* ── centre tabs: 3D model | spline board ── */
-  var tabM = el('cTabModel'), tabS = el('cTabSpline');
-  function showCentre(which){
-    var mdl = (which === 'model');
-    tabM.classList.toggle('active', mdl);
-    tabS.classList.toggle('active', !mdl);
-    el('modelBar').hidden = !mdl;
-    el('splBar').hidden = mdl;
-    modelWrap.hidden = !mdl;
-    splWrap.hidden = mdl;
-    if(mdl){ resize(); } else { sizeBoard(); }
+  /* ── the Building Profile button: a board floated over the live model ── */
+  var btnProfile = el('btnProfile');
+  function toggleProfile(open){
+    var show = (open != null) ? open : splPop.hidden;
+    splPop.hidden = !show;
+    btnProfile.classList.toggle('active', show);
+    if(show) sizeBoard();
   }
-  tabM.addEventListener('click', function(){ showCentre('model'); });
-  tabS.addEventListener('click', function(){ showCentre('spline'); });
+  btnProfile.addEventListener('click', function(){ toggleProfile(); });
+  el('splClose').addEventListener('click', function(){ toggleProfile(false); });
 
   /* ── parameter wiring: slider + number pairs share one state key ── */
   function bindPair(key, id, lo, hi){
@@ -1468,7 +1484,7 @@
       text:JSON.stringify(out, null, 2), mime:'application/json' }]);
   });
 
-  window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute, showCentre:showCentre };
+  window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute, toggleProfile:toggleProfile };
 
   applyMatchVis();
   recompute();
