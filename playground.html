@@ -223,6 +223,9 @@
   .gi-stats{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
   /* ── viewport widget rows (input tools) ── */
   .it-row.it-wide{ flex-direction:column; align-items:stretch; gap:.45rem; }
+  .it-row.it-wide > label{ flex:0 0 auto; }
+  .vw-range{ display:flex; align-items:center; gap:.6rem; flex:1; min-width:230px; flex-wrap:nowrap; }
+  .vw-range canvas{ flex:1; min-width:60px; }
   .vw-stack{ display:flex; flex-direction:column; gap:.45rem; width:100%; }
   #vwView, #vwProt{ display:block; width:100%; border:1px solid var(--hair); touch-action:none; }
   #vwView{ cursor:grab; }
@@ -661,10 +664,12 @@
               <button id="vwLockRot" class="it-toggle" type="button" aria-pressed="false" aria-label="Rotation lock"><span></span></button>
               <span class="vw-mini">radial lock</span>
               <button id="vwLockRad" class="it-toggle" type="button" aria-pressed="false" aria-label="Radial lock"><span></span></button>
-              <span class="vw-mini">radius range</span>
-              <input type="number" id="vwRadLo" value="150" min="60" max="800" step="10" aria-label="Radius minimum">
-              <canvas id="vwDom" aria-label="Radius range — drag the ends"></canvas>
-              <input type="number" id="vwRadHi" value="600" min="60" max="800" step="10" aria-label="Radius maximum">
+              <div class="vw-range">
+                <span class="vw-mini">radius range</span>
+                <input type="number" id="vwRadLo" value="150" min="60" max="800" step="10" aria-label="Radius minimum">
+                <canvas id="vwDom" aria-label="Radius range — drag the ends"></canvas>
+                <input type="number" id="vwRadHi" value="600" min="60" max="800" step="10" aria-label="Radius maximum">
+              </div>
             </div>
             <div class="vw-read" id="vwRead">&mdash;</div>
           </div>
@@ -675,11 +680,11 @@
             <canvas id="vwProt" aria-label="Angle widget — drag to set the angle between 0 and 180 degrees"></canvas>
             <div class="vw-ctl">
               <span class="vw-mini">read as</span>
-              <select id="vwProtUnit" aria-label="Angle unit">
-                <option value="deg">degrees</option>
-                <option value="rad">radians</option>
-                <option value="slope">1:x slope</option>
-              </select>
+              <div class="it-seg" id="vwProtUnit" role="group" aria-label="Angle unit">
+                <button type="button" class="active" data-u="deg">Degrees</button>
+                <button type="button" data-u="rad">Radians</button>
+                <button type="button" data-u="slope">1:x</button>
+              </div>
             </div>
           </div>
         </div>
@@ -4831,7 +4836,7 @@
   var W = { H: 1000, top: 30, base: 0, RB: 430, RT: 290 };
   var RLO = 150, RHI = 600;                       /* the radius range (typed + domain) */
   var RBND = { lo: 60, hi: 800 };                 /* absolute bounds of the range itself */
-  var HWF = 0.62;                                 /* circle radius → square half-width */
+  var HWF = Math.SQRT1_2;                         /* square corners touch the circle */
   var HMAX = 1400, HMIN = 100;
   var RULX = 470;
   var lockRotEl = document.getElementById('vwLockRot');
@@ -5215,7 +5220,8 @@
     /* the value rides the handle radius */
     /* the value reads in the chosen unit — degrees, radians or 1:x slope */
     var uSel = document.getElementById('vwProtUnit');
-    var unit = uSel ? uSel.value : 'deg', txt;
+    var uBtn = uSel ? uSel.querySelector('button.active') : null;
+    var unit = uBtn ? uBtn.getAttribute('data-u') : 'deg', txt;
     if(unit === 'rad') txt = (PA * Math.PI / 180).toFixed(3) + ' rad';
     else if(unit === 'slope'){
       if(PA <= 0.05) txt = '1:\u221E';
@@ -5239,7 +5245,14 @@
     pctx.fillStyle = red;
   }
   var protUnitSel = document.getElementById('vwProtUnit');
-  if(protUnitSel) protUnitSel.addEventListener('change', drawProt);
+  if(protUnitSel) protUnitSel.addEventListener('click', function(e){
+    var b2 = e.target && e.target.closest ? e.target.closest('button') : null;
+    if(!b2) return;
+    var all = protUnitSel.querySelectorAll('button');
+    for(var i = 0; i < all.length; i++) all[i].classList.remove('active');
+    b2.classList.add('active');
+    drawProt();
+  });
   var pDrag = false;
   function protSet(e){
     var r = prot.getBoundingClientRect();
@@ -5356,7 +5369,7 @@
         '- a value list dropdown, a momentary button that reads true while held, and a text input',
         '- a gene pool of five vertical sliders',
         '- a 3D viewport widget: an orthographic tapered column edited by dragging red in-viewport handles — a height ruler with ticks and labels, an angular dial spinning the base and a smaller dial twisting the top face, plus a square handle on each dial rim that grows or shrinks that circle (the column follows). Rotation and radial lock toggles ghost and disable their handles, and the circle radius is clamped to a range set both by typed min/max entries and a two-ended domain track. Orbit on empty space, wheel zoom, fixed camera so nothing re-fits mid-drag',
-        '- an angle widget: an ink-black 0-180° protractor with ticks every 3°, labels every 15°, dashed radii, a swept-angle arrow and a draggable rim handle — its value reads in degrees, radians or 1:x slope from a dropdown',
+        '- an angle widget: an ink-black 0-180° protractor with ticks every 3°, labels every 15°, dashed radii, a swept-angle arrow and a draggable rim handle — its value reads in degrees, radians or 1:x slope from a three-way segmented toggle',
         '',
         'Every control syncs both ways — graphical and numerical. Handle dots stay fully visible when a value sits on its boundary, while the value itself stays clamped to the range. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
       } },
