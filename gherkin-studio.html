@@ -42,8 +42,24 @@
     padding:.8rem 1rem; margin-bottom:var(--gap); text-align:center;
   }
   .title-strip .name{ font-family:var(--font-display); font-size:1.35rem; }
-  .title-strip a{ color:var(--ink-60); text-decoration:none; border-bottom:1px solid var(--hair); }
-  .title-strip a:hover{ color:var(--ink); border-bottom-color:var(--ink); }
+  .ts-btn{
+    border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    font-family:var(--font-brand); font-weight:500; font-size:.62rem;
+    letter-spacing:.2em; text-transform:uppercase; cursor:pointer;
+    padding:.5rem .7rem .42rem; text-decoration:none; line-height:1;
+  }
+  .ts-btn:hover{ background:var(--ink); color:var(--paper); }
+  .title-strip .ts-btn:first-child{ margin-right:auto; }
+  .title-strip .ts-btn:last-child{ margin-left:auto; }
+
+  /* ── centre tabs + spline board ── */
+  .ctabs{ padding:0; gap:.4rem 1.4rem; }
+  #splBoard{ cursor:crosshair; touch-action:none; display:block; }
+  .board-actions{ position:absolute; top:.5rem; right:.5rem; display:flex; gap:.4rem; z-index:2; }
+  .board-actions button{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; border:1px solid var(--hair); background:var(--paper); color:var(--ink);
+    padding:.3rem .55rem; cursor:pointer; opacity:.92; }
+  .board-actions button:hover{ background:var(--ink); color:var(--paper); }
 
   /* ── the board: exoskeleton rail · model · floors rail ── */
   .studio{ display:grid; grid-template-columns:300px minmax(0,1fr) 300px; gap:var(--gap); align-items:start; }
@@ -76,6 +92,7 @@
   .plot-wrap{ position:relative; border:1px solid var(--hair); background:var(--paper);
     flex:none; height:min(76vh, 820px); min-width:0; padding:6px;
     display:flex; align-items:center; justify-content:center; }
+  .plot-wrap[hidden], .model-bar[hidden]{ display:none; }
   canvas{ display:block; }
   #studioModel{ cursor:grab; touch-action:none; }
   #studioModel:active{ cursor:grabbing; }
@@ -250,24 +267,13 @@
   });
 </script>
 
-<header class="masthead wrap">
-  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
-  <nav class="nav-row" aria-label="Sections">
-    <a href="index.html">Home</a>
-    <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">GitHub</a>
-    <a href="stocks.html">Stocks</a>
-    <a href="reading.html">Reading</a>
-    <a href="contact.html">Contact</a>
-    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
-  </nav>
-</header>
-
-<main id="main" class="wrap">
+<main id="main" class="wrap" style="padding-top:var(--gap)">
   <div class="title-strip">
+    <a class="ts-btn" href="gherkin.html">&larr; Dashboard</a>
     <span class="ital">The</span>
     <span class="name">GHERKIN</span>
     <span class="caps caps-tight muted" style="font-size:.62rem">Studio &middot; the model in the middle, every parameter around it</span>
-    <a class="caps caps-tight" style="font-size:.62rem" href="gherkin.html">Full dashboard &rarr;</a>
+    <button class="ts-btn" id="themeToggle" type="button" aria-pressed="false" title="Toggle light / dark"><span id="themeLabel">Dark</span></button>
   </div>
 
   <div class="studio">
@@ -280,43 +286,23 @@
         <h2>Building</h2>
         <div class="row">
           <label for="pHeight">Height (m)</label>
-          <input type="range" id="pHeight" min="20" max="400" step="1" value="180">
-          <input type="number" id="pHeightNum" min="20" max="500" step="1" value="180">
+          <input type="range" id="pHeight" min="20" max="400" step="1" value="100">
+          <input type="number" id="pHeightNum" min="20" max="500" step="1" value="100">
         </div>
-        <div class="row">
-          <label for="pBaseDia">Base &Oslash; (m)</label>
-          <input type="range" id="pBaseDia" min="0" max="80" step="0.5" value="49">
-          <input type="number" id="pBaseDiaNum" min="0" max="120" step="0.5" value="49">
-        </div>
-        <div class="row">
-          <label for="pBellyDia">Belly &Oslash; (m)</label>
-          <input type="range" id="pBellyDia" min="0" max="80" step="0.5" value="56">
-          <input type="number" id="pBellyDiaNum" min="0" max="120" step="0.5" value="56">
-        </div>
-        <div class="row">
-          <label for="pBellyH">Belly height (%)</label>
-          <input type="range" id="pBellyH" min="10" max="90" step="1" value="42">
-          <input type="number" id="pBellyHNum" min="10" max="90" step="1" value="42">
-        </div>
-        <div class="row">
-          <label for="pCrown">Crown fullness</label>
-          <input type="range" id="pCrown" min="0" max="90" step="1" value="55">
-          <input type="number" id="pCrownNum" min="0" max="90" step="1" value="55">
-        </div>
-        <div class="statline">A rounded profile: base &oslash; up to the belly, then a closing crown &mdash; the classic gherkin curve, no drawing needed.</div>
+        <div class="statline">The profile is a drawn spline &mdash; open the model&rsquo;s <b>Spline</b> tab to edit it. Radii scale with the height.</div>
       </div>
 
       <div class="card">
         <h2>Levels</h2>
         <div class="row">
           <label for="pLevelH">Level height (m)</label>
-          <input type="range" id="pLevelH" min="2" max="16" step="0.5" value="10">
-          <input type="number" id="pLevelHNum" min="1" max="200" step="0.5" value="10">
+          <input type="range" id="pLevelH" min="2" max="16" step="0.5" value="8">
+          <input type="number" id="pLevelHNum" min="1" max="200" step="0.5" value="8">
         </div>
         <div class="row">
           <label for="pTopOff">Top offset (m)</label>
-          <input type="range" id="pTopOff" min="0" max="5" step="0.1" value="2">
-          <input type="number" id="pTopOffNum" min="0" max="500" step="0.5" value="2">
+          <input type="range" id="pTopOff" min="0" max="4" step="0.1" value="1">
+          <input type="number" id="pTopOffNum" min="0" max="500" step="0.5" value="1">
         </div>
         <div class="row">
           <label for="pBotOff">Bottom offset (m)</label>
@@ -330,8 +316,8 @@
         <h2>Diagrid</h2>
         <div class="row">
           <label for="pPoints">Points around</label>
-          <input type="range" id="pPoints" min="3" max="40" step="1" value="18">
-          <input type="number" id="pPointsNum" min="3" max="60" step="1" value="18">
+          <input type="range" id="pPoints" min="3" max="40" step="1" value="22">
+          <input type="number" id="pPointsNum" min="3" max="60" step="1" value="22">
         </div>
         <div class="statline"><b id="oMembers">0</b> members &middot; <b id="oConns">0</b> connections &middot; braces cross to the next level, ring beams close each ring.</div>
       </div>
@@ -339,16 +325,30 @@
 
     <!-- ════════ MODEL ════════ -->
     <section class="centre" aria-label="3D model">
-      <div class="model-bar">
+      <div class="tabs ctabs">
+        <button id="cTabModel" class="tab active" type="button">3D Model</button>
+        <button id="cTabSpline" class="tab" type="button">Spline</button>
+      </div>
+      <div class="model-bar" id="modelBar">
         <label class="toggle"><input type="checkbox" id="tFloors" checked> Floors</label>
         <label class="toggle"><input type="checkbox" id="tDiagrid" checked> Diagrid</label>
         <label class="toggle"><input type="checkbox" id="tRings" checked> Ring beams</label>
         <label class="toggle"><input type="checkbox" id="tNodes" checked> Nodes</label>
         <label class="toggle"><input type="checkbox" id="tShaded" checked> Shaded</label>
         <button id="tReset" type="button">Reset view</button>
-        <span class="model-hint">drag to orbit &middot; wheel zooms &middot; double-click resets</span>
+        <span class="model-hint">drag to orbit &middot; right-drag pans &middot; wheel zooms &middot; double-click resets</span>
       </div>
-      <div class="plot-wrap"><canvas id="studioModel" aria-label="The Gherkin — orbitable 3D model"></canvas></div>
+      <div class="model-bar" id="splBar" hidden>
+        <span class="model-hint" style="margin-left:0">click to add a point &middot; drag to move &middot; right-click deletes &middot; x is the radius, y the height &mdash; the tower follows live</span>
+      </div>
+      <div class="plot-wrap" id="modelWrap"><canvas id="studioModel" aria-label="The Gherkin — orbitable 3D model"></canvas></div>
+      <div class="plot-wrap" id="splWrap" hidden>
+        <canvas id="splBoard" aria-label="Profile spline — click to add points, drag to move, right-click to delete"></canvas>
+        <div class="board-actions">
+          <button id="splUndo" type="button">Undo</button>
+          <button id="splClear" type="button">Clear</button>
+        </div>
+      </div>
       <div class="readout" id="oReadout">&mdash;</div>
     </section>
 
@@ -363,8 +363,8 @@
         </div>
         <div class="row" id="rowSplits">
           <label for="pSplits">Splits per bay</label>
-          <input type="range" id="pSplits" min="0" max="5" step="1" value="1">
-          <input type="number" id="pSplitsNum" min="0" max="10" step="1" value="1">
+          <input type="range" id="pSplits" min="0" max="5" step="1" value="0">
+          <input type="number" id="pSplitsNum" min="0" max="10" step="1" value="0">
         </div>
         <div class="row off" id="rowF2F">
           <label for="pF2F">Floor-to-floor (m)</label>
@@ -378,8 +378,8 @@
         <h2>Plates</h2>
         <div class="row">
           <label for="pOffset">&Oslash; offset (m)</label>
-          <input type="range" id="pOffset" min="-20" max="20" step="0.5" value="-1">
-          <input type="number" id="pOffsetNum" min="-20" max="20" step="0.5" value="-1">
+          <input type="range" id="pOffset" min="-20" max="20" step="0.5" value="0">
+          <input type="number" id="pOffsetNum" min="-20" max="20" step="0.5" value="0">
         </div>
         <div class="row">
           <label for="pThick">Thickness (mm)</label>
@@ -403,13 +403,13 @@
         <h2>Wedges</h2>
         <div class="row">
           <label for="pWedgeN">Wedges</label>
-          <input type="range" id="pWedgeN" min="0" max="12" step="1" value="6">
-          <input type="number" id="pWedgeNNum" min="0" max="12" step="1" value="6">
+          <input type="range" id="pWedgeN" min="0" max="12" step="1" value="0">
+          <input type="number" id="pWedgeNNum" min="0" max="12" step="1" value="0">
         </div>
         <div class="row">
           <label for="pWedgeD">Point distance (m)</label>
-          <input type="range" id="pWedgeD" min="0" max="20" step="0.5" value="5">
-          <input type="number" id="pWedgeDNum" min="0" max="20" step="0.5" value="5">
+          <input type="range" id="pWedgeD" min="0" max="20" step="0.5" value="0">
+          <input type="number" id="pWedgeDNum" min="0" max="20" step="0.5" value="0">
         </div>
         <div class="row">
           <label for="pTwist">Twist / floor (&deg;)</label>
@@ -456,50 +456,104 @@
 
   /* ── parameters ── */
   var S = {
-    H:180, baseDia:49, bellyDia:56, bellyH:42, crown:55,
-    levelH:10, topOff:2, botOff:0, N:18,
-    match:true, splits:1, f2f:4,
-    offset:-1, thick:400, coreDia:0, coreTop:0,
-    wedgeN:6, wedgeD:5, twist:2.5
+    H:100,
+    levelH:8, topOff:1, botOff:0, N:22,
+    match:true, splits:0, f2f:4,
+    offset:0, thick:400, coreDia:0, coreTop:0,
+    wedgeN:0, wedgeD:0, twist:2.5
   };
 
-  /* ── profile: two bezier arcs, base → belly → crown, sampled to a lookup ── */
-  var PROF = [];
-  function buildProfile(){
-    PROF = [];
-    var H = S.H, rB = S.baseDia / 2, rM = S.bellyDia / 2;
-    var zB = Math.max(1, Math.min(H - 1, H * S.bellyH / 100));
-    var i, t, mt;
-    // base → belly: quadratic, zero slope arriving at the belly
-    for(i = 0; i <= 60; i++){
-      t = i / 60; mt = 1 - t;
-      PROF.push({
-        z: mt * mt * 0 + 2 * mt * t * (zB * 0.5) + t * t * zB,
-        r: mt * mt * rB + 2 * mt * t * rM + t * t * rM
-      });
-    }
-    // belly → apex: cubic, zero slope leaving the belly, dome-ish crown
-    var c1z = zB + (H - zB) * (S.crown / 100);
-    var c2z = H - (H - zB) * 0.10, c2r = rM * 0.30;
-    for(i = 1; i <= 200; i++){
-      t = i / 200; mt = 1 - t;
-      PROF.push({
-        z: mt*mt*mt * zB + 3*mt*mt*t * c1z + 3*mt*t*t * c2z + t*t*t * H,
-        r: mt*mt*mt * rM + 3*mt*mt*t * rM  + 3*mt*t*t * c2r + 0
-      });
-    }
-  }
-  function radiusAt(z){
-    if(!PROF.length) return 0;
-    if(z <= PROF[0].z) return Math.max(0, PROF[0].r);
-    for(var i = 1; i < PROF.length; i++){
-      if(PROF[i].z >= z){
-        var a = PROF[i - 1], b = PROF[i];
-        var f = (b.z - a.z) > 1e-9 ? (z - a.z) / (b.z - a.z) : 0;
-        return Math.max(0, a.r + (b.r - a.r) * f);
+  /* ── profile: the drawn B-spline, on the dashboard's 600×600 board.
+        x is the radius direction, y runs down from the tip — a point's
+        radius in metres is (x / 600) · building height. ── */
+  var LOGICAL = 600, GRID = 30;
+  var SP = {
+    pts: [ {x:0, y:0}, {x:90, y:0}, {x:120, y:300}, {x:90, y:600} ],
+    sel:-1, snap:true, undoStack:[]
+  };
+  var curve = [];
+  function cloneP(a){ return a.map(function(p){ return {x:p.x, y:p.y}; }); }
+  function pushUndo(){ SP.undoStack.push(cloneP(SP.pts)); if(SP.undoStack.length > 200) SP.undoStack.shift(); }
+  function clampVal(v2){ return v2 < 0 ? 0 : (v2 > LOGICAL ? LOGICAL : v2); }
+  function snapVal(v2){ var s2 = SP.snap ? Math.round(v2 / GRID) * GRID : v2; return clampVal(s2); }
+
+  // de Boor evaluation of a B-spline of degree p at parameter u
+  function deBoor(ctrl, p, knots, u){
+    var n = ctrl.length - 1;
+    var k = p;
+    while(k < n && u >= knots[k + 1]) k++;
+    var d = [], j;
+    for(j = 0; j <= p; j++){ var c = ctrl[k - p + j]; d[j] = {x:c.x, y:c.y}; }
+    for(var r = 1; r <= p; r++){
+      for(j = p; j >= r; j--){
+        var i = k - p + j;
+        var den = knots[i + p - r + 1] - knots[i];
+        var a = (den === 0) ? 0 : (u - knots[i]) / den;
+        d[j] = { x:(1 - a) * d[j-1].x + a * d[j].x,
+                 y:(1 - a) * d[j-1].y + a * d[j].y };
       }
     }
-    return Math.max(0, PROF[PROF.length - 1].r);
+    return d[p];
+  }
+  // clamped open B-spline polyline through the control points (degree ≤ 3)
+  function buildCurve(){
+    var n = SP.pts.length;
+    if(n < 2) return [];
+    var p = Math.min(3, n - 1); if(p < 1) p = 1;
+    var ctrl = SP.pts.slice(), knots = [], i;
+    var nn = ctrl.length;
+    for(i = 0; i <= p; i++) knots.push(0);
+    var interior = nn - 1 - p;
+    for(i = 1; i <= interior; i++) knots.push(i / (interior + 1));
+    for(i = 0; i <= p; i++) knots.push(1);
+    if(p === 1) return ctrl.map(function(c){ return {x:c.x, y:c.y}; });
+    var steps = Math.max(80, Math.min(600, 24 * ctrl.length));
+    var out = [];
+    for(var s = 0; s <= steps; s++){
+      out.push(deBoor(ctrl, p, knots, s / steps));
+    }
+    return out;
+  }
+  // logical x where the curve crosses horizontal line y — outermost, or null
+  function crossingX(c2, y2){
+    var best = null;
+    for(var i = 0; i < c2.length - 1; i++){
+      var a = c2[i], b = c2[i + 1];
+      if((a.y <= y2 && b.y >= y2) || (a.y >= y2 && b.y <= y2)){
+        var t = (b.y === a.y) ? 0 : (y2 - a.y) / (b.y - a.y);
+        var x = a.x + (b.x - a.x) * t;
+        if(best === null || x > best) best = x;
+      }
+    }
+    return best;
+  }
+  function curveApex(){
+    if(!curve.length) return null;
+    var top = curve[0];
+    for(var i = 1; i < curve.length; i++){ if(curve[i].y < top.y) top = curve[i]; }
+    return top;
+  }
+  // sample the curve at a height fraction; off-curve heights snap to apex/foot
+  function sampleAt(fr){
+    var yL = LOGICAL * (1 - fr);
+    var xH = crossingX(curve, yL);
+    if(xH == null){
+      var apex = curveApex();
+      if(apex){
+        var foot = curve[0];
+        for(var j = 1; j < curve.length; j++){ if(curve[j].y > foot.y) foot = curve[j]; }
+        var snap = (yL <= apex.y) ? apex : (yL >= foot.y ? foot : null);
+        if(snap){
+          return { r: +((snap.x / LOGICAL) * S.H).toFixed(3), hit: { x:snap.x, y:snap.y } };
+        }
+      }
+      return { r: 0, hit: null };
+    }
+    return { r: +((xH / LOGICAL) * S.H).toFixed(3), hit: { x:xH, y:yL } };
+  }
+  function radiusAt(z){
+    if(!curve.length) return 0;
+    return sampleAt(S.H > 0 ? z / S.H : 0).r;
   }
 
   /* ── levels (identical stepping to the dashboard) ── */
@@ -694,7 +748,14 @@
   function coreRadius(){ return S.coreDia / 2; }
 
   function recompute(){
-    buildProfile();
+    curve = (SP.pts.length >= 2) ? buildCurve() : [];
+
+    // the top offset caps at half the level height — the cap rides the slider
+    var toMax = S.levelH / 2;
+    var toR = el('pTopOff'), toN = el('pTopOffNum');
+    if(S.topOff > toMax){ S.topOff = toMax; toR.value = toMax; toN.value = toMax; }
+    toR.max = toMax;
+
     M.exoZ = exoLevelZs();
     M.exoR = M.exoZ.map(radiusAt);
 
@@ -770,6 +831,7 @@
 
     readout();
     render();
+    paintBoard();
   }
 
   function readout(){
@@ -822,7 +884,7 @@
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
 
-  var v = { canvas: el('studioModel'), ctx: null, w:0, h:0, az:0.6, pitch:0.95, zoom:1 };
+  var v = { canvas: el('studioModel'), ctx: null, w:0, h:0, az:0.6, pitch:0.95, zoom:1, panx:0, pany:0 };
   v.ctx = v.canvas.getContext('2d');
 
   function render(){
@@ -872,21 +934,24 @@
     }
 
     if(!all.length){
-      emptyNote(ctx, w, h, 'Widen the profile to build the tower');
+      emptyNote(ctx, w, h, 'Add spline control points to build the tower');
       return;
     }
-    all.push(project(0, 0, 0, A, B), project(0, 0, S.H, A, B));
 
-    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for(i = 0; i < all.length; i++){
-      var Pp = all[i];
-      if(Pp.x < minX) minX = Pp.x; if(Pp.x > maxX) maxX = Pp.x;
-      if(Pp.y < minY) minY = Pp.y; if(Pp.y > maxY) maxY = Pp.y;
+    /* fixed camera: frame the tower's bounding sphere, so orbiting never
+       re-fits — the model turns inside a still view; right-drag pans it */
+    var Rm = 0.001;
+    for(i = 0; i < M.exoR.length; i++){ if((M.exoR[i] || 0) > Rm) Rm = (M.exoR[i] || 0); }
+    for(i = 0; i < M.floors.length; i++){
+      var rF = effRadius(M.floors[i].r || 0);
+      if(rF > Rm) Rm = rF;
     }
-    var bw = Math.max(1e-6, maxX - minX), bh = Math.max(1e-6, maxY - minY);
-    var fit = Math.min(w / bw, h / bh) * 0.84 * v.zoom;
-    var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
-    function SS(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
+    var cz = S.H / 2;
+    var cR = Math.sqrt(Rm * Rm + cz * cz) || 1;
+    var fit = Math.min(w, h) / (2 * cR) * 0.95 * v.zoom;
+    var cc = project(0, 0, cz, A, B);
+    function SS(Pq){ return { x: w / 2 + v.panx + (Pq.x - cc.x) * fit,
+                              y: h / 2 + v.pany + (Pq.y - cc.y) * fit }; }
 
     if(shaded){
       /* shaded plates, far → near, ordered by plate-centre depth */
@@ -993,6 +1058,7 @@
   /* ── canvas sizing + orbit ── */
   function resize(){
     var wrap = v.canvas.parentElement;
+    if(wrap.hidden || wrap.clientWidth < 24 || wrap.clientHeight < 24) return;
     var w = wrap.clientWidth - 12, h = wrap.clientHeight - 12;
     var dpr = window.devicePixelRatio || 1;
     v.w = w; v.h = h;
@@ -1001,44 +1067,214 @@
     v.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     render();
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', function(){ resize(); sizeBoard(); });
 
-  var dragging = false, lx = 0, ly = 0;
+  var dragging = false, panning = false, lx = 0, ly = 0;
   function onMove(e){
-    if(!dragging) return;
+    if(!dragging && !panning) return;
     e.preventDefault();
-    v.az += (e.clientX - lx) * 0.01;
-    v.pitch += (e.clientY - ly) * 0.01;
-    v.pitch = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, v.pitch));
+    if(panning){
+      v.panx += e.clientX - lx;
+      v.pany += e.clientY - ly;
+    } else {
+      v.az += (e.clientX - lx) * 0.01;
+      v.pitch += (e.clientY - ly) * 0.01;
+      v.pitch = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, v.pitch));
+    }
     lx = e.clientX; ly = e.clientY;
     render();
   }
   function stopDrag(){
-    dragging = false;
+    dragging = false; panning = false;
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', stopDrag);
     document.removeEventListener('pointercancel', stopDrag);
   }
   v.canvas.addEventListener('pointerdown', function(e){
     e.preventDefault();
-    dragging = true; lx = e.clientX; ly = e.clientY;
+    if(e.button === 2){ panning = true; } else { dragging = true; }
+    lx = e.clientX; ly = e.clientY;
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', stopDrag);
     document.addEventListener('pointercancel', stopDrag);
   });
+  v.canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   v.canvas.addEventListener('wheel', function(e){
     e.preventDefault();
     v.zoom *= (e.deltaY < 0) ? 1.1 : 1 / 1.1;
     v.zoom = Math.max(0.3, Math.min(6, v.zoom));
     render();
   }, { passive: false });
-  v.canvas.addEventListener('dblclick', function(){ v.az = 0.6; v.pitch = 0.95; v.zoom = 1; render(); });
-  el('tReset').addEventListener('click', function(){ v.az = 0.6; v.pitch = 0.95; v.zoom = 1; render(); });
+  function resetView(){ v.az = 0.6; v.pitch = 0.95; v.zoom = 1; v.panx = 0; v.pany = 0; render(); }
+  v.canvas.addEventListener('dblclick', resetView);
+  el('tReset').addEventListener('click', resetView);
 
   ['tFloors','tDiagrid','tRings','tNodes','tShaded'].forEach(function(id){
     el(id).addEventListener('change', render);
   });
-  window.addEventListener('themechange', function(){ css = {}; render(); });
+  window.addEventListener('themechange', function(){ css = {}; render(); paintBoard(); });
+
+  /* ── the spline board: draw the profile the tower follows ── */
+  var bd = { canvas: el('splBoard'), ctx: null, side: 0, inset: 18, scale: 1 };
+  bd.ctx = bd.canvas.getContext('2d');
+  var splWrap = el('splWrap'), modelWrap = el('modelWrap');
+
+  function sizeBoard(){
+    if(splWrap.hidden) return;
+    var side = Math.min(splWrap.clientWidth, splWrap.clientHeight) - 12;
+    if(side < 40) return;
+    var dpr = window.devicePixelRatio || 1;
+    bd.side = side;
+    bd.scale = (side - 2 * bd.inset) / LOGICAL;
+    bd.canvas.style.width = side + 'px'; bd.canvas.style.height = side + 'px';
+    bd.canvas.width = Math.round(side * dpr); bd.canvas.height = Math.round(side * dpr);
+    bd.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    paintBoard();
+  }
+
+  function paintBoard(){
+    if(splWrap.hidden || bd.side < 40) return;
+    var ctx = bd.ctx, sc = bd.scale, inset = bd.inset;
+    ctx.clearRect(0, 0, bd.side, bd.side);
+    ctx.save();
+    ctx.translate(inset, inset);
+    var span = LOGICAL * sc;
+    ctx.lineWidth = 1;
+    for(var g = 0; g <= LOGICAL; g += GRID){
+      var sp = g * sc;
+      ctx.strokeStyle = (g % (GRID * 5) === 0) ? inkA(.16) : inkA(.07);
+      ctx.beginPath(); ctx.moveTo(sp, 0); ctx.lineTo(sp, span); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, sp); ctx.lineTo(span, sp); ctx.stroke();
+    }
+    /* metre labels — x reads as radius, y as height */
+    ctx.fillStyle = FC('--muted');
+    ctx.font = '10px "Afacad Flux",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    for(var ux = 0; ux <= LOGICAL; ux += GRID * 5){
+      var lx2 = Math.max(8, Math.min(span - 8, ux * sc));
+      ctx.fillText(String(Math.round(ux / LOGICAL * S.H)), lx2, span - 2);
+    }
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    for(var uy = 0; uy < LOGICAL; uy += GRID * 5){
+      var ly2 = Math.max(8, Math.min(span - 8, uy * sc));
+      ctx.fillText(String(Math.round((LOGICAL - uy) / LOGICAL * S.H)), 3, ly2);
+    }
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    /* exoskeleton level hits on the profile */
+    for(var li = 0; li < M.exoZ.length; li++){
+      var hp = sampleAt(S.H > 0 ? M.exoZ[li] / S.H : 0).hit;
+      if(!hp) continue;
+      ctx.strokeStyle = inkA(.3); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, hp.y * sc); ctx.lineTo(hp.x * sc, hp.y * sc); ctx.stroke();
+      ctx.fillStyle = FC('--accent');
+      ctx.beginPath(); ctx.arc(hp.x * sc, hp.y * sc, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    var n = SP.pts.length;
+    if(n >= 2){
+      ctx.strokeStyle = FC('--muted');
+      ctx.lineWidth = 1.25;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(SP.pts[0].x * sc, SP.pts[0].y * sc);
+      for(var cp = 1; cp < n; cp++) ctx.lineTo(SP.pts[cp].x * sc, SP.pts[cp].y * sc);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    if(curve.length){
+      ctx.strokeStyle = FC('--accent');
+      ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(curve[0].x * sc, curve[0].y * sc);
+      for(var ci = 1; ci < curve.length; ci++) ctx.lineTo(curve[ci].x * sc, curve[ci].y * sc);
+      ctx.stroke();
+    }
+    for(var j2 = 0; j2 < n; j2++){
+      var px = SP.pts[j2].x * sc, py = SP.pts[j2].y * sc;
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fillStyle = (j2 === SP.sel) ? FC('--c-ink') : FC('--c-paper');
+      ctx.fill();
+      ctx.lineWidth = 1.25; ctx.strokeStyle = FC('--c-ink'); ctx.stroke();
+    }
+    if(!n){
+      ctx.fillStyle = FC('--muted');
+      ctx.font = '12px "Afacad Flux",sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Click to add spline control points — x is the radius, y the height', span / 2, span / 2);
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    }
+    ctx.restore();
+  }
+
+  function evLogical(e){
+    var rect = bd.canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left - bd.inset) / bd.scale,
+             y: (e.clientY - rect.top - bd.inset) / bd.scale };
+  }
+  function hitPoint(lx2, ly2){
+    var rad = 12 / bd.scale;
+    for(var i = SP.pts.length - 1; i >= 0; i--){
+      var dx = SP.pts[i].x - lx2, dy = SP.pts[i].y - ly2;
+      if(Math.sqrt(dx * dx + dy * dy) <= rad) return i;
+    }
+    return -1;
+  }
+  var bDragging = false;
+  function bMove(e){
+    if(!bDragging || SP.sel < 0) return;
+    e.preventDefault();
+    var L = evLogical(e);
+    SP.pts[SP.sel] = { x: snapVal(L.x), y: snapVal(L.y) };
+    recompute();
+  }
+  function bUp(){
+    bDragging = false;
+    document.removeEventListener('pointermove', bMove);
+    document.removeEventListener('pointerup', bUp);
+    document.removeEventListener('pointercancel', bUp);
+  }
+  bd.canvas.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    var L = evLogical(e);
+    var idx = hitPoint(L.x, L.y);
+    if(e.button === 2){
+      if(idx >= 0){ pushUndo(); SP.pts.splice(idx, 1); SP.sel = -1; recompute(); }
+      return;
+    }
+    if(idx >= 0){
+      pushUndo(); SP.sel = idx;
+    } else {
+      pushUndo();
+      SP.pts.push({ x: snapVal(L.x), y: snapVal(L.y) });
+      SP.sel = SP.pts.length - 1;
+    }
+    bDragging = true;
+    document.addEventListener('pointermove', bMove);
+    document.addEventListener('pointerup', bUp);
+    document.addEventListener('pointercancel', bUp);
+    recompute();
+  });
+  bd.canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  el('splUndo').addEventListener('click', function(){
+    if(SP.undoStack.length){ SP.pts = SP.undoStack.pop(); if(SP.sel >= SP.pts.length) SP.sel = -1; recompute(); }
+  });
+  el('splClear').addEventListener('click', function(){
+    if(SP.pts.length){ pushUndo(); SP.pts = []; SP.sel = -1; recompute(); }
+  });
+
+  /* ── centre tabs: 3D model | spline board ── */
+  var tabM = el('cTabModel'), tabS = el('cTabSpline');
+  function showCentre(which){
+    var mdl = (which === 'model');
+    tabM.classList.toggle('active', mdl);
+    tabS.classList.toggle('active', !mdl);
+    el('modelBar').hidden = !mdl;
+    el('splBar').hidden = mdl;
+    modelWrap.hidden = !mdl;
+    splWrap.hidden = mdl;
+    if(mdl){ resize(); } else { sizeBoard(); }
+  }
+  tabM.addEventListener('click', function(){ showCentre('model'); });
+  tabS.addEventListener('click', function(){ showCentre('spline'); });
 
   /* ── parameter wiring: slider + number pairs share one state key ── */
   function bindPair(key, id, lo, hi){
@@ -1055,10 +1291,6 @@
     n.addEventListener('input', function(){ set(parseFloat(this.value), n); });
   }
   bindPair('H',       'pHeight',  20, 500);
-  bindPair('baseDia', 'pBaseDia',  0, 120);
-  bindPair('bellyDia','pBellyDia', 0, 120);
-  bindPair('bellyH',  'pBellyH',  10, 90);
-  bindPair('crown',   'pCrown',    0, 90);
   bindPair('levelH',  'pLevelH',   1, 200);
   bindPair('topOff',  'pTopOff',   0, 500);
   bindPair('botOff',  'pBotOff',   0, 500);
@@ -1159,13 +1391,14 @@
     ]);
   });
   el('dlJson').addEventListener('click', function(){
-    var out = { page:'gherkin-studio', version:1, params:{} };
+    var out = { page:'gherkin-studio', version:2, params:{} };
     Object.keys(S).forEach(function(k2){ out.params[k2] = S[k2]; });
+    out.splinePoints = cloneP(SP.pts);
     window.saveCSVBatch([{ name:'gherkin-studio-settings.json',
       text:JSON.stringify(out, null, 2), mime:'application/json' }]);
   });
 
-  window.__studio = { S:S, M:M, v:v, recompute:recompute };
+  window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute, showCentre:showCentre };
 
   applyMatchVis();
   recompute();

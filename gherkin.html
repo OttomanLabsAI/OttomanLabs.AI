@@ -1736,7 +1736,7 @@
     heightAll.forEach(function(o){ o.value = bldgHeight; });
     // offset slider ranges track the height (number inputs stay 0..500)
     var half = Math.max(1, Math.round(bldgHeight));
-    if(eTopOff) eTopOff.max = 5;                /* top offset slider rides 0-5 m */
+    if(eTopOff) eTopOff.max = levelH / 2;       /* top offset rides 0 – half a bay */
     if(eBotOff) eBotOff.max = half;
     clampOffsets(); writeOffsets();
     updateFloorOuts();
@@ -1797,6 +1797,7 @@
   }
   function setTopOff(v){
     topOffset = Math.max(0, isFinite(v) ? v : topOffset);
+    topOffset = Math.min(topOffset, levelH / 2);   /* caps at half the level height */
     clampOffsets(); writeOffsets(); updateFloorOuts();
     window.frameTopOffset = topOffset;
     drawAll();
@@ -1814,6 +1815,8 @@
   function setLevelH(v){
     levelH = Math.max(1, Math.min(200, isFinite(v) ? v : levelH));
     if(eLH) eLH.value = levelH; if(eLHN) eLHN.value = levelH;
+    if(eTopOff) eTopOff.max = levelH / 2;          /* the cap rides the bay height */
+    if(topOffset > levelH / 2) setTopOff(levelH / 2);
     updateFloorOuts();
     drawAll();
   }
@@ -1971,16 +1974,16 @@
     var axB = project(0, 0, 0, A, B), axT = project(0, 0, zTop, A, B);
     all.push(axB, axT);
 
-    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for(i = 0; i < all.length; i++){
-      var P = all[i];
-      if(P.x < minX) minX = P.x; if(P.x > maxX) maxX = P.x;
-      if(P.y < minY) minY = P.y; if(P.y > maxY) maxY = P.y;
-    }
-    var bw = Math.max(1e-6, maxX - minX), bh = Math.max(1e-6, maxY - minY);
-    var fit = Math.min(w / bw, h / bh) * 0.82 * v.zoom;
-    var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
-    function S(P){ return { x: w / 2 + (P.x - ox) * fit, y: h / 2 + (P.y - oy) * fit }; }
+    /* fixed camera: frame the tower's bounding sphere, so orbiting never
+       re-fits — the model turns inside a still view instead of the view
+       chasing the model's projected extents every frame */
+    var Rm = 0.001;
+    for(i = 0; i < m.radii.length; i++){ if((m.radii[i] || 0) > Rm) Rm = (m.radii[i] || 0); }
+    var cz = zTop / 2;
+    var cR = Math.sqrt(Rm * Rm + cz * cz) || 1;
+    var fit = Math.min(w, h) / (2 * cR) * 0.95 * v.zoom;
+    var cc = project(0, 0, cz, A, B);
+    function S(P){ return { x: w / 2 + (P.x - cc.x) * fit, y: h / 2 + (P.y - cc.y) * fit }; }
 
     // z-axis reference
     if(o.axis){
@@ -2745,16 +2748,14 @@
       return;
     }
 
-    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for(i = 0; i < all.length; i++){
-      var Pp = all[i];
-      if(Pp.x < minX) minX = Pp.x; if(Pp.x > maxX) maxX = Pp.x;
-      if(Pp.y < minY) minY = Pp.y; if(Pp.y > maxY) maxY = Pp.y;
-    }
-    var bw = Math.max(1e-6, maxX - minX), bh = Math.max(1e-6, maxY - minY);
-    var fit = Math.min(w / bw, h / bh) * 0.82 * v.zoom;
-    var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
-    function S(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
+    /* fixed camera: bounding-sphere fit — orbiting never re-fits the view */
+    var Rm = 0.001;
+    for(i = 0; i < levels; i++){ var rE = effRadius(m.lv[i].r || 0); if(rE > Rm) Rm = rE; }
+    var cz = H / 2;
+    var cR = Math.sqrt(Rm * Rm + cz * cz) || 1;
+    var fit = Math.min(w, h) / (2 * cR) * 0.95 * v.zoom;
+    var cc = project(0, 0, cz, A, B);
+    function S(Pq){ return { x: w / 2 + (Pq.x - cc.x) * fit, y: h / 2 + (Pq.y - cc.y) * fit }; }
 
     if(o.axis){
       var b0 = S(axB), t0 = S(axT);
@@ -2996,16 +2997,15 @@
     var axB = project(0, 0, 0, A, B), axT = project(0, 0, H, A, B);
     all.push(axB, axT);
 
-    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for(i = 0; i < all.length; i++){
-      var Pp = all[i];
-      if(Pp.x < minX) minX = Pp.x; if(Pp.x > maxX) maxX = Pp.x;
-      if(Pp.y < minY) minY = Pp.y; if(Pp.y > maxY) maxY = Pp.y;
-    }
-    var bw = Math.max(1e-6, maxX - minX), bh = Math.max(1e-6, maxY - minY);
-    var fit = Math.min(w / bw, h / bh) * 0.84 * v.zoom;
-    var ox = (minX + maxX) / 2, oy = (minY + maxY) / 2;
-    function S(Pq){ return { x: w / 2 + (Pq.x - ox) * fit, y: h / 2 + (Pq.y - oy) * fit }; }
+    /* fixed camera: bounding-sphere fit — orbiting never re-fits the view */
+    var Rm = 0.001;
+    for(i = 0; i < m.levels; i++){ var rE = effRadius(m.lv[i].r || 0); if(rE > Rm) Rm = rE; }
+    for(k = 0; k < er.length; k++){ if((er[k] || 0) > Rm) Rm = (er[k] || 0); }
+    var cz = H / 2;
+    var cR = Math.sqrt(Rm * Rm + cz * cz) || 1;
+    var fit = Math.min(w, h) / (2 * cR) * 0.95 * v.zoom;
+    var cc = project(0, 0, cz, A, B);
+    function S(Pq){ return { x: w / 2 + (Pq.x - cc.x) * fit, y: h / 2 + (Pq.y - cc.y) * fit }; }
 
     var shadedCk = el('totalShaded');
     var shaded = !shadedCk || shadedCk.checked;
@@ -4060,6 +4060,31 @@
       r.readAsText(f);
     });
   }
+
+  // ── shipped defaults: the studio spline + settings land on every fresh load
+  //    (the visitor's theme choice is left alone — no theme key here) ──
+  var DEFAULT_CFG = {
+    version: 19,
+    controls: {
+      splineDegree: '3', splineClosed: false, splinePoly: true,
+      splineGrid: true, splineSnap: true,
+      bldgHeight: '100', zLevelHNum: '8', fZSec: '0', fMatchExo: true,
+      fF2FNum: '4', pointsSlider: '22', connectToggle: true, evenToggle: true,
+      fOffset: '0', fWedgeN: '0', fWedgeD: '0', fTwist: '2.5',
+      fCoreDia: '0', fCoreTop: '0',
+      fBotN: '0', fBotType: 'disc', fTopN: '0', fTopType: 'disc',
+      fMidType: 'wedged', fEvery: '0', fEveryType: 'disc',
+      zTopOffNum: '1', zBotOffNum: '0'
+    },
+    splinePoints: [ {x:0, y:0}, {x:90, y:0}, {x:120, y:300}, {x:90, y:600} ],
+    overrides: {},
+    customShape: 'circle',
+    orbitIso: 'all'
+  };
+  window.__applyCfg = apply;
+  apply(DEFAULT_CFG);
+  var bootInfo = el('cfgInfo');
+  if(bootInfo) bootInfo.textContent = 'Export saves the whole model to JSON · Import restores it.';
 })();
 </script>
 
