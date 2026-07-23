@@ -230,6 +230,12 @@
   #vwProt{ cursor:pointer; }
   .vw-read{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em;
     text-transform:uppercase; color:var(--ink-60); font-variant-numeric:tabular-nums; }
+  .vw-ctl{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+  .vw-lock, .vw-mini{ font-family:var(--font-brand); font-size:.56rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); display:flex; align-items:center; gap:.35rem; }
+  .vw-lock input{ width:13px; height:13px; accent-color:var(--ink); }
+  #vwDom{ flex:1; min-width:90px; height:26px; border:1px solid var(--hair);
+    cursor:ew-resize; touch-action:none; display:block; }
   .cs-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); text-align:center; padding:.15rem .9rem .1rem; }
   .cs-exports{ padding:.5rem 1.1rem .35rem; justify-content:center; }
@@ -649,7 +655,17 @@
         <div class="it-row it-wide" data-it="vwidget">
           <label>Viewport widget</label>
           <div class="vw-stack">
-            <canvas id="vwView" aria-label="Tapered column with in-viewport widgets — drag the red handles: the ruler sets the height, the dials set the rotations; empty space orbits"></canvas>
+            <canvas id="vwView" aria-label="Tapered column with in-viewport widgets — drag the red handles: the ruler sets the height, the round handles rotate, the square handles grow or shrink each circle; empty space orbits"></canvas>
+            <div class="vw-ctl">
+              <span class="vw-mini">rotation lock</span>
+              <button id="vwLockRot" class="it-toggle" type="button" aria-pressed="false" aria-label="Rotation lock"><span></span></button>
+              <span class="vw-mini">radial lock</span>
+              <button id="vwLockRad" class="it-toggle" type="button" aria-pressed="false" aria-label="Radial lock"><span></span></button>
+              <span class="vw-mini">radius range</span>
+              <input type="number" id="vwRadLo" value="150" min="60" max="800" step="10" aria-label="Radius minimum">
+              <canvas id="vwDom" aria-label="Radius range — drag the ends"></canvas>
+              <input type="number" id="vwRadHi" value="600" min="60" max="800" step="10" aria-label="Radius maximum">
+            </div>
             <div class="vw-read" id="vwRead">&mdash;</div>
           </div>
         </div>
@@ -657,6 +673,14 @@
           <label>Angle widget</label>
           <div class="vw-stack">
             <canvas id="vwProt" aria-label="Angle widget — drag to set the angle between 0 and 180 degrees"></canvas>
+            <div class="vw-ctl">
+              <span class="vw-mini">read as</span>
+              <select id="vwProtUnit" aria-label="Angle unit">
+                <option value="deg">degrees</option>
+                <option value="rad">radians</option>
+                <option value="slope">1:x slope</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -4803,10 +4827,17 @@
   function FACE(){ return dark() ? '#1E1E1E' : '#F1F1EE'; }
   function FACET(){ return dark() ? '#171717' : '#FAFAF8'; }
 
-  /* ── the model: height in mm, twists in degrees ── */
-  var W = { H: 1000, top: 30, base: 0 };
-  var HMAX = 1400, HMIN = 100, HB = 280, HT = 160;
-  var RULX = 470, DRB = 430, DRT = 290;
+  /* ── the model: height in mm, twists in degrees, dial radii in mm ── */
+  var W = { H: 1000, top: 30, base: 0, RB: 430, RT: 290 };
+  var RLO = 150, RHI = 600;                       /* the radius range (typed + domain) */
+  var RBND = { lo: 60, hi: 800 };                 /* absolute bounds of the range itself */
+  var HWF = 0.62;                                 /* circle radius → square half-width */
+  var HMAX = 1400, HMIN = 100;
+  var RULX = 470;
+  var lockRotEl = document.getElementById('vwLockRot');
+  var lockRadEl = document.getElementById('vwLockRad');
+  function lockRot(){ return !!(lockRotEl && lockRotEl.getAttribute('aria-pressed') === 'true'); }
+  function lockRad(){ return !!(lockRadEl && lockRadEl.getAttribute('aria-pressed') === 'true'); }
   var cam = { az: 0.62, pitch: 0.5, zoom: 1 };
   var vw = 0, vh = 0, pw = 0, ph = 0;
   var HND = {};
@@ -4843,8 +4874,8 @@
     vctx.clearRect(0, 0, vw, vh);
     var red = RED();
 
-    /* the solid: base square, smaller twisted top square, painter-sorted */
-    var bot = corners(HB, 0, W.base), top = corners(HT, W.H, W.base + W.top);
+    /* the solid: the squares ride their circles — grow a circle, grow the column */
+    var bot = corners(W.RB * HWF, 0, W.base), top = corners(W.RT * HWF, W.H, W.base + W.top);
     var F = [];
     function face(pts, fill){
       var d = 0, scr = [];
@@ -4927,29 +4958,55 @@
       vctx.globalAlpha = .5; vctx.setLineDash([5, 5]);
       vctx.beginPath(); vctx.moveTo(C.x, C.y); vctx.lineTo(hp.x, hp.y); vctx.stroke();
       vctx.setLineDash([]); vctx.globalAlpha = 1;
+      /* round handle rotates (ghosted under a rotation lock) */
+      vctx.globalAlpha = lockRot() ? .3 : 1;
       vctx.beginPath(); vctx.arc(hp.x, hp.y, 6, 0, 2 * Math.PI);
       vctx.fillStyle = PAPER(); vctx.fill();
       vctx.lineWidth = 2; vctx.stroke();
-      vctx.fillStyle = red;
-      return hp;
+      /* square handle grows/shrinks the circle (ghosted under a radial lock) */
+      var tq = (handleDeg + 90) * Math.PI / 180;
+      var sq = S3(R * Math.cos(tq), R * Math.sin(tq), zc);
+      vctx.globalAlpha = lockRad() ? .3 : 1;
+      vctx.beginPath(); vctx.rect(sq.x - 5, sq.y - 5, 10, 10);
+      vctx.fillStyle = PAPER(); vctx.fill();
+      vctx.stroke();
+      vctx.globalAlpha = 1;
+      vctx.fillStyle = red; vctx.lineWidth = 1.1;
+      return { rot: hp, rad: sq };
     }
-    HND.base = dial(DRB, 0, W.base, true);
-    HND.top = dial(DRT, W.H, W.base + W.top, false);
+    var hb = dial(W.RB, 0, W.base, true);
+    var ht = dial(W.RT, W.H, W.base + W.top, false);
+    HND.base = hb.rot; HND.rb = hb.rad;
+    HND.top = ht.rot; HND.rt = ht.rad;
 
-    if(readEl) readEl.textContent = 'height ' + Math.round(W.H) + ' mm · top twist ' +
-      (Math.round(W.top * 10) / 10) + '° · base ' +
+    if(readEl) readEl.textContent = 'height ' + Math.round(W.H) + ' mm · base r ' +
+      Math.round(W.RB) + ' · top r ' + Math.round(W.RT) + ' · twist ' +
+      (Math.round(W.top * 10) / 10) + '° · spin ' +
       (Math.round(W.base * 10) / 10) + '° — dragged, not typed';
   }
 
   /* ── view interaction: handles first, orbit otherwise ── */
   function hitHandle(mx, my){
-    var keys = ['h', 'top', 'base'];
+    var keys = ['h'];
+    if(!lockRot()) keys.push('top', 'base');
+    if(!lockRad()) keys.push('rt', 'rb');
     for(var i = 0; i < keys.length; i++){
       var p = HND[keys[i]];
       if(p && Math.hypot(p.x - mx, p.y - my) <= 13) return keys[i];
     }
     return null;
   }
+  function radiusFromMouse(zc, mx, my){
+    var C = S3(0, 0, zc), U = S3(1, 0, zc), V = S3(0, 1, zc);
+    var ux = U.x - C.x, uy = U.y - C.y, vx = V.x - C.x, vy = V.y - C.y;
+    var det = ux * vy - uy * vx;
+    if(Math.abs(det) < 1e-9) return null;
+    var rx = mx - C.x, ry = my - C.y;
+    var c = (rx * vy - ry * vx) / det;
+    var s = (ry * ux - rx * uy) / det;
+    return Math.hypot(c, s);
+  }
+  function clampR(r){ return Math.max(RLO, Math.min(RHI, r)); }
   function angleFromMouse(R, zc, mx, my){
     var C = S3(0, 0, zc), U = S3(R, 0, zc), V = S3(0, R, zc);
     var ux = U.x - C.x, uy = U.y - C.y, vx = V.x - C.x, vy = V.y - C.y;
@@ -4977,11 +5034,17 @@
     } else if(mode === 'h'){
       W.H = Math.max(HMIN, Math.min(HMAX, H0 + (y0 - e.clientY) / kPix));
     } else if(mode === 'top'){
-      var a = angleFromMouse(DRT, W.H, m.x, m.y);
+      var a = angleFromMouse(W.RT, W.H, m.x, m.y);
       if(a != null) W.top = norm(a - W.base);
     } else if(mode === 'base'){
-      var a2 = angleFromMouse(DRB, 0, m.x, m.y);
+      var a2 = angleFromMouse(W.RB, 0, m.x, m.y);
       if(a2 != null) W.base = norm(a2);
+    } else if(mode === 'rt'){
+      var rr = radiusFromMouse(W.H, m.x, m.y);
+      if(rr != null) W.RT = clampR(rr);
+    } else if(mode === 'rb'){
+      var rr2 = radiusFromMouse(0, m.x, m.y);
+      if(rr2 != null) W.RB = clampR(rr2);
     }
     drawView();
   }
@@ -5017,6 +5080,79 @@
   }, { passive: false });
   if(view) view.addEventListener('dblclick', function(){
     cam.az = 0.62; cam.pitch = 0.5; cam.zoom = 1; drawView();
+  });
+
+  /* ── the radius range: typed min/max + a domain track, one clamp ── */
+  var dom = document.getElementById('vwDom');
+  var domCtx = dom ? dom.getContext('2d') : null;
+  var radLo = document.getElementById('vwRadLo'), radHi = document.getElementById('vwRadHi');
+  var dw = 0, dh = 0;
+  function domX(r){ return 8 + (r - RBND.lo) / (RBND.hi - RBND.lo) * (dw - 16); }
+  function domR(x){ return RBND.lo + (x - 8) / Math.max(1, dw - 16) * (RBND.hi - RBND.lo); }
+  function drawDom(){
+    if(!domCtx || dw < 20) return;
+    domCtx.clearRect(0, 0, dw, dh);
+    var mid = dh / 2, red = RED();
+    domCtx.strokeStyle = INK(.25); domCtx.lineWidth = 1;
+    domCtx.beginPath(); domCtx.moveTo(8, mid); domCtx.lineTo(dw - 8, mid); domCtx.stroke();
+    var xa = domX(RLO), xb = domX(RHI);
+    domCtx.strokeStyle = red; domCtx.lineWidth = 3;
+    domCtx.beginPath(); domCtx.moveTo(xa, mid); domCtx.lineTo(xb, mid); domCtx.stroke();
+    domCtx.lineWidth = 1.4; domCtx.fillStyle = PAPER();
+    [xa, xb].forEach(function(x){
+      domCtx.beginPath(); domCtx.rect(x - 4, mid - 6, 8, 12);
+      domCtx.fill(); domCtx.stroke();
+    });
+  }
+  function applyRange(){
+    if(RLO > RHI){ var t2 = RLO; RLO = RHI; RHI = t2; }
+    RLO = Math.max(RBND.lo, Math.min(RBND.hi, RLO));
+    RHI = Math.max(RBND.lo, Math.min(RBND.hi, RHI));
+    if(RHI - RLO < 20) RHI = Math.min(RBND.hi, RLO + 20);
+    if(radLo) radLo.value = Math.round(RLO);
+    if(radHi) radHi.value = Math.round(RHI);
+    W.RB = clampR(W.RB); W.RT = clampR(W.RT);
+    drawDom(); drawView();
+  }
+  if(radLo) radLo.addEventListener('change', function(){
+    var v2 = parseFloat(this.value);
+    if(isFinite(v2)) RLO = v2;
+    applyRange();
+  });
+  if(radHi) radHi.addEventListener('change', function(){
+    var v2 = parseFloat(this.value);
+    if(isFinite(v2)) RHI = v2;
+    applyRange();
+  });
+  var dDrag = null;
+  function dSet(e){
+    var r = dom.getBoundingClientRect();
+    var v2 = domR(e.clientX - r.left);
+    if(dDrag === 'lo') RLO = Math.min(v2, RHI - 20);
+    else RHI = Math.max(v2, RLO + 20);
+    applyRange();
+  }
+  function dMove(e){ if(dDrag){ e.preventDefault(); dSet(e); } }
+  function dUp(){
+    dDrag = null;
+    document.removeEventListener('pointermove', dMove);
+    document.removeEventListener('pointerup', dUp);
+    document.removeEventListener('pointercancel', dUp);
+  }
+  if(dom) dom.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    var r = dom.getBoundingClientRect(), x = e.clientX - r.left;
+    dDrag = (Math.abs(x - domX(RLO)) <= Math.abs(x - domX(RHI))) ? 'lo' : 'hi';
+    dSet(e);
+    document.addEventListener('pointermove', dMove);
+    document.addEventListener('pointerup', dUp);
+    document.addEventListener('pointercancel', dUp);
+  });
+  [lockRotEl, lockRadEl].forEach(function(cb){
+    if(cb) cb.addEventListener('click', function(){
+      cb.setAttribute('aria-pressed', cb.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+      drawView();
+    });
   });
 
   /* ── the angular widget: a 0-180 protractor, dragged not typed ── */
@@ -5077,11 +5213,23 @@
       pctx.closePath(); pctx.fill();
     }
     /* the value rides the handle radius */
+    /* the value reads in the chosen unit — degrees, radians or 1:x slope */
+    var uSel = document.getElementById('vwProtUnit');
+    var unit = uSel ? uSel.value : 'deg', txt;
+    if(unit === 'rad') txt = (PA * Math.PI / 180).toFixed(3) + ' rad';
+    else if(unit === 'slope'){
+      if(PA <= 0.05) txt = '1:\u221E';
+      else {
+        var run = 1 / Math.tan(PA * Math.PI / 180);
+        txt = '1:' + (Math.abs(run) < 0.005 ? '0' : run.toFixed(2));
+      }
+    }
+    else txt = PA.toFixed(2) + '°';
     pctx.save();
     pctx.translate(cx, cy);
     var aR = PA * Math.PI / 180;
-    if(PA <= 90){ pctx.rotate(-aR); pctx.textAlign = 'center'; pctx.fillText(PA.toFixed(2) + '°', R * 0.42, -10); }
-    else { pctx.rotate(Math.PI - aR); pctx.fillText(PA.toFixed(2) + '°', -R * 0.42, -10); }
+    if(PA <= 90){ pctx.rotate(-aR); pctx.textAlign = 'center'; pctx.fillText(txt, R * 0.42, -10); }
+    else { pctx.rotate(Math.PI - aR); pctx.fillText(txt, -R * 0.42, -10); }
     pctx.restore();
     /* the handle */
     var hp = pPt(cx, cy, R, PA);
@@ -5090,6 +5238,8 @@
     pctx.lineWidth = 2; pctx.stroke();
     pctx.fillStyle = red;
   }
+  var protUnitSel = document.getElementById('vwProtUnit');
+  if(protUnitSel) protUnitSel.addEventListener('change', drawProt);
   var pDrag = false;
   function protSet(e){
     var r = prot.getBoundingClientRect();
@@ -5114,7 +5264,7 @@
   });
 
   /* ── sizing + theme ── */
-  function drawAll(){ drawView(); drawProt(); }
+  function drawAll(){ drawView(); drawProt(); drawDom(); }
   function size(){
     var dpr = Math.max(window.devicePixelRatio || 1, 1);
     if(view){
@@ -5135,6 +5285,14 @@
         pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
     }
+    if(dom){
+      var rd = dom.getBoundingClientRect();
+      if(rd.width >= 20){
+        dw = rd.width; dh = rd.height;
+        dom.width = Math.round(dw * dpr); dom.height = Math.round(dh * dpr);
+        domCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
     drawAll();
   }
   window.addEventListener('resize', size);
@@ -5148,6 +5306,7 @@
 
   window.__vw = { W: W, cam: cam, angle: function(){ return PA; },
                   setAngle: function(a){ PA = Math.max(0, Math.min(180, a)); drawProt(); },
+                  range: function(){ return { lo: RLO, hi: RHI }; },
                   hnd: function(){ return HND; }, draw: drawAll };
   size();
 })();
@@ -5196,8 +5355,8 @@
         '- a domain: one track, two draggable ends, synced entries that cannot cross',
         '- a value list dropdown, a momentary button that reads true while held, and a text input',
         '- a gene pool of five vertical sliders',
-        '- a 3D viewport widget: an orthographic tapered column edited by dragging red in-viewport handles — a height ruler with ticks and labels, an angular dial spinning the base and a smaller dial twisting the top face — orbit on empty space, wheel zoom, fixed camera so nothing re-fits mid-drag',
-        '- an angle widget: an ink-black 0-180° protractor with ticks every 3°, labels every 15°, dashed radii, a swept-angle arrow and a draggable rim handle reading to two decimals',
+        '- a 3D viewport widget: an orthographic tapered column edited by dragging red in-viewport handles — a height ruler with ticks and labels, an angular dial spinning the base and a smaller dial twisting the top face, plus a square handle on each dial rim that grows or shrinks that circle (the column follows). Rotation and radial lock toggles ghost and disable their handles, and the circle radius is clamped to a range set both by typed min/max entries and a two-ended domain track. Orbit on empty space, wheel zoom, fixed camera so nothing re-fits mid-drag',
+        '- an angle widget: an ink-black 0-180° protractor with ticks every 3°, labels every 15°, dashed radii, a swept-angle arrow and a draggable rim handle — its value reads in degrees, radians or 1:x slope from a dropdown',
         '',
         'Every control syncs both ways — graphical and numerical. Handle dots stay fully visible when a value sits on its boundary, while the value itself stays clamped to the range. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
       } },

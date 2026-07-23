@@ -70,6 +70,8 @@
     background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
   .scheme-hole .dl-list a.pyg-dl{ background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
   .scheme-hole .dl-list a.pyg-dl:hover{ background:#0A0C14; color:#FFD9A0; }
+  #tGlowWrap{ display:none; }
+  .scheme-hole #tGlowWrap{ display:inline-flex; }
 
   /* ── the Building Profile pop-over: edit the spline over the live model ── */
   .spl-pop{ position:absolute; left:14px; top:14px; z-index:3; width:min(48%, 400px);
@@ -377,6 +379,7 @@
         <label class="toggle"><input type="checkbox" id="tRings" checked> Ring beams</label>
         <label class="toggle"><input type="checkbox" id="tNodes" checked> Nodes</label>
         <label class="toggle"><input type="checkbox" id="tShaded" checked> Shaded</label>
+        <label class="toggle" id="tGlowWrap"><input type="checkbox" id="tGlow" checked> Glow</label>
         <button id="tReset" type="button">Reset view</button>
         <span class="model-hint">drag to orbit &middot; right-drag pans &middot; wheel zooms &middot; double-click resets</span>
       </div>
@@ -935,6 +938,7 @@
 
   /* ── black-hole scheme: a still starfield behind a glowing structure ── */
   function isHole(){ return window.__scheme === 'hole'; }
+  function glowOn(){ var g = el('tGlow'); return !g || g.checked; }
   var STARS = (function(){
     var seed = 1234567, out = [];
     function rnd(){ seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
@@ -1032,7 +1036,7 @@
     function SS(Pq){ return { x: w / 2 + v.panx + (Pq.x - cc.x) * fit,
                               y: h / 2 + v.pany + (Pq.y - cc.y) * fit }; }
 
-    if(hole){ ctx.shadowColor = HC.plateGlow; ctx.shadowBlur = 7; }
+    if(hole && glowOn()){ ctx.shadowColor = HC.plateGlow; ctx.shadowBlur = 7; }
     if(shaded){
       /* shaded plates, far → near, ordered by plate-centre depth */
       var order = plates.map(function(pl, idx){
@@ -1097,7 +1101,7 @@
     /* the exoskeleton wraps it: diagrid braces + horizontal ring beams */
     ctx.strokeStyle = hole ? HC.brace : inkA(.9);
     ctx.lineWidth = 1.1;
-    if(hole){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 10; }
+    if(hole && glowOn()){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 10; }
     if(showGrid){
       for(k = 0; k + 1 < nodePts.length; k++){
         var ndLo = nodePts[k], ndUp = nodePts[k + 1];
@@ -1126,7 +1130,7 @@
       ctx.fillStyle = hole ? HC.node : FC('--c-paper');
       ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
       ctx.lineWidth = 1;
-      if(hole){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
+      if(hole && glowOn()){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
       for(k = 0; k < nodePts.length; k++){
         var ndp = nodePts[k];
         if(!ndp) continue;
@@ -1193,8 +1197,8 @@
   v.canvas.addEventListener('dblclick', resetView);
   el('tReset').addEventListener('click', resetView);
 
-  ['tFloors','tDiagrid','tRings','tNodes','tShaded'].forEach(function(id){
-    el(id).addEventListener('change', render);
+  ['tFloors','tDiagrid','tRings','tNodes','tShaded','tGlow'].forEach(function(id){
+    el(id).addEventListener('change', function(){ render(); paintBoard(); });
   });
   window.addEventListener('themechange', function(){ css = {}; render(); paintBoard(); });
 
@@ -1271,7 +1275,7 @@
     if(curve.length){
       ctx.strokeStyle = cAccent;
       ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
-      if(hole){ ctx.shadowColor = '#FF8C2E'; ctx.shadowBlur = 8; }
+      if(hole && glowOn()){ ctx.shadowColor = '#FF8C2E'; ctx.shadowBlur = 8; }
       ctx.beginPath();
       ctx.moveTo(curve[0].x * sc, curve[0].y * sc);
       for(var ci = 1; ci < curve.length; ci++) ctx.lineTo(curve[ci].x * sc, curve[ci].y * sc);

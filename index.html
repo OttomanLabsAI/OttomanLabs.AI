@@ -144,6 +144,8 @@
   }
   .opt-dash{ left:3%; }
   .opt-tut{ right:3%; }
+  .opt-studio{ left:50%; transform:translateX(-50%); }
+  .sel-opt[hidden]{ display:none; }
   .sel-opt small{ font-size:.5rem; font-weight:500; letter-spacing:.18em; opacity:.75; }
   .sel-opt:hover{ background:#fff; color:#111; text-decoration:none; }
   .sel-opt[aria-disabled="true"]{ color:rgba(255,255,255,.55); border-color:rgba(255,255,255,.5); cursor:default; }
@@ -236,6 +238,7 @@
         <button class="sel-arrow prev" id="selPrev" aria-label="Previous project">&#8249;</button>
         <button class="sel-arrow next" id="selNext" aria-label="Next project">&#8250;</button>
         <a class="sel-opt opt-dash" id="selDash" href="gherkin.html">Concept design<small>open the model</small></a>
+        <a class="sel-opt opt-studio" id="selStudio" href="gherkin-studio.html">Studio<small>one-board dashboard</small></a>
         <a class="sel-opt opt-tut" id="selTut" href="#" aria-disabled="true">Concept design tutorial<small>coming soon</small></a>
       </div>
       <div class="sel-banner" id="selBanner" aria-live="polite">
@@ -467,7 +470,7 @@
 
   // dash / tut: destinations for the two entry options (null = coming soon)
   var PROJECTS = [
-    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london', foot:0.44 },
+    { the:'The',     name:'GHERKIN',  chip:'The Gherkin',      dash:'gherkin.html', studio:'gherkin-studio.html', tut:null, draw:drawGherkin,  shadow:0.34, theme:'london', foot:0.44 },
     { the:'The',     name:'SHARD',    chip:'The Shard',        dash:null,             tut:null, draw:drawShard,    shadow:0.20, theme:'city', foot:0.38 },
     { the:'Burj',    name:'KHALIFA',  chip:'Burj Khalifa',     dash:null,             tut:null, draw:drawBurj,     shadow:0.32, theme:'dubai', foot:0.42 },
     { the:'Regents', name:'CRESCENT', chip:'Regents Crescent', dash:null,             tut:null, draw:drawCrescent, shadow:0.48, theme:'regency', foot:0.58 },
@@ -1091,6 +1094,11 @@
     nameEl.textContent = (p.the + ' ' + p.name).toUpperCase();
     setOpt(dashBtn, p.dash, 'open the model');
     setOpt(tutBtn, p.tut, 'start learning');
+    var studioBtn = document.getElementById('selStudio');
+    if(studioBtn){
+      studioBtn.hidden = !p.studio;
+      if(p.studio) studioBtn.setAttribute('href', p.studio);
+    }
   }
   [dashBtn, tutBtn].forEach(function(btn){
     btn.addEventListener('click', function(e){
