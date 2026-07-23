@@ -48,9 +48,28 @@
     letter-spacing:.2em; text-transform:uppercase; cursor:pointer;
     padding:.5rem .7rem .42rem; text-decoration:none; line-height:1;
   }
-  .ts-btn:hover{ background:var(--ink); color:var(--paper); }
+  .ts-btn:hover, .ts-btn.active{ background:var(--ink); color:var(--paper); }
   .title-strip .ts-btn:first-child{ margin-right:auto; }
-  .title-strip .ts-btn:last-child{ margin-left:auto; }
+  .title-strip .ts-schemes{ margin-left:auto; display:flex; gap:.4rem; flex-wrap:wrap; }
+
+  /* ── black-hole scheme: the board goes to deep space, amber glow accents ── */
+  body.scheme-hole{ background:#05060A; }
+  .scheme-hole .title-strip, .scheme-hole .card, .scheme-hole .model-bar,
+  .scheme-hole .plot-wrap, .scheme-hole .readout{ background:#0A0C14; border-color:#242A3C; }
+  .scheme-hole .sec-h{ color:#FFD9A0; border-bottom-color:#FFB25E; }
+  .scheme-hole .sec-h small{ color:#8E93A8; }
+  .scheme-hole .tab.active{ color:#FFD9A0; border-bottom-color:#FFB25E; }
+  .scheme-hole .readout b, .scheme-hole .statline b{ color:#FFD9A0; }
+  .scheme-hole input[type=range], .scheme-hole .toggle input{ accent-color:#FFB25E; }
+  .scheme-hole input[type=number]{ background:#0A0C14; border-color:#242A3C; }
+  .scheme-hole .ts-btn, .scheme-hole .model-bar button, .scheme-hole .board-actions button,
+  .scheme-hole .dl-list a, .scheme-hole .dl-list button{ background:#0A0C14; border-color:#242A3C; }
+  .scheme-hole .ts-btn:hover, .scheme-hole .ts-btn.active,
+  .scheme-hole .model-bar button:hover, .scheme-hole .board-actions button:hover,
+  .scheme-hole .dl-list a:hover, .scheme-hole .dl-list button:hover{
+    background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
+  .scheme-hole .dl-list a.pyg-dl{ background:#FFB25E; color:#0A0C14; border-color:#FFB25E; }
+  .scheme-hole .dl-list a.pyg-dl:hover{ background:#0A0C14; color:#FFD9A0; }
 
   /* ── centre tabs + spline board ── */
   .ctabs{ padding:0; gap:.4rem 1.4rem; }
@@ -139,7 +158,10 @@
     .plot-wrap{ height:clamp(340px, 58vh, 620px); }
   }
 </style>
-<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<script>(function(){try{
+  var s=localStorage.getItem('ol-studio-scheme'), t=localStorage.getItem('ol-theme');
+  if(s==='dark'||s==='hole'||(!s&&t==='dark')) document.documentElement.setAttribute('data-theme','dark');
+}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
 </head>
 <body>
@@ -273,7 +295,11 @@
     <span class="ital">The</span>
     <span class="name">GHERKIN</span>
     <span class="caps caps-tight muted" style="font-size:.62rem">Studio &middot; the model in the middle, every parameter around it</span>
-    <button class="ts-btn" id="themeToggle" type="button" aria-pressed="false" title="Toggle light / dark"><span id="themeLabel">Dark</span></button>
+    <div class="ts-schemes" role="group" aria-label="Colour scheme">
+      <button class="ts-btn scheme-btn" data-scheme="paper" type="button">Paper</button>
+      <button class="ts-btn scheme-btn" data-scheme="dark" type="button">Dark</button>
+      <button class="ts-btn scheme-btn" data-scheme="hole" type="button">Black Hole</button>
+    </div>
   </div>
 
   <div class="studio">
@@ -887,10 +913,43 @@
   var v = { canvas: el('studioModel'), ctx: null, w:0, h:0, az:0.6, pitch:0.95, zoom:1, panx:0, pany:0 };
   v.ctx = v.canvas.getContext('2d');
 
+  /* ── black-hole scheme: a still starfield behind a glowing structure ── */
+  function isHole(){ return window.__scheme === 'hole'; }
+  var STARS = (function(){
+    var seed = 1234567, out = [];
+    function rnd(){ seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    for(var i = 0; i < 170; i++){
+      out.push({ x: rnd(), y: rnd(), r: 0.4 + rnd() * 1.0,
+                 a: 0.15 + rnd() * 0.75, warm: rnd() < 0.18 });
+    }
+    return out;
+  })();
+  var HC = {
+    brace:'rgba(255,150,50,.95)', ring:'rgba(255,132,38,.85)', glow:'#FF7A1E',
+    node:'#FFC97E', nodeEdge:'#FF8C2E',
+    plateSide:'#170E06', plateTop:'#0B0D15', plateEdge:'rgba(255,132,38,.9)'
+  };
+  function paintSpace(ctx, w, h){
+    ctx.fillStyle = '#05060A';
+    ctx.fillRect(0, 0, w, h);
+    var g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(60, Math.min(w, h) * 0.55));
+    g.addColorStop(0, 'rgba(255,140,46,0.10)');
+    g.addColorStop(1, 'rgba(255,140,46,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    for(var i = 0; i < STARS.length; i++){
+      var st = STARS[i];
+      ctx.fillStyle = st.warm ? 'rgba(255,205,150,' + st.a + ')' : 'rgba(215,225,255,' + st.a + ')';
+      ctx.beginPath(); ctx.arc(st.x * w, st.y * h, st.r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
   function render(){
     var ctx = v.ctx, w = v.w, h = v.h;
     if(w <= 0 || h <= 0) return;
     ctx.clearRect(0, 0, w, h);
+    var hole = isHole();
+    if(hole) paintSpace(ctx, w, h);
 
     var A = v.az, B = v.pitch, t = S.thick / 1000;
     var showFloors = el('tFloors').checked, showGrid = el('tDiagrid').checked;
@@ -911,11 +970,11 @@
           var pt = project(ring[s].x, ring[s].y, L.z + t, A, B);
           bot.push(pb); top.push(pt); all.push(pb, pt);
         }
-        var cr = coreRadius(), hole = null;
+        var cr = coreRadius(), hv = null;
         if(cr > 1e-6 && i <= S.coreTop && cr < re - 1e-6){
-          hole = discOutline(cr).map(function(p){ return project(p.x, p.y, L.z + t, A, B); });
+          hv = discOutline(cr).map(function(p){ return project(p.x, p.y, L.z + t, A, B); });
         }
-        plates.push({ bot: bot, top: top, hole: hole, z: L.z });
+        plates.push({ bot: bot, top: top, hole: hv, z: L.z });
       }
     }
 
@@ -953,6 +1012,7 @@
     function SS(Pq){ return { x: w / 2 + v.panx + (Pq.x - cc.x) * fit,
                               y: h / 2 + v.pany + (Pq.y - cc.y) * fit }; }
 
+    if(hole){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 7; }
     if(shaded){
       /* shaded plates, far → near, ordered by plate-centre depth */
       var order = plates.map(function(pl, idx){
@@ -976,13 +1036,13 @@
         for(var q3 = 1; q3 < botArc.length; q3++){ var ps = SS(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
         for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = SS(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
         ctx.closePath();
-        ctx.fillStyle = FC('--c-band'); ctx.fill();
-        ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.fillStyle = hole ? HC.plateSide : FC('--c-band'); ctx.fill();
+        ctx.strokeStyle = hole ? HC.plateEdge : FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
         ctx.beginPath();
         var t1 = SS(pl.top[0]); ctx.moveTo(t1.x, t1.y);
         for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = SS(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
         ctx.closePath();
-        ctx.fillStyle = FC('--c-paper');
+        ctx.fillStyle = hole ? HC.plateTop : FC('--c-paper');
         ctx.fill();
         ctx.stroke();
         if(pl.hole){
@@ -990,12 +1050,12 @@
           var h0 = SS(pl.hole[0]); ctx.moveTo(h0.x, h0.y);
           for(var q6 = 1; q6 < pl.hole.length; q6++){ var hp = SS(pl.hole[q6]); ctx.lineTo(hp.x, hp.y); }
           ctx.closePath();
-          ctx.fillStyle = FC('--c-band'); ctx.fill();
+          ctx.fillStyle = hole ? HC.plateSide : FC('--c-band'); ctx.fill();
           ctx.stroke();
         }
       });
     } else {
-      ctx.strokeStyle = FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
+      ctx.strokeStyle = hole ? HC.brace : FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
       plates.forEach(function(pl){
         ctx.beginPath();
         var p0 = SS(pl.bot[0]); ctx.moveTo(p0.x, p0.y);
@@ -1015,8 +1075,9 @@
     }
 
     /* the exoskeleton wraps it: diagrid braces + horizontal ring beams */
-    ctx.strokeStyle = inkA(.9);
+    ctx.strokeStyle = hole ? HC.brace : inkA(.9);
     ctx.lineWidth = 1.1;
+    if(hole){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 10; }
     if(showGrid){
       for(k = 0; k + 1 < nodePts.length; k++){
         var ndLo = nodePts[k], ndUp = nodePts[k + 1];
@@ -1031,6 +1092,7 @@
       }
     }
     if(showRings){
+      if(hole) ctx.strokeStyle = HC.ring;
       for(k = 0; k < nodePts.length; k++){
         var ndr = nodePts[k];
         if(!ndr) continue;
@@ -1041,9 +1103,10 @@
       }
     }
     if(showNodes){
-      ctx.fillStyle = FC('--c-paper');
-      ctx.strokeStyle = FC('--c-ink');
+      ctx.fillStyle = hole ? HC.node : FC('--c-paper');
+      ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
       ctx.lineWidth = 1;
+      if(hole) ctx.shadowBlur = 10;
       for(k = 0; k < nodePts.length; k++){
         var ndp = nodePts[k];
         if(!ndp) continue;
@@ -1053,6 +1116,7 @@
         }
       }
     }
+    ctx.shadowBlur = 0;
   }
 
   /* ── canvas sizing + orbit ── */
@@ -1135,6 +1199,10 @@
   function paintBoard(){
     if(splWrap.hidden || bd.side < 40) return;
     var ctx = bd.ctx, sc = bd.scale, inset = bd.inset;
+    var hole = isHole();
+    var cAccent = hole ? '#FFB25E' : FC('--accent');
+    var cInkPt  = hole ? '#FFD9A0' : FC('--c-ink');
+    var cPaper  = hole ? '#0A0C14' : FC('--c-paper');
     ctx.clearRect(0, 0, bd.side, bd.side);
     ctx.save();
     ctx.translate(inset, inset);
@@ -1166,7 +1234,7 @@
       if(!hp) continue;
       ctx.strokeStyle = inkA(.3); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, hp.y * sc); ctx.lineTo(hp.x * sc, hp.y * sc); ctx.stroke();
-      ctx.fillStyle = FC('--accent');
+      ctx.fillStyle = cAccent;
       ctx.beginPath(); ctx.arc(hp.x * sc, hp.y * sc, 2.5, 0, Math.PI * 2); ctx.fill();
     }
     var n = SP.pts.length;
@@ -1181,19 +1249,21 @@
       ctx.setLineDash([]);
     }
     if(curve.length){
-      ctx.strokeStyle = FC('--accent');
+      ctx.strokeStyle = cAccent;
       ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+      if(hole){ ctx.shadowColor = '#FF8C2E'; ctx.shadowBlur = 8; }
       ctx.beginPath();
       ctx.moveTo(curve[0].x * sc, curve[0].y * sc);
       for(var ci = 1; ci < curve.length; ci++) ctx.lineTo(curve[ci].x * sc, curve[ci].y * sc);
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
     for(var j2 = 0; j2 < n; j2++){
       var px = SP.pts[j2].x * sc, py = SP.pts[j2].y * sc;
       ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
-      ctx.fillStyle = (j2 === SP.sel) ? FC('--c-ink') : FC('--c-paper');
+      ctx.fillStyle = (j2 === SP.sel) ? cInkPt : cPaper;
       ctx.fill();
-      ctx.lineWidth = 1.25; ctx.strokeStyle = FC('--c-ink'); ctx.stroke();
+      ctx.lineWidth = 1.25; ctx.strokeStyle = cInkPt; ctx.stroke();
     }
     if(!n){
       ctx.fillStyle = FC('--muted');
@@ -1408,19 +1478,30 @@
 
 <script>
 (function(){
-  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
-  function paint(dark){
-    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
-    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
-    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
+  var root = document.documentElement;
+  var btns = [].slice.call(document.querySelectorAll('.scheme-btn'));
+  function setScheme(s, save){
+    window.__scheme = s;
+    document.body.classList.toggle('scheme-hole', s === 'hole');
+    if(s === 'paper') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', 'dark');
+    btns.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-scheme') === s); });
+    if(save){
+      try {
+        localStorage.setItem('ol-studio-scheme', s);
+        localStorage.setItem('ol-theme', s === 'paper' ? 'light' : 'dark');   /* the rest of the site follows */
+      } catch(e){}
+    }
     window.dispatchEvent(new Event('themechange'));
   }
-  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
-  paint(saved);
-  if(btn) btn.addEventListener('click', function(){
-    var dark = root.getAttribute('data-theme')!=='dark';
-    paint(dark);
-    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
+  var saved = null; try { saved = localStorage.getItem('ol-studio-scheme'); } catch(e){}
+  if(saved !== 'paper' && saved !== 'dark' && saved !== 'hole'){
+    var t = null; try { t = localStorage.getItem('ol-theme'); } catch(e){}
+    saved = (t === 'dark') ? 'dark' : 'paper';
+  }
+  setScheme(saved, false);
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){ setScheme(b.getAttribute('data-scheme'), true); });
   });
 })();
 </script>
