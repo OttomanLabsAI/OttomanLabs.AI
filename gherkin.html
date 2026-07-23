@@ -4082,6 +4082,7 @@
     orbitIso: 'all'
   };
   window.__applyCfg = apply;
+  window.__gatherCfg = gather;
   apply(DEFAULT_CFG);
   var bootInfo = el('cfgInfo');
   if(bootInfo) bootInfo.textContent = 'Export saves the whole model to JSON · Import restores it.';
@@ -4848,5 +4849,14 @@
   </div>
 </footer>
 
+<script>
+  window.OLCloudAdapter = {
+    tool: 'gherkin', label: 'The Gherkin',
+    getState: function(){ return window.__gatherCfg(); },
+    setState: function(s){ window.__applyCfg(s); }
+  };
+</script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
 </body>
 </html>

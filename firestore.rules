@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// OttomanLabs.AI — cloud save security rules.
+//
+// Each signed-in user can read and write ONLY their own tree under
+// users/{uid}/…  Nobody can read or write anyone else's files, and
+// unauthenticated requests are refused. Files live at:
+//   users/{uid}/tools/{tool}/files/{fileId}
+//
+// Paste this into the Firestore → Rules tab in the Firebase console and
+// press Publish. (Keeping it in the repo is just for version history.)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid;
+    }
+
+  }
+}

@@ -1480,15 +1480,44 @@
       { name:'floor-plates.csv',       text:platesCSV() }
     ]);
   });
-  el('dlJson').addEventListener('click', function(){
+  /* ── one document: the params + the drawn profile, in and out ── */
+  var PAIRS = { H:'pHeight', levelH:'pLevelH', topOff:'pTopOff', botOff:'pBotOff',
+    N:'pPoints', splits:'pSplits', f2f:'pF2F', offset:'pOffset', thick:'pThick',
+    coreDia:'pCoreDia', coreTop:'pCoreTop', wedgeN:'pWedgeN', wedgeD:'pWedgeD', twist:'pTwist' };
+  function exportState(){
     var out = { page:'gherkin-studio', version:2, params:{} };
     Object.keys(S).forEach(function(k2){ out.params[k2] = S[k2]; });
     out.splinePoints = cloneP(SP.pts);
+    return out;
+  }
+  function importState(cfg){
+    if(!cfg) return;
+    var p = cfg.params || cfg;
+    Object.keys(PAIRS).forEach(function(k2){
+      if(p[k2] != null && isFinite(p[k2])){
+        S[k2] = +p[k2];
+        var r = el(PAIRS[k2]), n = el(PAIRS[k2] + 'Num');
+        if(r) r.value = S[k2];
+        if(n) n.value = S[k2];
+      }
+    });
+    if(typeof p.match === 'boolean'){ S.match = p.match; fMatchEl.checked = p.match; }
+    if(cfg.splinePoints && cfg.splinePoints.length){
+      SP.pts = cfg.splinePoints.map(function(q){ return { x:+q.x, y:+q.y }; });
+      SP.sel = -1;
+    }
+    applyMatchVis();
+    recompute();
+    resize();
+  }
+
+  el('dlJson').addEventListener('click', function(){
     window.saveCSVBatch([{ name:'gherkin-studio-settings.json',
-      text:JSON.stringify(out, null, 2), mime:'application/json' }]);
+      text:JSON.stringify(exportState(), null, 2), mime:'application/json' }]);
   });
 
-  window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute, toggleProfile:toggleProfile };
+  window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute,
+                      toggleProfile:toggleProfile, exportState:exportState, importState:importState };
 
   applyMatchVis();
   recompute();
@@ -1564,5 +1593,14 @@
   </div>
 </footer>
 
+<script>
+  window.OLCloudAdapter = {
+    tool: 'gherkin-studio', label: 'Gherkin Studio',
+    getState: function(){ return window.__studio.exportState(); },
+    setState: function(s){ window.__studio.importState(s); }
+  };
+</script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
 </body>
 </html>
