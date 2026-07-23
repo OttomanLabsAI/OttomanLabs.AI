@@ -4709,7 +4709,9 @@
     });
     if(!any){ FITS = 1; CTR = [0, 0, 0]; return; }
     CTR = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2];
-    var d = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
+    /* scale by the bounding-box diagonal, not the longest axis — the model
+       then stays inside the box at every orbit angle */
+    var d = Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
     FITS = 1 / d;
   }
   function project(p, w, h){
@@ -4719,7 +4721,7 @@
     var rx = x * cy - y * sy, ry = x * sy + y * cy;
     var vz = ry * cp - z * sp * -1;
     var vy = ry * sp + z * cp;
-    var S = Math.min(w, h) * 0.72 * cam.zoom;
+    var S = Math.min(w, h) * 0.9 * cam.zoom;
     return [w / 2 + cam.panx + rx * S, h / 2 + cam.pany - vy * S];
   }
   function draw(){
@@ -4800,7 +4802,8 @@
   function resize(){
     var w = view.clientWidth;
     if(!w) return;
-    var h = Math.round(w * 0.72), dpr = window.devicePixelRatio || 1;
+    /* a compact letterbox — the tall near-square box wasted the card */
+    var h = Math.round(Math.min(w * 0.62, 400)), dpr = window.devicePixelRatio || 1;
     view.style.height = h + 'px';
     view.width = Math.round(w * dpr); view.height = Math.round(h * dpr);
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
