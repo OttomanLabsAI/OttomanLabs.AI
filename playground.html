@@ -221,9 +221,9 @@
     background:var(--paper); color:var(--ink); border:1px solid var(--hair); cursor:pointer; }
   .gi-zoom button:hover{ background:var(--ink); color:var(--paper); }
   .gi-stats{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
-  /* ── viewport widgets card ── */
-  .vw-body{ display:flex; flex-direction:column; gap:.55rem; }
-  .vw-viewwrap{ position:relative; }
+  /* ── viewport widget rows (input tools) ── */
+  .it-row.it-wide{ flex-direction:column; align-items:stretch; gap:.45rem; }
+  .vw-stack{ display:flex; flex-direction:column; gap:.45rem; width:100%; }
   #vwView, #vwProt{ display:block; width:100%; border:1px solid var(--hair); touch-action:none; }
   #vwView{ cursor:grab; }
   #vwView:active{ cursor:grabbing; }
@@ -646,6 +646,19 @@
             <input type="range" orient="vertical" min="0" max="100" value="20" aria-label="Gene 5">
           </div>
         </div>
+        <div class="it-row it-wide" data-it="vwidget">
+          <label>Viewport widget</label>
+          <div class="vw-stack">
+            <canvas id="vwView" aria-label="Tapered column with in-viewport widgets — drag the red handles: the ruler sets the height, the dials set the rotations; empty space orbits"></canvas>
+            <div class="vw-read" id="vwRead">&mdash;</div>
+          </div>
+        </div>
+        <div class="it-row it-wide" data-it="angle">
+          <label>Angle widget</label>
+          <div class="vw-stack">
+            <canvas id="vwProt" aria-label="Angle widget — drag to set the angle between 0 and 180 degrees"></canvas>
+          </div>
+        </div>
       </div>
     </div>
     <div class="draw-sec dinput">
@@ -683,22 +696,6 @@
         </div>
         <div class="gi-stats" id="giStats">no geometry yet &mdash; import files to see them here</div>
         <div class="pg-hint">drag to orbit &middot; right-drag to pan &middot; wheel zooms &middot; untick a file to hide it &middot; &times; removes it</div>
-      </div>
-    </div>
-    <div class="draw-sec vpwidget">
-      <div class="draw-cap">
-        <b>Viewport Widgets</b>
-        <span>direct control &middot; no sliders on the canvas</span>
-      </div>
-      <div class="vw-body">
-        <div class="vw-viewwrap">
-          <canvas id="vwView" aria-label="Tapered column with in-viewport widgets — drag the red handles: the ruler sets the height, the dials set the rotations; empty space orbits"></canvas>
-        </div>
-        <div class="vw-read" id="vwRead">&mdash;</div>
-        <div class="vw-viewwrap vw-protwrap">
-          <canvas id="vwProt" aria-label="Angular widget — drag to set the angle between 0 and 180 degrees"></canvas>
-        </div>
-        <div class="pg-hint">geometry drives the numbers &mdash; drag the red handles: ruler sets the height, dials twist the top &amp; spin the base &middot; empty space orbits &middot; wheel zooms &middot; the protractor reads 0&ndash;180&deg;</div>
       </div>
     </div>
     <div class="draw-sec graphs">
@@ -4793,10 +4790,11 @@
 (function(){
   "use strict";
   var view = document.getElementById('vwView');
-  if(!view) return;
   var prot = document.getElementById('vwProt');
+  if(!view && !prot) return;
   var readEl = document.getElementById('vwRead');
-  var vctx = view.getContext('2d'), pctx = prot.getContext('2d');
+  var vctx = view ? view.getContext('2d') : null;
+  var pctx = prot ? prot.getContext('2d') : null;
 
   function dark(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
   function RED(){ return dark() ? '#DE8286' : '#B01018'; }
@@ -4841,7 +4839,7 @@
   }
 
   function drawView(){
-    if(vw < 10) return;
+    if(!view || vw < 10) return;
     vctx.clearRect(0, 0, vw, vh);
     var red = RED();
 
@@ -4938,7 +4936,7 @@
     HND.base = dial(DRB, 0, W.base, true);
     HND.top = dial(DRT, W.H, W.base + W.top, false);
 
-    readEl.textContent = 'height ' + Math.round(W.H) + ' mm · top twist ' +
+    if(readEl) readEl.textContent = 'height ' + Math.round(W.H) + ' mm · top twist ' +
       (Math.round(W.top * 10) / 10) + '° · base ' +
       (Math.round(W.base * 10) / 10) + '° — dragged, not typed';
   }
@@ -4993,7 +4991,7 @@
     document.removeEventListener('pointerup', endDrag);
     document.removeEventListener('pointercancel', endDrag);
   }
-  view.addEventListener('pointerdown', function(e){
+  if(view) view.addEventListener('pointerdown', function(e){
     e.preventDefault();
     var m = vXY(e);
     mode = hitHandle(m.x, m.y) || 'orbit';
@@ -5007,17 +5005,17 @@
     document.addEventListener('pointerup', endDrag);
     document.addEventListener('pointercancel', endDrag);
   });
-  view.addEventListener('pointermove', function(e){
+  if(view) view.addEventListener('pointermove', function(e){
     if(mode) return;
     var m = vXY(e);
     view.style.cursor = hitHandle(m.x, m.y) ? 'pointer' : 'grab';
   });
-  view.addEventListener('wheel', function(e){
+  if(view) view.addEventListener('wheel', function(e){
     e.preventDefault();
     cam.zoom = Math.max(0.5, Math.min(4, cam.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
     drawView();
   }, { passive: false });
-  view.addEventListener('dblclick', function(){
+  if(view) view.addEventListener('dblclick', function(){
     cam.az = 0.62; cam.pitch = 0.5; cam.zoom = 1; drawView();
   });
 
@@ -5028,9 +5026,10 @@
     return { x: cx + R * Math.cos(a), y: cy - R * Math.sin(a) };
   }
   function drawProt(){
-    if(pw < 10) return;
+    if(!prot || pw < 10) return;
     pctx.clearRect(0, 0, pw, ph);
-    var red = RED();
+    /* the angle widget draws in ink — black on paper, white in dark mode */
+    var red = dark() ? '#F2F2F2' : '#111111';
     var cx = pw / 2, cy = ph - 30;
     var R = Math.min(pw * 0.40, ph - 74);
     pctx.strokeStyle = red; pctx.fillStyle = red;
@@ -5106,7 +5105,7 @@
     document.removeEventListener('pointerup', pUp);
     document.removeEventListener('pointercancel', pUp);
   }
-  prot.addEventListener('pointerdown', function(e){
+  if(prot) prot.addEventListener('pointerdown', function(e){
     e.preventDefault();
     pDrag = true; protSet(e);
     document.addEventListener('pointermove', pMove);
@@ -5117,24 +5116,32 @@
   /* ── sizing + theme ── */
   function drawAll(){ drawView(); drawProt(); }
   function size(){
-    var wc = view.parentElement.clientWidth;
-    if(wc < 40) return;
     var dpr = Math.max(window.devicePixelRatio || 1, 1);
-    vw = wc; vh = Math.max(300, Math.round(wc * 0.74));
-    view.style.width = vw + 'px'; view.style.height = vh + 'px';
-    view.width = Math.round(vw * dpr); view.height = Math.round(vh * dpr);
-    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var wp = prot.parentElement.clientWidth;
-    pw = wp; ph = Math.max(220, Math.round(wp * 0.52));
-    prot.style.width = pw + 'px'; prot.style.height = ph + 'px';
-    prot.width = Math.round(pw * dpr); prot.height = Math.round(ph * dpr);
-    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if(view){
+      var wc = view.parentElement.clientWidth;
+      if(wc >= 40){
+        vw = wc; vh = Math.max(300, Math.round(wc * 0.74));
+        view.style.width = vw + 'px'; view.style.height = vh + 'px';
+        view.width = Math.round(vw * dpr); view.height = Math.round(vh * dpr);
+        vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
+    if(prot){
+      var wp = prot.parentElement.clientWidth;
+      if(wp >= 40){
+        pw = wp; ph = Math.max(220, Math.round(wp * 0.52));
+        prot.style.width = pw + 'px'; prot.style.height = ph + 'px';
+        prot.width = Math.round(pw * dpr); prot.height = Math.round(ph * dpr);
+        pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
     drawAll();
   }
   window.addEventListener('resize', size);
   if(window.ResizeObserver){
     var ro = new ResizeObserver(function(){ size(); });
-    ro.observe(view.parentElement);
+    if(view) ro.observe(view.parentElement);
+    if(prot) ro.observe(prot.parentElement);
   }
   new MutationObserver(function(){ drawAll(); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -5170,12 +5177,13 @@
         ', twist ' + (s.twist || 0) + '°, revolve angle ' + (s.angle || 360) + '°.',
         'Style: white board, thin grey grids, 2px black ink, uppercase micro-labels.'].join('\n');
       } },
-    { sel:'.itools', title:'Input Tools', engines:['uiToolsEngine'], only:'IT_ONLY', file:'input-tools.html',
+    { sel:'.itools', title:'Input Tools', engines:['uiToolsEngine','vpWidgetEngine'], only:'IT_ONLY', file:'input-tools.html',
       units:[ { id:'stepper', label:'Number entry' }, { id:'slider', label:'Number slider' },
               { id:'dial', label:'Dial' }, { id:'toggle', label:'Toggle' }, { id:'seg', label:'Segmented' },
               { id:'pad', label:'XY pad' }, { id:'mapper', label:'Graph mapper' }, { id:'domain', label:'Domain' },
               { id:'list', label:'Value list' }, { id:'button', label:'Button' },
-              { id:'panel', label:'Text input' }, { id:'pool', label:'Gene pool' } ],
+              { id:'panel', label:'Text input' }, { id:'pool', label:'Gene pool' },
+              { id:'vwidget', label:'Viewport widget' }, { id:'angle', label:'Angle widget' } ],
       prompt: function(){
         return ['Build a monochrome input-tool kit as one self-contained HTML file with no libraries — the Grasshopper input family in white paper and black ink, in this order:',
         '',
@@ -5188,6 +5196,8 @@
         '- a domain: one track, two draggable ends, synced entries that cannot cross',
         '- a value list dropdown, a momentary button that reads true while held, and a text input',
         '- a gene pool of five vertical sliders',
+        '- a 3D viewport widget: an orthographic tapered column edited by dragging red in-viewport handles — a height ruler with ticks and labels, an angular dial spinning the base and a smaller dial twisting the top face — orbit on empty space, wheel zoom, fixed camera so nothing re-fits mid-drag',
+        '- an angle widget: an ink-black 0-180° protractor with ticks every 3°, labels every 15°, dashed radii, a swept-angle arrow and a draggable rim handle reading to two decimals',
         '',
         'Every control syncs both ways — graphical and numerical. Handle dots stay fully visible when a value sits on its boundary, while the value itself stays clamped to the range. Thin hairline borders, uppercase micro-labels, accent-color black.'].join('\n');
       } },
@@ -5225,16 +5235,6 @@
         '',
         'Currently loaded: ' + n + ' file(s).',
         'Style: white board, thin hairline border, uppercase micro-labels, serif italic hints.'].join('\n');
-      } },
-    { sel:'.vpwidget', title:'Viewport Widgets', engines:['vpWidgetEngine'], only:'VW_ONLY', file:'viewport-widgets.html',
-      prompt: function(){
-        return ['Build a "Viewport Widgets" demo as one self-contained HTML file with no libraries — Rhino 9 style direct control: geometry drives the parameters, no sliders on the canvas.',
-        '',
-        'Canvas one: an orthographic 3D tapered column (base square 560 across, top square 320, height 100–1400 mm) drawn with painter-sorted flat faces. Three red in-viewport widgets edit it directly: a vertical ruler beside the column (ticks every 100, labels every 200) whose handle drags the height; an angular dial around the base (ticks every 15°, labels at 0/90/180/270) whose handle spins the whole column; and a smaller dial riding the top face whose handle twists the top square relative to the base. Dial dragging inverts the projected circle basis (solve the 2×2 screen system) so the handle follows the pointer exactly at any camera angle. Empty-space drags orbit, the wheel zooms, double-click resets — with a fixed camera (constant world frame) so nothing re-fits mid-drag. A readout line states height and angles.',
-        '',
-        'Canvas two: a 0–180° angular widget — a protractor arc with ticks every 3° (long every 15°), degree labels, dashed radii from the centre to 0° and to the draggable rim handle, a swept-angle arrow arc at the centre, and the value written along the handle radius to two decimals.',
-        '',
-        'Style: white board, hairline borders, uppercase micro-labels, a deep red (#B01018) for every widget stroke.'].join('\n');
       } },
     { sel:'.graphs', title:'Graphs', engines:['graphsEngine'], only:'GR_ONLY', file:'graphs.html',
       units:[ { id:'xy', label:'XY' }, { id:'pol', label:'Polar' },
