@@ -32,6 +32,13 @@
   Content-Disposition: attachment; filename="pyDymak.extension.zip"
   Cache-Control: public, max-age=0, must-revalidate
 
+# Cloud-save scripts: revalidate so config/logic changes ship on redeploy.
+# Kept AFTER the /assets/* rule so this Cache-Control wins over "immutable".
+/assets/firebase-config.js
+  Cache-Control: public, max-age=0, must-revalidate
+/assets/ol-cloud.js
+  Cache-Control: public, max-age=0, must-revalidate
+
 # HTML pages: always revalidate so edits show up immediately on redeploy.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
