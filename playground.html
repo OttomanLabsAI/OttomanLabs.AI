@@ -221,6 +221,15 @@
     background:var(--paper); color:var(--ink); border:1px solid var(--hair); cursor:pointer; }
   .gi-zoom button:hover{ background:var(--ink); color:var(--paper); }
   .gi-stats{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
+  /* ── viewport widgets card ── */
+  .vw-body{ display:flex; flex-direction:column; gap:.55rem; }
+  .vw-viewwrap{ position:relative; }
+  #vwView, #vwProt{ display:block; width:100%; border:1px solid var(--hair); touch-action:none; }
+  #vwView{ cursor:grab; }
+  #vwView:active{ cursor:grabbing; }
+  #vwProt{ cursor:pointer; }
+  .vw-read{ font-family:var(--font-brand); font-size:.68rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-60); font-variant-numeric:tabular-nums; }
   .cs-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); text-align:center; padding:.15rem .9rem .1rem; }
   .cs-exports{ padding:.5rem 1.1rem .35rem; justify-content:center; }
@@ -674,6 +683,22 @@
         </div>
         <div class="gi-stats" id="giStats">no geometry yet &mdash; import files to see them here</div>
         <div class="pg-hint">drag to orbit &middot; right-drag to pan &middot; wheel zooms &middot; untick a file to hide it &middot; &times; removes it</div>
+      </div>
+    </div>
+    <div class="draw-sec vpwidget">
+      <div class="draw-cap">
+        <b>Viewport Widgets</b>
+        <span>direct control &middot; no sliders on the canvas</span>
+      </div>
+      <div class="vw-body">
+        <div class="vw-viewwrap">
+          <canvas id="vwView" aria-label="Tapered column with in-viewport widgets — drag the red handles: the ruler sets the height, the dials set the rotations; empty space orbits"></canvas>
+        </div>
+        <div class="vw-read" id="vwRead">&mdash;</div>
+        <div class="vw-viewwrap vw-protwrap">
+          <canvas id="vwProt" aria-label="Angular widget — drag to set the angle between 0 and 180 degrees"></canvas>
+        </div>
+        <div class="pg-hint">geometry drives the numbers &mdash; drag the red handles: ruler sets the height, dials twist the top &amp; spin the base &middot; empty space orbits &middot; wheel zooms &middot; the protractor reads 0&ndash;180&deg;</div>
       </div>
     </div>
     <div class="draw-sec graphs">
@@ -4761,6 +4786,365 @@
   resize();
 })();
 </script>
+<script id="vpWidgetEngine">
+/* ---- Viewport Widgets: geometry drives the parameters directly — a tapered
+       column edited by dragging red handles in the viewport (a ruler for the
+       height, angular dials for the twist), plus the 0-180 angular widget. ---- */
+(function(){
+  "use strict";
+  var view = document.getElementById('vwView');
+  if(!view) return;
+  var prot = document.getElementById('vwProt');
+  var readEl = document.getElementById('vwRead');
+  var vctx = view.getContext('2d'), pctx = prot.getContext('2d');
+
+  function dark(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
+  function RED(){ return dark() ? '#DE8286' : '#B01018'; }
+  function INK(a){ return dark() ? 'rgba(255,255,255,' + a + ')' : 'rgba(17,17,17,' + a + ')'; }
+  function PAPER(){ return dark() ? '#111111' : '#FFFFFF'; }
+  function FACE(){ return dark() ? '#1E1E1E' : '#F1F1EE'; }
+  function FACET(){ return dark() ? '#171717' : '#FAFAF8'; }
+
+  /* ── the model: height in mm, twists in degrees ── */
+  var W = { H: 1000, top: 30, base: 0 };
+  var HMAX = 1400, HMIN = 100, HB = 280, HT = 160;
+  var RULX = 470, DRB = 430, DRT = 290;
+  var cam = { az: 0.62, pitch: 0.5, zoom: 1 };
+  var vw = 0, vh = 0, pw = 0, ph = 0;
+  var HND = {};
+
+  function project(x, y, z, A, B){
+    var ca = Math.cos(A), sa = Math.sin(A);
+    var rx = x * ca - y * sa, ry = x * sa + y * ca;
+    var cb = Math.cos(B), sb = Math.sin(B);
+    return { x: rx, y: -(ry * sb + z * cb), depth: ry * cb - z * sb };
+  }
+  function S3(x, y, z){
+    /* fixed camera on a constant world frame — dragging a handle moves the
+       geometry inside a still view, nothing re-fits */
+    var P = project(x, y, z, cam.az, cam.pitch);
+    var cc = project(0, 0, HMAX / 2, cam.az, cam.pitch);
+    var fit = Math.min(vw, vh) / 1800 * cam.zoom;
+    return { x: vw / 2 + (P.x - cc.x) * fit, y: vh / 2 + (P.y - cc.y) * fit, depth: P.depth };
+  }
+  /* the ruler stands off the dials' 0° axis so the handles never collide */
+  var RCA = Math.cos(-0.6), RSA = Math.sin(-0.6);
+  function SR(rad, z){ return S3(rad * RCA, rad * RSA, z); }
+
+  function corners(hw, z, rotDeg){
+    var a = rotDeg * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    var pts = [[hw, hw], [-hw, hw], [-hw, -hw], [hw, -hw]], out = [];
+    for(var k = 0; k < 4; k++){
+      out.push([pts[k][0] * ca - pts[k][1] * sa, pts[k][0] * sa + pts[k][1] * ca, z]);
+    }
+    return out;
+  }
+
+  function drawView(){
+    if(vw < 10) return;
+    vctx.clearRect(0, 0, vw, vh);
+    var red = RED();
+
+    /* the solid: base square, smaller twisted top square, painter-sorted */
+    var bot = corners(HB, 0, W.base), top = corners(HT, W.H, W.base + W.top);
+    var F = [];
+    function face(pts, fill){
+      var d = 0, scr = [];
+      for(var i = 0; i < pts.length; i++){
+        var p = S3(pts[i][0], pts[i][1], pts[i][2]);
+        d += p.depth; scr.push(p);
+      }
+      F.push({ d: d / pts.length, scr: scr, fill: fill });
+    }
+    face(bot, FACE());
+    face(top, FACET());
+    for(var k = 0; k < 4; k++){
+      var k2 = (k + 1) % 4;
+      face([bot[k], bot[k2], top[k2], top[k]], FACE());
+    }
+    F.sort(function(a, b){ return b.d - a.d; });
+    vctx.lineJoin = 'round';
+    for(var f = 0; f < F.length; f++){
+      var fc = F[f];
+      vctx.beginPath();
+      vctx.moveTo(fc.scr[0].x, fc.scr[0].y);
+      for(var s = 1; s < fc.scr.length; s++) vctx.lineTo(fc.scr[s].x, fc.scr[s].y);
+      vctx.closePath();
+      vctx.fillStyle = fc.fill; vctx.fill();
+      vctx.strokeStyle = INK(.85); vctx.lineWidth = 1.2; vctx.stroke();
+    }
+
+    /* ── the height ruler: a curve that IS the slider ── */
+    vctx.strokeStyle = red; vctx.fillStyle = red;
+    vctx.font = '10px "Afacad Flux",sans-serif';
+    var r0 = SR(RULX, 0), rMax = SR(RULX, HMAX), rH = SR(RULX, W.H);
+    vctx.globalAlpha = .35; vctx.lineWidth = 1;
+    vctx.beginPath(); vctx.moveTo(r0.x, r0.y); vctx.lineTo(rMax.x, rMax.y); vctx.stroke();
+    vctx.globalAlpha = 1; vctx.lineWidth = 1.6;
+    vctx.beginPath(); vctx.moveTo(r0.x, r0.y); vctx.lineTo(rH.x, rH.y); vctx.stroke();
+    vctx.lineWidth = 1;
+    for(var z = 0; z <= HMAX; z += 100){
+      vctx.globalAlpha = (z <= W.H) ? .9 : .4;
+      var t0 = SR(RULX, z), t1 = SR(RULX + 30, z);
+      vctx.beginPath(); vctx.moveTo(t0.x, t0.y); vctx.lineTo(t1.x, t1.y); vctx.stroke();
+      if(z > 0 && z % 200 === 0){
+        var tl = SR(RULX + 62, z);
+        vctx.textAlign = 'left'; vctx.textBaseline = 'middle';
+        vctx.fillText(String(z), tl.x, tl.y);
+      }
+    }
+    vctx.globalAlpha = 1;
+    vctx.beginPath(); vctx.arc(rH.x, rH.y, 6, 0, 2 * Math.PI);
+    vctx.fillStyle = PAPER(); vctx.fill();
+    vctx.lineWidth = 2; vctx.stroke();
+    HND.h = rH;
+
+    /* ── angular dials: base spin at z=0, top twist riding the top face ── */
+    function dial(R, zc, handleDeg, labels){
+      vctx.strokeStyle = red; vctx.fillStyle = red; vctx.lineWidth = 1.1;
+      vctx.beginPath();
+      for(var i = 0; i <= 72; i++){
+        var t = 2 * Math.PI * i / 72;
+        var p = S3(R * Math.cos(t), R * Math.sin(t), zc);
+        if(i) vctx.lineTo(p.x, p.y); else vctx.moveTo(p.x, p.y);
+      }
+      vctx.stroke();
+      for(var d = 0; d < 360; d += 15){
+        var tr = d * Math.PI / 180, len = (d % 90 === 0) ? 30 : 16;
+        var q0 = S3(R * Math.cos(tr), R * Math.sin(tr), zc);
+        var q1 = S3((R + len) * Math.cos(tr), (R + len) * Math.sin(tr), zc);
+        vctx.beginPath(); vctx.moveTo(q0.x, q0.y); vctx.lineTo(q1.x, q1.y); vctx.stroke();
+      }
+      if(labels){
+        vctx.textAlign = 'center'; vctx.textBaseline = 'middle';
+        for(var dl = 0; dl < 360; dl += 90){
+          var tl2 = dl * Math.PI / 180;
+          var pl = S3((R + 62) * Math.cos(tl2), (R + 62) * Math.sin(tl2), zc);
+          vctx.fillText(dl + '°', pl.x, pl.y);
+        }
+      }
+      var th = handleDeg * Math.PI / 180;
+      var C = S3(0, 0, zc);
+      var hp = S3(R * Math.cos(th), R * Math.sin(th), zc);
+      vctx.globalAlpha = .5; vctx.setLineDash([5, 5]);
+      vctx.beginPath(); vctx.moveTo(C.x, C.y); vctx.lineTo(hp.x, hp.y); vctx.stroke();
+      vctx.setLineDash([]); vctx.globalAlpha = 1;
+      vctx.beginPath(); vctx.arc(hp.x, hp.y, 6, 0, 2 * Math.PI);
+      vctx.fillStyle = PAPER(); vctx.fill();
+      vctx.lineWidth = 2; vctx.stroke();
+      vctx.fillStyle = red;
+      return hp;
+    }
+    HND.base = dial(DRB, 0, W.base, true);
+    HND.top = dial(DRT, W.H, W.base + W.top, false);
+
+    readEl.textContent = 'height ' + Math.round(W.H) + ' mm · top twist ' +
+      (Math.round(W.top * 10) / 10) + '° · base ' +
+      (Math.round(W.base * 10) / 10) + '° — dragged, not typed';
+  }
+
+  /* ── view interaction: handles first, orbit otherwise ── */
+  function hitHandle(mx, my){
+    var keys = ['h', 'top', 'base'];
+    for(var i = 0; i < keys.length; i++){
+      var p = HND[keys[i]];
+      if(p && Math.hypot(p.x - mx, p.y - my) <= 13) return keys[i];
+    }
+    return null;
+  }
+  function angleFromMouse(R, zc, mx, my){
+    var C = S3(0, 0, zc), U = S3(R, 0, zc), V = S3(0, R, zc);
+    var ux = U.x - C.x, uy = U.y - C.y, vx = V.x - C.x, vy = V.y - C.y;
+    var det = ux * vy - uy * vx;
+    if(Math.abs(det) < 1e-6) return null;
+    var rx = mx - C.x, ry = my - C.y;
+    var c = (rx * vy - ry * vx) / det;
+    var s = (ry * ux - rx * uy) / det;
+    return Math.atan2(s, c) * 180 / Math.PI;
+  }
+  function norm(a){ return ((a % 360) + 360) % 360; }
+  function vXY(e){
+    var r = view.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  var mode = null, lx = 0, ly = 0, H0 = 0, y0 = 0, kPix = 1;
+  function onMove(e){
+    if(!mode) return;
+    e.preventDefault();
+    var m = vXY(e);
+    if(mode === 'orbit'){
+      cam.az += (e.clientX - lx) * 0.008;
+      cam.pitch = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, cam.pitch + (e.clientY - ly) * 0.008));
+      lx = e.clientX; ly = e.clientY;
+    } else if(mode === 'h'){
+      W.H = Math.max(HMIN, Math.min(HMAX, H0 + (y0 - e.clientY) / kPix));
+    } else if(mode === 'top'){
+      var a = angleFromMouse(DRT, W.H, m.x, m.y);
+      if(a != null) W.top = norm(a - W.base);
+    } else if(mode === 'base'){
+      var a2 = angleFromMouse(DRB, 0, m.x, m.y);
+      if(a2 != null) W.base = norm(a2);
+    }
+    drawView();
+  }
+  function endDrag(){
+    mode = null;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', endDrag);
+    document.removeEventListener('pointercancel', endDrag);
+  }
+  view.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    var m = vXY(e);
+    mode = hitHandle(m.x, m.y) || 'orbit';
+    lx = e.clientX; ly = e.clientY;
+    if(mode === 'h'){
+      H0 = W.H; y0 = e.clientY;
+      kPix = (SR(RULX, 0).y - SR(RULX, 100).y) / 100;
+      if(!(kPix > 1e-4)) kPix = 1e-4;
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+  });
+  view.addEventListener('pointermove', function(e){
+    if(mode) return;
+    var m = vXY(e);
+    view.style.cursor = hitHandle(m.x, m.y) ? 'pointer' : 'grab';
+  });
+  view.addEventListener('wheel', function(e){
+    e.preventDefault();
+    cam.zoom = Math.max(0.5, Math.min(4, cam.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    drawView();
+  }, { passive: false });
+  view.addEventListener('dblclick', function(){
+    cam.az = 0.62; cam.pitch = 0.5; cam.zoom = 1; drawView();
+  });
+
+  /* ── the angular widget: a 0-180 protractor, dragged not typed ── */
+  var PA = 45;
+  function pPt(cx, cy, R, aDeg){
+    var a = aDeg * Math.PI / 180;
+    return { x: cx + R * Math.cos(a), y: cy - R * Math.sin(a) };
+  }
+  function drawProt(){
+    if(pw < 10) return;
+    pctx.clearRect(0, 0, pw, ph);
+    var red = RED();
+    var cx = pw / 2, cy = ph - 30;
+    var R = Math.min(pw * 0.40, ph - 74);
+    pctx.strokeStyle = red; pctx.fillStyle = red;
+    pctx.lineWidth = 1.2; pctx.lineJoin = 'round';
+    pctx.beginPath();
+    for(var i = 0; i <= 90; i++){
+      var p = pPt(cx, cy, R, i * 2);
+      if(i) pctx.lineTo(p.x, p.y); else pctx.moveTo(p.x, p.y);
+    }
+    pctx.stroke();
+    pctx.lineWidth = 1;
+    for(var d = 0; d <= 180; d += 3){
+      var len = (d % 15 === 0) ? 16 : 9;
+      var q0 = pPt(cx, cy, R, d), q1 = pPt(cx, cy, R - len, d);
+      pctx.beginPath(); pctx.moveTo(q0.x, q0.y); pctx.lineTo(q1.x, q1.y); pctx.stroke();
+    }
+    pctx.font = '12px "Afacad Flux",sans-serif';
+    pctx.textAlign = 'center'; pctx.textBaseline = 'middle';
+    for(var dl = 0; dl <= 180; dl += 15){
+      var pl = pPt(cx, cy, R + 24, dl);
+      pctx.fillText(dl + '°', pl.x, pl.y);
+    }
+    /* dashed baseline + handle radius */
+    pctx.setLineDash([5, 5]); pctx.globalAlpha = .7;
+    var b1 = pPt(cx, cy, R - 4, 0), h1 = pPt(cx, cy, R - 4, PA);
+    pctx.beginPath(); pctx.moveTo(cx, cy); pctx.lineTo(b1.x, b1.y); pctx.stroke();
+    pctx.beginPath(); pctx.moveTo(cx, cy); pctx.lineTo(h1.x, h1.y); pctx.stroke();
+    pctx.setLineDash([]); pctx.globalAlpha = 1;
+    /* the swept angle arc with an arrowhead */
+    var AR = Math.max(26, R * 0.16);
+    pctx.beginPath();
+    var steps = Math.max(8, Math.round(PA / 3));
+    for(var s = 0; s <= steps; s++){
+      var pa = pPt(cx, cy, AR, PA * s / steps);
+      if(s) pctx.lineTo(pa.x, pa.y); else pctx.moveTo(pa.x, pa.y);
+    }
+    pctx.stroke();
+    if(PA > 6){
+      var tip = pPt(cx, cy, AR, PA);
+      var tang = (PA + 90) * Math.PI / 180;
+      pctx.beginPath();
+      pctx.moveTo(tip.x, tip.y);
+      pctx.lineTo(tip.x + 7 * Math.cos(tang + 2.6), tip.y - 7 * Math.sin(tang + 2.6));
+      pctx.lineTo(tip.x + 7 * Math.cos(tang - 2.6), tip.y - 7 * Math.sin(tang - 2.6));
+      pctx.closePath(); pctx.fill();
+    }
+    /* the value rides the handle radius */
+    pctx.save();
+    pctx.translate(cx, cy);
+    var aR = PA * Math.PI / 180;
+    if(PA <= 90){ pctx.rotate(-aR); pctx.textAlign = 'center'; pctx.fillText(PA.toFixed(2) + '°', R * 0.42, -10); }
+    else { pctx.rotate(Math.PI - aR); pctx.fillText(PA.toFixed(2) + '°', -R * 0.42, -10); }
+    pctx.restore();
+    /* the handle */
+    var hp = pPt(cx, cy, R, PA);
+    pctx.beginPath(); pctx.arc(hp.x, hp.y, 6, 0, 2 * Math.PI);
+    pctx.fillStyle = PAPER(); pctx.fill();
+    pctx.lineWidth = 2; pctx.stroke();
+    pctx.fillStyle = red;
+  }
+  var pDrag = false;
+  function protSet(e){
+    var r = prot.getBoundingClientRect();
+    var cx = pw / 2, cy = ph - 30;
+    var a = Math.atan2((cy - (e.clientY - r.top)), (e.clientX - r.left) - cx) * 180 / Math.PI;
+    PA = Math.max(0, Math.min(180, Math.round(a * 2) / 2));
+    drawProt();
+  }
+  function pMove(e){ if(pDrag){ e.preventDefault(); protSet(e); } }
+  function pUp(){
+    pDrag = false;
+    document.removeEventListener('pointermove', pMove);
+    document.removeEventListener('pointerup', pUp);
+    document.removeEventListener('pointercancel', pUp);
+  }
+  prot.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    pDrag = true; protSet(e);
+    document.addEventListener('pointermove', pMove);
+    document.addEventListener('pointerup', pUp);
+    document.addEventListener('pointercancel', pUp);
+  });
+
+  /* ── sizing + theme ── */
+  function drawAll(){ drawView(); drawProt(); }
+  function size(){
+    var wc = view.parentElement.clientWidth;
+    if(wc < 40) return;
+    var dpr = Math.max(window.devicePixelRatio || 1, 1);
+    vw = wc; vh = Math.max(300, Math.round(wc * 0.74));
+    view.style.width = vw + 'px'; view.style.height = vh + 'px';
+    view.width = Math.round(vw * dpr); view.height = Math.round(vh * dpr);
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var wp = prot.parentElement.clientWidth;
+    pw = wp; ph = Math.max(220, Math.round(wp * 0.52));
+    prot.style.width = pw + 'px'; prot.style.height = ph + 'px';
+    prot.width = Math.round(pw * dpr); prot.height = Math.round(ph * dpr);
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawAll();
+  }
+  window.addEventListener('resize', size);
+  if(window.ResizeObserver){
+    var ro = new ResizeObserver(function(){ size(); });
+    ro.observe(view.parentElement);
+  }
+  new MutationObserver(function(){ drawAll(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  window.__vw = { W: W, cam: cam, angle: function(){ return PA; },
+                  setAngle: function(a){ PA = Math.max(0, Math.min(180, a)); drawProt(); },
+                  hnd: function(){ return HND; }, draw: drawAll };
+  size();
+})();
+</script>
 <script id="exportsEngine">
 (function(){
   "use strict";
@@ -4841,6 +5225,16 @@
         '',
         'Currently loaded: ' + n + ' file(s).',
         'Style: white board, thin hairline border, uppercase micro-labels, serif italic hints.'].join('\n');
+      } },
+    { sel:'.vpwidget', title:'Viewport Widgets', engines:['vpWidgetEngine'], only:'VW_ONLY', file:'viewport-widgets.html',
+      prompt: function(){
+        return ['Build a "Viewport Widgets" demo as one self-contained HTML file with no libraries — Rhino 9 style direct control: geometry drives the parameters, no sliders on the canvas.',
+        '',
+        'Canvas one: an orthographic 3D tapered column (base square 560 across, top square 320, height 100–1400 mm) drawn with painter-sorted flat faces. Three red in-viewport widgets edit it directly: a vertical ruler beside the column (ticks every 100, labels every 200) whose handle drags the height; an angular dial around the base (ticks every 15°, labels at 0/90/180/270) whose handle spins the whole column; and a smaller dial riding the top face whose handle twists the top square relative to the base. Dial dragging inverts the projected circle basis (solve the 2×2 screen system) so the handle follows the pointer exactly at any camera angle. Empty-space drags orbit, the wheel zooms, double-click resets — with a fixed camera (constant world frame) so nothing re-fits mid-drag. A readout line states height and angles.',
+        '',
+        'Canvas two: a 0–180° angular widget — a protractor arc with ticks every 3° (long every 15°), degree labels, dashed radii from the centre to 0° and to the draggable rim handle, a swept-angle arrow arc at the centre, and the value written along the handle radius to two decimals.',
+        '',
+        'Style: white board, hairline borders, uppercase micro-labels, a deep red (#B01018) for every widget stroke.'].join('\n');
       } },
     { sel:'.graphs', title:'Graphs', engines:['graphsEngine'], only:'GR_ONLY', file:'graphs.html',
       units:[ { id:'xy', label:'XY' }, { id:'pol', label:'Polar' },
