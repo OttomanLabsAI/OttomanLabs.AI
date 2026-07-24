@@ -394,6 +394,7 @@
         <button id="btnProfile" type="button">Building Profile</button>
         <label class="tsw"><input type="checkbox" id="tFloors" checked><span class="tsw-tk"></span>Floors</label>
         <label class="tsw"><input type="checkbox" id="tExo" checked><span class="tsw-tk"></span>Exoskeleton</label>
+        <label class="tsw"><input type="checkbox" id="tThick"><span class="tsw-tk"></span>Thicken</label>
         <label class="tsw"><input type="checkbox" id="tNodes" checked><span class="tsw-tk"></span>Points</label>
         <label class="tsw"><input type="checkbox" id="tShaded" checked><span class="tsw-tk"></span>Shaded</label>
         <label class="tsw" id="tGlowWrap"><input type="checkbox" id="tGlow" checked><span class="tsw-tk"></span>Glow</label>
@@ -1116,9 +1117,16 @@
       });
     }
 
-    /* the exoskeleton wraps it: diagrid braces + horizontal ring beams */
+    /* the exoskeleton wraps it: diagrid braces + horizontal ring beams.
+       "Thicken" draws the members at a real, scale-aware width — the
+       Gherkin's diagrid is roughly a metre deep, so the line width tracks
+       the fit scale (thicker as you zoom in) with sensible caps */
+    var thicken = el('tThick').checked;
+    var braceW = thicken ? Math.max(2.5, Math.min(16, 0.95 * fit)) : 1.1;
+    var ringW  = thicken ? Math.max(2, Math.min(13, 0.75 * fit)) : 1.1;
     ctx.strokeStyle = hole ? HC.brace : inkA(.9);
-    ctx.lineWidth = 1.1;
+    ctx.lineWidth = braceW;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     if(hole && glowOn()){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 10; }
     if(showGrid){
       for(k = 0; k + 1 < nodePts.length; k++){
@@ -1135,6 +1143,7 @@
     }
     if(showRings){
       if(hole) ctx.strokeStyle = HC.ring;
+      ctx.lineWidth = ringW;
       for(k = 0; k < nodePts.length; k++){
         var ndr = nodePts[k];
         if(!ndr) continue;
@@ -1149,16 +1158,18 @@
       ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
       ctx.lineWidth = 1;
       if(hole && glowOn()){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
+      var nodeR = thicken ? Math.max(2.4, braceW * 0.62) : 2.4;   /* joints keep pace with the members */
       for(k = 0; k < nodePts.length; k++){
         var ndp = nodePts[k];
         if(!ndp) continue;
         for(var j2 = 0; j2 < NN; j2++){
           var pd = SS(ndp[j2]);
-          ctx.beginPath(); ctx.arc(pd.x, pd.y, 2.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(pd.x, pd.y, nodeR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         }
       }
     }
     ctx.shadowBlur = 0;
+    ctx.lineCap = 'butt';
   }
 
   /* ── canvas sizing + orbit ── */
@@ -1215,7 +1226,7 @@
   v.canvas.addEventListener('dblclick', resetView);
   el('tReset').addEventListener('click', resetView);
 
-  ['tFloors','tExo','tNodes','tShaded','tGlow'].forEach(function(id){
+  ['tFloors','tExo','tThick','tNodes','tShaded','tGlow'].forEach(function(id){
     el(id).addEventListener('change', function(){ render(); paintBoard(); });
   });
   window.addEventListener('themechange', function(){ css = {}; render(); paintBoard(); });
