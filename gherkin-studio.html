@@ -73,6 +73,24 @@
   #tGlowWrap{ display:none; }
   .scheme-hole #tGlowWrap{ display:inline-flex; }
 
+  /* ── view toggle switches (model bar) ── */
+  .tsw{ display:inline-flex; align-items:center; gap:.45rem; cursor:pointer;
+    font-family:var(--font-brand); font-weight:500; font-size:.6rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-35); user-select:none; }
+  .tsw:has(input:checked){ color:var(--ink); }
+  .tsw input{ position:absolute; opacity:0; width:0; height:0; }
+  .tsw-tk{ width:28px; height:15px; border:1px solid var(--hair); background:var(--paper);
+    position:relative; flex:0 0 auto; transition:background .15s, border-color .15s; }
+  .tsw-tk::after{ content:''; position:absolute; top:1px; left:1px; width:11px; height:11px;
+    background:var(--ink-35); transition:transform .15s, background .15s; }
+  .tsw input:checked + .tsw-tk{ background:var(--ink); border-color:var(--ink); }
+  .tsw input:checked + .tsw-tk::after{ transform:translateX(13px); background:var(--paper); }
+  .tsw input:focus-visible + .tsw-tk{ outline:2px solid var(--ink); outline-offset:1px; }
+  .scheme-hole .tsw:has(input:checked){ color:#FFD9A0; }
+  .scheme-hole .tsw-tk{ border-color:#242A3C; background:#0A0C14; }
+  .scheme-hole .tsw input:checked + .tsw-tk{ background:#FFB25E; border-color:#FFB25E; }
+  .scheme-hole .tsw input:checked + .tsw-tk::after{ background:#0A0C14; }
+
   /* ── the Building Profile pop-over: edit the spline over the live model ── */
   .spl-pop{ position:absolute; left:14px; top:14px; z-index:3; width:min(48%, 400px);
     background:var(--paper); border:1px solid var(--ink); padding:.55rem;
@@ -374,12 +392,11 @@
     <section class="centre" aria-label="3D model">
       <div class="model-bar" id="modelBar">
         <button id="btnProfile" type="button">Building Profile</button>
-        <label class="toggle"><input type="checkbox" id="tFloors" checked> Floors</label>
-        <label class="toggle"><input type="checkbox" id="tDiagrid" checked> Diagrid</label>
-        <label class="toggle"><input type="checkbox" id="tRings" checked> Ring beams</label>
-        <label class="toggle"><input type="checkbox" id="tNodes" checked> Nodes</label>
-        <label class="toggle"><input type="checkbox" id="tShaded" checked> Shaded</label>
-        <label class="toggle" id="tGlowWrap"><input type="checkbox" id="tGlow" checked> Glow</label>
+        <label class="tsw"><input type="checkbox" id="tFloors" checked><span class="tsw-tk"></span>Floors</label>
+        <label class="tsw"><input type="checkbox" id="tExo" checked><span class="tsw-tk"></span>Exoskeleton</label>
+        <label class="tsw"><input type="checkbox" id="tNodes" checked><span class="tsw-tk"></span>Points</label>
+        <label class="tsw"><input type="checkbox" id="tShaded" checked><span class="tsw-tk"></span>Shaded</label>
+        <label class="tsw" id="tGlowWrap"><input type="checkbox" id="tGlow" checked><span class="tsw-tk"></span>Glow</label>
         <button id="tReset" type="button">Reset view</button>
         <span class="model-hint">drag to orbit &middot; right-drag pans &middot; wheel zooms &middot; double-click resets</span>
       </div>
@@ -976,8 +993,9 @@
     if(hole) paintSpace(ctx, w, h);
 
     var A = v.az, B = v.pitch, t = S.thick / 1000;
-    var showFloors = el('tFloors').checked, showGrid = el('tDiagrid').checked;
-    var showRings = el('tRings').checked, showNodes = el('tNodes').checked;
+    var exo = el('tExo').checked;                 /* diagrid braces + ring beams together */
+    var showFloors = el('tFloors').checked, showGrid = exo;
+    var showRings = exo, showNodes = el('tNodes').checked;
     var shaded = el('tShaded').checked;
     var plates = [], all = [], i, s, k;
 
@@ -1197,7 +1215,7 @@
   v.canvas.addEventListener('dblclick', resetView);
   el('tReset').addEventListener('click', resetView);
 
-  ['tFloors','tDiagrid','tRings','tNodes','tShaded','tGlow'].forEach(function(id){
+  ['tFloors','tExo','tNodes','tShaded','tGlow'].forEach(function(id){
     el(id).addEventListener('change', function(){ render(); paintBoard(); });
   });
   window.addEventListener('themechange', function(){ css = {}; render(); paintBoard(); });
