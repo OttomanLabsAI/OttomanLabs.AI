@@ -25,6 +25,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
 <style>
   /* canvas-read variables → ink on white */
   :root{
@@ -529,6 +530,7 @@
   <nav class="nav-row" aria-label="Sections">
     <a href="index.html">Home</a>
     <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
   </nav>
 </header>
 
@@ -545,9 +547,6 @@
       <button id="cfgExport">Export</button>
       <button id="cfgImport">Import</button>
       <input type="file" id="cfgFile" accept="application/json,.json" hidden>
-      <button id="themeToggle" aria-pressed="false" title="Toggle light / dark">
-        <span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span>
-      </button>
     </div>
     <span class="sb-info" id="cfgInfo">Export saves the whole model to JSON &middot; Import restores it.</span>
   </div>
@@ -3930,35 +3929,7 @@
 })();
 </script>
 
-<script>
-/* ---- light / dark theme: dark is the exact inverse of the default palette ---- */
-(function(){
-  "use strict";
-  var btn = document.getElementById('themeToggle');
-  var label = document.getElementById('themeLabel');
-  var root = document.documentElement;
-  window.__setTheme = function(mode){
-    var dark = (mode === 'dark');
-    if(dark) root.setAttribute('data-theme', 'dark');
-    else root.removeAttribute('data-theme');
-    if(btn) btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
-    if(label) label.textContent = dark ? 'Light' : 'Dark';
-    window.__theme = dark ? 'dark' : 'light';
-    try{ localStorage.setItem('ol-theme', window.__theme); }catch(e){}
-    // canvas colours are cached from CSS vars — clear caches and redraw everything
-    window.dispatchEvent(new Event('themechange'));
-    window.dispatchEvent(new Event('resize'));
-  };
-  // adopt the site-wide saved theme on load
-  var __startDark = false;
-  try{ __startDark = localStorage.getItem('ol-theme') === 'dark'; }catch(e){}
-  window.__theme = __startDark ? 'dark' : 'light';
-  window.__setTheme(window.__theme);
-  if(btn) btn.addEventListener('click', function(){
-    window.__setTheme(window.__theme === 'dark' ? 'light' : 'dark');
-  });
-})();
-</script>
+<!-- theme wired by assets/site-header.js (window.__setTheme + themechange) -->
 
 <script>
 /* ---- settings: gather every control + the spline points into one JSON, and restore it ---- */

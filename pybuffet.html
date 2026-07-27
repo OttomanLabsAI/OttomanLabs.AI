@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OttomanLabs.AI — pyBuffet · EDGAR Ledger</title>
 <link rel="stylesheet" href="assets/styles.css">
+<script src="assets/site-header.js" defer></script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
@@ -341,8 +342,11 @@
   <nav class="nav-row" aria-label="Sections">
     <a href="index.html">Home</a>
     <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
   </nav>
 </header>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<!-- theme toggle wired by assets/site-header.js -->
 <style>body{padding:0}
 .app{padding:0 clamp(14px,2.5vw,48px) clamp(14px,2.5vw,48px)}
 header.masthead{margin-bottom:10px}

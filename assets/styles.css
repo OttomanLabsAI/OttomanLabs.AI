@@ -100,7 +100,7 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
 .brand .sparks{ width:.55em; height:.55em; margin-top:-.05em; }
 
 .nav-row{
-  display:flex; flex-wrap:wrap; justify-content:center;
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
   gap:.3rem clamp(1rem,2.6vw,2rem);
   padding:clamp(16px,2.6vw,26px) 0 clamp(14px,2.2vw,20px);
 }

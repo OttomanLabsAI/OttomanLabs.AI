@@ -57,6 +57,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
 <style>
   /* the one-line site claim under the masthead */
   .claim{
@@ -853,11 +854,14 @@
     var k = sc / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
     var R = Math.max(0.30, foot || 0.62);
     isleStack(faces, R, th);
-    var d = [];
+    paintVox(ctx, faces, prj, yaw, 'rgba(0,0,0,.14)');
+    /* the props go in a second painter pass — the big disc faces can never
+       average-depth their way over a small tree again */
+    var d = [], dfaces = [];
     th.deco(d);
     var ds = R / 0.62;   /* deco keeps its ring position relative to the disc */
-    d.forEach(function(c){ slab(faces, sq(c[0] * ds, c[1] * ds, c[2]), c[3], c[4], c[5]); });
-    paintVox(ctx, faces, prj, yaw, 'rgba(0,0,0,.14)');
+    d.forEach(function(c){ slab(dfaces, sq(c[0] * ds, c[1] * ds, c[2]), c[3], c[4], c[5]); });
+    paintVox(ctx, dfaces, prj, yaw, 'rgba(0,0,0,.14)');
   }
 
   /* ---- the four structures as true 3D models (yaw = camera orbit) ---- */
@@ -1481,7 +1485,7 @@
             V.paintVox(ctx, vfaces, vprj, YAW, 'rgba(0,0,0,.14)');
           }
           tree(g.x + ik * 0.42, g.y + ik * 0.06, h * 0.05);
-          p.draw(ctx, g.x, g.y, s, i * (TAU / cfg.tools.length) - rot);
+          p.draw(ctx, g.x, g.y, s, i * (TAU / cfg.tools.length) - rot + 0.52);   /* iso: never dead-on */
           chip(g.x, g.y - s - h * 0.045, p.chip, depth01 > 0.82, h, p.dash ? null : 'coming soon');
         }});
       });
@@ -1978,23 +1982,7 @@
   if(!reduced) requestAnimationFrame(loop);
 })();
 </script>
-<script>
-(function(){
-  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
-  function paint(dark){
-    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
-    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
-    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
-  }
-  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
-  paint(saved);
-  if(btn) btn.addEventListener('click', function(){
-    var dark = root.getAttribute('data-theme')!=='dark';
-    paint(dark);
-    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
-  });
-})();
-</script>
+<!-- theme toggle wired by assets/site-header.js -->
 <script src="assets/firebase-config.js"></script>
 <script src="assets/ol-cloud.js" defer></script>
 </body>

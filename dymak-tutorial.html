@@ -23,6 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 /* Shell chrome — dashboard-page rules from ottomanlabs.ai, no masthead
@@ -237,6 +238,7 @@ html[data-theme="dark"] .hl-note b{ color:#E85B60; }
   <nav class="nav-row" aria-label="Sections">
     <a href="index.html">Home</a>
     <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
   </nav>
 </header>
 
@@ -249,11 +251,6 @@ html[data-theme="dark"] .hl-note b{ color:#E85B60; }
 
   <div class="settings-bar">
     <span class="sb-label">Tutorial</span>
-    <div class="sb-actions">
-      <button class="sbtn" id="themeToggle" aria-pressed="false" title="Toggle light / dark">
-        <span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span>
-      </button>
-    </div>
     <span class="sb-info">Copy each prompt, see what it delivered, use the dashboard it produced</span>
   </div>
 
@@ -971,21 +968,14 @@ GANTT.forEach((row, ri)=>{
   });
 });
 
-/* ── theme toggle — shell and all loaded prompts move together ── */
-const tBtn = document.getElementById('themeToggle');
-const tLbl = document.getElementById('themeLabel');
-tBtn.addEventListener('click',()=>{
-  const dark = !shellDark();
-  if(dark) document.documentElement.setAttribute('data-theme','dark');
-  else document.documentElement.removeAttribute('data-theme');
-  tLbl.textContent = dark ? 'Light' : 'Dark';
-  tBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+/* ── theme — the site-header toggle drives it; keep the loaded prompts in step ── */
+window.addEventListener('themechange', () => {
   frames.forEach(f=>{ if(f) syncFrame(f); });
 });
 
 activate(0);
 </script>
-<script>document.getElementById('themeToggle').addEventListener('click',function(){try{localStorage.setItem('ol-theme',document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light');}catch(e){}});</script>
+
 <script src="assets/firebase-config.js"></script>
 <script src="assets/ol-cloud.js" defer></script>
 </body>

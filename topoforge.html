@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
 <style>
@@ -1649,7 +1650,7 @@ function importModel(m){
   el('chColour').checked = S.show.colour;
   el('chWire').checked = S.show.wire;
   el('chCont').checked = S.show.cont;
-  if((m.theme === 'dark') !== dark) el('themeToggle').click();
+  if((m.theme === 'dark') !== (document.documentElement.getAttribute('data-theme') === 'dark')) el('themeToggle').click();
   setShape(m.shape === 'circle' ? 'circle' : 'spline');
   if(m.terrain && Array.isArray(m.terrain.P) && m.terrain.P.length) restoreTerrain(m.terrain);
   else clearTerrain();
@@ -1815,22 +1816,7 @@ document.querySelectorAll('#unitSeg button').forEach(b => b.onclick = () => {
 });
 applyUnits();
 
-/* theme toggle (in the site masthead) — inverts the whole board, canvases
-   re-read the tokens; state persists site-wide via ol-theme */
-let dark = document.documentElement.getAttribute('data-theme') === 'dark';
-if(dark){
-  el('themeLabel').textContent = 'Light';
-  el('themeToggle').setAttribute('aria-pressed', 'true');
-}
-el('themeToggle').onclick = () => {
-  dark = !dark;
-  if(dark) document.documentElement.setAttribute('data-theme', 'dark');
-  else document.documentElement.removeAttribute('data-theme');
-  el('themeLabel').textContent = dark ? 'Light' : 'Dark';
-  el('themeToggle').setAttribute('aria-pressed', dark ? 'true' : 'false');
-  try{ localStorage.setItem('ol-theme', dark ? 'dark' : 'light'); }catch(e){}
-  window.dispatchEvent(new Event('themechange'));
-};
+/* theme toggle wired by assets/site-header.js — 'themechange' recolours the board */
 window.addEventListener('themechange', () => {
   cssCache = {};
   if(THREE_OK){
