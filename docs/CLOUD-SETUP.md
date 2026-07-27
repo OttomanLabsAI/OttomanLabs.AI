@@ -87,7 +87,14 @@ Before the two cloud `<script>` tags, define an adapter:
 <script src="assets/ol-cloud.js" defer></script>
 ```
 
-Reuse the page's existing export/import functions for `getState`/`setState`.
-Currently wired: **The Gherkin** (`gherkin.html`) and **Gherkin Studio**
-(`gherkin-studio.html`). Dymak, CV Builder, pyBuffet and the Playground are the
-next to receive the same three-line adapter.
+Reuse the page's existing export/import functions for `getState`/`setState`,
+and add the tool to the `TOOLS` registry at the top of `assets/ol-cloud.js` so
+it appears as a folder in the explorer.
+
+Currently wired with save/load: **The Gherkin**, **Gherkin Studio**,
+**Dymak HQ**, **CV Builder** and **pyBuffet** (its document is the watchlist).
+Every other page carries the Cloud button too — sign-in plus the file
+explorer — so files are reachable from anywhere; opening a file that belongs
+to another dashboard navigates there (`?olfile=<id>`) and loads it on arrival.
+The Playground has no single savable document yet, so it shows the explorer
+only.

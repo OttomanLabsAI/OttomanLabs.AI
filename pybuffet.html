@@ -950,6 +950,16 @@ function applyWatchlist(data, sourceName) {
   renderStamp('Select a filer', `${esc(sourceName)} loaded — ${WATCHLIST.length} instruments. Pick a company from the watchlist; statements are pulled straight from SEC EDGAR as filed.`);
 }
 
+/* cloud save: the document is the watchlist itself */
+window.__pb = {
+  get: () => {
+    if (!Array.isArray(WATCHLIST) || !WATCHLIST.length)
+      throw new Error('no watchlist loaded yet');
+    return { investments: WATCHLIST.map(({ id, ...rest }) => rest) };
+  },
+  set: (data) => applyWatchlist(data, 'cloud save')
+};
+
 /* ---------------- selection & rendering ---------------- */
 function markSelected() {
   for (const b of navEl.querySelectorAll('.co')) b.classList.toggle('sel', selected && +b.dataset.id === selected.id);
@@ -1207,5 +1217,14 @@ renderLoaderCard();
 renderBookList();
 loadRegistry();
 </script>
+<script>
+  window.OLCloudAdapter = {
+    tool: 'pybuffet', label: 'pyBuffet',
+    getState: function(){ return window.__pb.get(); },
+    setState: function(s){ window.__pb.set(s); }
+  };
+</script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
 </body>
 </html>

@@ -1,21 +1,23 @@
 /* OttomanLabs.AI — cloud save.
  *
- * A tiny, framework-free layer that lets a signed-in user keep many named
- * files per dashboard in Firebase. Loads the Firebase SDK lazily (only when
- * the visitor actually opens the Cloud panel or returns from a sign-in link),
- * so pages stay fast and keep working if Firebase is unreachable.
+ * One account for the whole site. Signed-in users keep many NAMED files per
+ * dashboard, browsed through a small file explorer: every tool is a folder,
+ * every save is a file — open, rename, delete from any page. Opening a file
+ * that belongs to another dashboard navigates there and loads it on arrival
+ * (?olfile=<id>).
  *
- * A page opts in by defining, before this script:
+ * A page with something to save defines, before this script:
  *   window.OLCloudAdapter = {
- *     tool: 'gherkin-studio',          // stable id — its own file drawer
- *     label: 'Gherkin Studio',         // human name, shown in the panel
+ *     tool: 'gherkin-studio',          // stable id — must match TOOLS below
+ *     label: 'Gherkin Studio',
  *     getState: function(){ return {…}; },   // JSON-serialisable document
  *     setState: function(obj){ … }           // apply a loaded document
  *   };
+ * Pages without an adapter still get the Cloud button + explorer.
  *
  * Sign-in: email + password, or a passwordless email link (magic link).
- * Files:   users/{uid}/tools/{tool}/files/{id}  →  {name, data, createdAt, updatedAt}
- *
+ * Files:   users/{uid}/tools/{tool}/files/{id} → {name, data, createdAt, updatedAt}
+ * The Firebase SDK loads lazily from Google's CDN only when actually needed.
  * Dormant until assets/firebase-config.js provides window.OL_FIREBASE.
  */
 (function(){
@@ -29,7 +31,16 @@
   var adapter = window.OLCloudAdapter || null;
   var LINK_KEY = 'ol-cloud-emailForSignIn';
 
-  /* ── styles (use the page's own tokens so it matches light/dark) ── */
+  /* every drawer in the explorer — id must match each page's adapter.tool */
+  var TOOLS = [
+    { id:'gherkin',        label:'The Gherkin',    page:'gherkin.html' },
+    { id:'gherkin-studio', label:'Gherkin Studio', page:'gherkin-studio.html' },
+    { id:'dymak',          label:'Dymak HQ',       page:'dymak.html' },
+    { id:'cvbuilder',      label:'CV Builder',     page:'cvbuilder.html' },
+    { id:'pybuffet',       label:'pyBuffet',       page:'pybuffet.html' }
+  ];
+
+  /* ── styles (the page's own tokens, so light/dark/schemes just work) ── */
   var css = document.createElement('style');
   css.textContent =
     '.olc-btn{font-family:var(--font-brand,sans-serif);font-weight:500;font-size:.62rem;' +
@@ -43,8 +54,8 @@
       'display:flex;align-items:center;justify-content:center;padding:1rem;}' +
     '.olc-ov[hidden]{display:none;}' +
     '.olc-modal{background:var(--paper,#fff);color:var(--ink,#111);border:1px solid var(--ink,#111);' +
-      'width:min(420px,100%);max-height:88vh;overflow:auto;padding:1.1rem 1.15rem 1.25rem;}' +
-    '.olc-modal.wide{width:min(520px,100%);}' +
+      'width:min(430px,100%);max-height:88vh;overflow:auto;padding:1.1rem 1.15rem 1.25rem;}' +
+    '.olc-modal.wide{width:min(560px,100%);}' +
     '.olc-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:.5rem;}' +
     '.olc-title{font-family:var(--font-brand,sans-serif);font-weight:600;font-size:.68rem;' +
       'letter-spacing:.22em;text-transform:uppercase;}' +
@@ -70,11 +81,19 @@
     '.olc-lnk:hover{color:var(--ink,#111);}' +
     '.olc-note{font-family:var(--font-serif,serif);font-style:italic;font-size:.82rem;line-height:1.5;min-height:1.1em;}' +
     '.olc-note.err{color:#B01018;font-style:normal;}' +
-    '.olc-saverow{display:flex;gap:.5rem;margin:.2rem 0 .8rem;}' +
-    '.olc-saverow input{flex:1;}' +
-    '.olc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}' +
-    '.olc-li{display:flex;align-items:center;gap:.5rem;border-top:1px solid var(--hair,#e3e3e3);padding:.5rem 0;}' +
-    '.olc-li:last-child{border-bottom:1px solid var(--hair,#e3e3e3);}' +
+    '.olc-saverow{display:flex;gap:.5rem;margin:.2rem 0 .35rem;}' +
+    '.olc-saverow input{flex:1;font-family:var(--font-brand,sans-serif);font-size:.86rem;padding:.5rem .55rem;' +
+      'border:1px solid var(--hair,#e3e3e3);background:var(--paper,#fff);color:var(--ink,#111);border-radius:0;min-width:0;}' +
+    '.olc-fold{list-style:none;margin:.6rem 0 0;padding:0;display:flex;flex-direction:column;}' +
+    '.olc-fh{display:flex;align-items:center;gap:.5rem;width:100%;background:none;border:0;' +
+      'border-top:1px solid var(--hair,#e3e3e3);padding:.55rem 0;cursor:pointer;color:var(--ink,#111);' +
+      'font-family:var(--font-brand,sans-serif);font-weight:600;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;}' +
+    '.olc-fh:hover{color:#B01018;}' +
+    '.olc-fh .olc-car{font-size:.7rem;width:.9em;flex:0 0 auto;}' +
+    '.olc-fh .olc-cnt{margin-left:auto;font-weight:400;color:var(--ink-35,#a9a9a9);letter-spacing:.08em;}' +
+    '.olc-fh .olc-here{font-weight:400;color:var(--ink-35,#a9a9a9);letter-spacing:.08em;}' +
+    '.olc-list{list-style:none;margin:0 0 .4rem;padding:0 0 0 1.15rem;display:flex;flex-direction:column;}' +
+    '.olc-li{display:flex;align-items:center;gap:.5rem;border-top:1px dashed var(--hair,#e3e3e3);padding:.45rem 0;}' +
     '.olc-open{flex:1;min-width:0;background:none;border:0;color:var(--ink,#111);cursor:pointer;text-align:left;' +
       'font-family:var(--font-brand,sans-serif);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
     '.olc-open:hover{color:#B01018;}' +
@@ -82,13 +101,14 @@
     '.olc-li time{font-family:var(--font-serif,serif);font-style:italic;font-size:.72rem;color:var(--ink-35,#a9a9a9);flex:0 0 auto;}' +
     '.olc-mini{background:none;border:0;color:var(--ink-60,#5a5a5a);cursor:pointer;font-size:.9rem;line-height:1;padding:0 .15rem;flex:0 0 auto;}' +
     '.olc-mini:hover{color:#B01018;}' +
+    '.olc-empty{font-family:var(--font-serif,serif);font-style:italic;font-size:.8rem;color:var(--ink-35,#a9a9a9);padding:.35rem 0 .5rem;}' +
     '.olc-foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.9rem;' +
       'font-family:var(--font-brand,sans-serif);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60,#5a5a5a);}' +
     '.olc-foot button{background:none;border:0;color:var(--ink-60,#5a5a5a);cursor:pointer;font:inherit;text-transform:uppercase;letter-spacing:.12em;}' +
     '.olc-foot button:hover{color:#B01018;}';
   document.head.appendChild(css);
 
-  /* ── the masthead button ── */
+  /* ── the account button, mounted in the page header ── */
   function mount(){
     return document.getElementById('olCloudMount')
         || document.querySelector('.nav-row')
@@ -100,7 +120,8 @@
   btn.type = 'button';
   btn.className = 'olc-btn';
   btn.textContent = 'Cloud';
-  btn.addEventListener('click', openPanel);
+  btn.title = 'Sign in to save your work';
+  btn.addEventListener('click', function(){ openPanel(); });
   mount().appendChild(btn);
 
   function setBtn(user){
@@ -109,7 +130,7 @@
       var d = document.createElement('span'); d.className = 'olc-dot';
       btn.appendChild(d);
       btn.appendChild(document.createTextNode(user.email || 'Signed in'));
-      btn.title = 'Cloud — ' + (user.email || 'signed in');
+      btn.title = 'Your files — ' + (user.email || 'signed in');
     } else {
       btn.textContent = 'Cloud';
       btn.title = 'Sign in to save your work';
@@ -137,6 +158,11 @@
 
   /* ── lazy Firebase loader ── */
   var FB = null, loading = null;
+  var USER = null, current = null;
+  var cache = {};                                  // toolId → files[] (per panel open)
+  var openFold = {};                               // toolId → expanded?
+  var pendingOpen = null, pendingPrompted = false;
+
   function load(){
     if(FB) return Promise.resolve(FB);
     if(loading) return loading;
@@ -151,8 +177,10 @@
              auth: authM.getAuth(app), db: dbM.getFirestore(app) };
       authM.onAuthStateChanged(FB.auth, function(u){
         var changed = !u || !USER || USER.uid !== u.uid;
-        if(changed){ current = null; files = []; loaded = false; }
+        if(changed){ current = null; cache = {}; }
         USER = u; setBtn(u);
+        if(u && pendingOpen) applyPendingOpen();
+        else if(!u && pendingOpen && !pendingPrompted){ pendingPrompted = true; openPanel(); }
         if(!ov.hidden) render();
       });
       return FB;
@@ -160,24 +188,54 @@
     return loading;
   }
 
-  var USER = null, current = null, files = [], loaded = false;
+  function toolRefOf(toolId){
+    var dbM = FB.dbM;
+    return dbM.collection(FB.db, 'users', USER.uid, 'tools', toolId, 'files');
+  }
+  function loadFolder(toolId){
+    var dbM = FB.dbM;
+    return dbM.getDocs(dbM.query(toolRefOf(toolId), dbM.orderBy('updatedAt', 'desc')))
+      .then(function(snap){
+        var out = [];
+        snap.forEach(function(d){ out.push(Object.assign({ id: d.id }, d.data())); });
+        cache[toolId] = out;
+        return out;
+      });
+  }
+
+  /* a file opened from another page: ?olfile=<id> loads it on arrival */
+  function applyPendingOpen(){
+    if(!pendingOpen || !USER || !adapter) return;
+    var id = pendingOpen; pendingOpen = null;
+    var dbM = FB.dbM;
+    dbM.getDoc(dbM.doc(toolRefOf(adapter.tool), id)).then(function(snap){
+      if(!snap.exists()) return;
+      var f = snap.data();
+      try {
+        adapter.setState(f.data);
+        current = { id: id, name: f.name };
+        history.replaceState(null, '', location.origin + location.pathname);
+        hide();
+      } catch(e){}
+    }).catch(function(){});
+  }
 
   function openPanel(){
     show();
-    loaded = false;                                 // re-fetch fresh on each open
+    cache = {};                                    // fresh listing on each open
     modal.innerHTML = '';
-    modal.appendChild(el('div', null, 'Connecting…')).className = 'olc-sub';
+    modal.appendChild(el('div', 'olc-sub', 'Connecting…'));
     load().then(render).catch(function(err){
       modal.innerHTML = '';
-      var h = el('div', 'olc-note err', 'Could not reach the cloud service. ' + (err && err.message ? err.message : ''));
-      modal.appendChild(h);
+      modal.appendChild(el('div', 'olc-note err',
+        'Could not reach the cloud service. ' + (err && err.message ? err.message : '')));
     });
   }
 
   /* ── views ── */
   function render(){
     if(ov.hidden) return;
-    if(USER) renderFiles(); else renderAuth();
+    if(USER) renderExplorer(); else renderAuth();
   }
 
   function head(title){
@@ -193,7 +251,7 @@
     modal.className = 'olc-modal';
     modal.innerHTML = '';
     modal.appendChild(head('Sign in'));
-    modal.appendChild(el('p', 'olc-sub', 'Save and reload your work across devices. Your files are private to your account.'));
+    modal.appendChild(el('p', 'olc-sub', 'One account for every dashboard — save named versions of your work and reopen them anywhere.'));
 
     var tabs = el('div', 'olc-tabs');
     var tPw = el('button', 'olc-tab on', 'Password'); tPw.type = 'button';
@@ -204,7 +262,6 @@
     var body = el('div');
     modal.appendChild(body);
     var note = el('div', 'olc-note'); modal.appendChild(note);
-
     function say(msg, isErr){ note.textContent = msg || ''; note.className = 'olc-note' + (isErr ? ' err' : ''); }
 
     function pwView(){
@@ -273,110 +330,147 @@
     pwView();
   }
 
-  function toolRef(){
-    var dbM = FB.dbM;
-    return dbM.collection(FB.db, 'users', USER.uid, 'tools', adapter.tool, 'files');
-  }
-  function loadFiles(){
-    var dbM = FB.dbM;
-    return dbM.getDocs(dbM.query(toolRef(), dbM.orderBy('updatedAt', 'desc')))
-      .then(function(snap){
-        files = [];
-        snap.forEach(function(d){ files.push(Object.assign({ id: d.id }, d.data())); });
-        loaded = true;
-        return files;
-      });
-  }
-
-  function renderFiles(){
+  /* ── the explorer: one folder per tool, files inside ── */
+  function renderExplorer(){
     modal.className = 'olc-modal wide';
     modal.innerHTML = '';
-    var label = (adapter && adapter.label) || (adapter && adapter.tool) || 'this tool';
-    modal.appendChild(head('Your ' + label + ' files'));
-
-    if(!adapter || typeof adapter.getState !== 'function'){
-      modal.appendChild(el('p', 'olc-sub', 'This page has no savable document yet. Signed in as ' + USER.email + '.'));
-      modal.appendChild(footer());
-      return;
-    }
+    modal.appendChild(head('Your files'));
 
     var note = el('div', 'olc-note');
     function say(msg, isErr){ note.textContent = msg || ''; note.className = 'olc-note' + (isErr ? ' err' : ''); }
 
-    var row = el('div', 'olc-saverow');
-    var name = el('input'); name.type = 'text'; name.placeholder = 'name this design…';
-    if(current) name.value = current.name;
-    var save = el('button', 'olc-go', current ? 'Save' : 'Save'); save.type = 'button';
-    save.style.flex = '0 0 auto';
-    row.appendChild(name); row.appendChild(save);
-    modal.appendChild(row);
-    modal.appendChild(el('p', 'olc-sub', current
-      ? 'Editing “' + current.name + '” — Save updates it, or rename above to store a copy.'
-      : 'Name it and press Save to store this design in your account.'));
-
-    save.addEventListener('click', function(){
-      var nm = name.value.trim();
-      if(!nm){ say('Give the file a name.', true); return; }
-      var data;
-      try { data = adapter.getState(); }
-      catch(e){ say('Could not read the current design.', true); return; }
-      say('Saving…');
-      var dbM = FB.dbM, now = dbM.serverTimestamp();
-      var payload = { name: nm, data: data, updatedAt: now };
-      var p;
-      if(current && current.name === nm){
-        p = dbM.setDoc(dbM.doc(toolRef(), current.id), payload, { merge: true })
-              .then(function(){ current.name = nm; });
-      } else {
-        payload.createdAt = now;
-        p = dbM.addDoc(toolRef(), payload).then(function(ref){ current = { id: ref.id, name: nm }; });
-      }
-      p.then(loadFiles).then(function(){ renderFiles(); })
-       .catch(function(err){ say(niceErr(err), true); });
-    });
-
-    var ul = el('ul', 'olc-list');
-    if(!files.length){
-      ul.appendChild(el('li', 'olc-li', 'No saved files yet.'));
-    } else {
-      files.forEach(function(f){
-        var li = el('li', 'olc-li' + (current && current.id === f.id ? ' cur' : ''));
-        var open = el('button', 'olc-open', f.name || '(unnamed)'); open.type = 'button';
-        open.addEventListener('click', function(){
-          try { adapter.setState(f.data); current = { id: f.id, name: f.name }; hide(); }
-          catch(e){ say('Could not open that file.', true); }
-        });
-        var t = el('time', null, fmtDate(f.updatedAt));
-        var ren = el('button', 'olc-mini', '✎'); ren.type = 'button'; ren.title = 'Rename';
-        ren.addEventListener('click', function(){
-          var nn = prompt('Rename file', f.name || '');
-          if(nn == null) return;
-          nn = nn.trim(); if(!nn) return;
-          FB.dbM.updateDoc(FB.dbM.doc(toolRef(), f.id), { name: nn, updatedAt: FB.dbM.serverTimestamp() })
-            .then(function(){ if(current && current.id === f.id) current.name = nn; })
-            .then(loadFiles).then(renderFiles)
-            .catch(function(err){ say(niceErr(err), true); });
-        });
-        var del = el('button', 'olc-mini', '×'); del.type = 'button'; del.title = 'Delete';
-        del.addEventListener('click', function(){
-          if(!confirm('Delete “' + (f.name || 'this file') + '”? This cannot be undone.')) return;
-          FB.dbM.deleteDoc(FB.dbM.doc(toolRef(), f.id))
-            .then(function(){ if(current && current.id === f.id) current = null; })
-            .then(loadFiles).then(renderFiles)
-            .catch(function(err){ say(niceErr(err), true); });
-        });
-        li.appendChild(open); li.appendChild(t); li.appendChild(ren); li.appendChild(del);
-        ul.appendChild(li);
+    /* save row — only on a page with something to save */
+    if(adapter && typeof adapter.getState === 'function'){
+      var row = el('div', 'olc-saverow');
+      var name = el('input'); name.type = 'text';
+      name.placeholder = 'name this ' + (adapter.label || 'design') + '…';
+      if(current) name.value = current.name;
+      var save = el('button', 'olc-go', 'Save'); save.type = 'button';
+      save.style.flex = '0 0 auto';
+      row.appendChild(name); row.appendChild(save);
+      modal.appendChild(row);
+      modal.appendChild(el('p', 'olc-sub', current
+        ? 'Editing “' + current.name + '” — Save updates it; change the name to store a copy.'
+        : 'Saves into the ' + (adapter.label || adapter.tool) + ' folder below.'));
+      save.addEventListener('click', function(){
+        var nm = name.value.trim();
+        if(!nm){ say('Give the file a name.', true); return; }
+        var data;
+        try { data = adapter.getState(); }
+        catch(e){ say('Could not read the current design.', true); return; }
+        say('Saving…');
+        var dbM = FB.dbM, now = dbM.serverTimestamp();
+        var payload = { name: nm, data: data, updatedAt: now };
+        var p;
+        if(current && current.name === nm){
+          p = dbM.setDoc(dbM.doc(toolRefOf(adapter.tool), current.id), payload, { merge: true });
+        } else {
+          payload.createdAt = now;
+          p = dbM.addDoc(toolRefOf(adapter.tool), payload)
+                 .then(function(ref){ current = { id: ref.id, name: nm }; });
+        }
+        p.then(function(){ return loadFolder(adapter.tool); })
+         .then(function(){ openFold[adapter.tool] = true; renderExplorer(); })
+         .catch(function(err){ say(niceErr(err), true); });
       });
+    } else {
+      modal.appendChild(el('p', 'olc-sub',
+        'Your saved work, one folder per tool. Open a file and its dashboard loads it.'));
     }
+
+    var ul = el('ul', 'olc-fold');
+    var ordered = TOOLS.slice().sort(function(a, b){
+      var ah = adapter && a.id === adapter.tool ? 0 : 1;
+      var bh = adapter && b.id === adapter.tool ? 0 : 1;
+      return ah - bh;
+    });
+    if(adapter && openFold[adapter.tool] == null) openFold[adapter.tool] = true;
+
+    ordered.forEach(function(tool){
+      var li = el('li');
+      var fh = el('button', 'olc-fh'); fh.type = 'button';
+      var car = el('span', 'olc-car', openFold[tool.id] ? '▾' : '▸');
+      fh.appendChild(car);
+      fh.appendChild(el('span', null, tool.label));
+      if(adapter && tool.id === adapter.tool) fh.appendChild(el('span', 'olc-here', '· this page'));
+      var cnt = el('span', 'olc-cnt', cache[tool.id] ? String(cache[tool.id].length) : '');
+      fh.appendChild(cnt);
+      fh.addEventListener('click', function(){
+        openFold[tool.id] = !openFold[tool.id];
+        renderExplorer();
+      });
+      li.appendChild(fh);
+
+      if(openFold[tool.id]){
+        var flist = el('ul', 'olc-list');
+        li.appendChild(flist);
+        var paint = function(files){
+          flist.innerHTML = '';
+          if(!files.length){
+            flist.appendChild(el('li', 'olc-empty', 'nothing saved here yet'));
+            return;
+          }
+          files.forEach(function(f){
+            var fli = el('li', 'olc-li' +
+              (adapter && tool.id === adapter.tool && current && current.id === f.id ? ' cur' : ''));
+            var open = el('button', 'olc-open', f.name || '(unnamed)'); open.type = 'button';
+            open.title = (adapter && tool.id === adapter.tool)
+              ? 'Open here' : 'Open in ' + tool.label;
+            open.addEventListener('click', function(){
+              if(adapter && tool.id === adapter.tool){
+                try { adapter.setState(f.data); current = { id: f.id, name: f.name }; hide(); }
+                catch(e){ say('Could not open that file.', true); }
+              } else {
+                location.href = tool.page + '?olfile=' + encodeURIComponent(f.id);
+              }
+            });
+            var tm = el('time', null, fmtDate(f.updatedAt));
+            var ren = el('button', 'olc-mini', '✎'); ren.type = 'button'; ren.title = 'Rename';
+            ren.addEventListener('click', function(){
+              var nn = prompt('Rename file', f.name || '');
+              if(nn == null) return;
+              nn = nn.trim(); if(!nn) return;
+              FB.dbM.updateDoc(FB.dbM.doc(toolRefOf(tool.id), f.id),
+                  { name: nn, updatedAt: FB.dbM.serverTimestamp() })
+                .then(function(){
+                  if(current && current.id === f.id) current.name = nn;
+                  return loadFolder(tool.id);
+                })
+                .then(renderExplorer)
+                .catch(function(err){ say(niceErr(err), true); });
+            });
+            var del = el('button', 'olc-mini', '×'); del.type = 'button'; del.title = 'Delete';
+            del.addEventListener('click', function(){
+              if(!confirm('Delete “' + (f.name || 'this file') + '”? This cannot be undone.')) return;
+              FB.dbM.deleteDoc(FB.dbM.doc(toolRefOf(tool.id), f.id))
+                .then(function(){
+                  if(current && current.id === f.id) current = null;
+                  return loadFolder(tool.id);
+                })
+                .then(renderExplorer)
+                .catch(function(err){ say(niceErr(err), true); });
+            });
+            fli.appendChild(open); fli.appendChild(tm); fli.appendChild(ren); fli.appendChild(del);
+            flist.appendChild(fli);
+          });
+        };
+        if(cache[tool.id]) paint(cache[tool.id]);
+        else {
+          flist.appendChild(el('li', 'olc-empty', 'loading…'));
+          loadFolder(tool.id).then(function(files){
+            cnt.textContent = String(files.length);
+            paint(files);
+          }).catch(function(err){
+            flist.innerHTML = '';
+            flist.appendChild(el('li', 'olc-empty', 'could not load — ' + niceErr(err)));
+          });
+        }
+      }
+      ul.appendChild(li);
+    });
     modal.appendChild(ul);
     modal.appendChild(note);
     modal.appendChild(footer());
-
-    if(!loaded){
-      say('Loading your files…');
-      loadFiles().then(renderFiles).catch(function(err){ say(niceErr(err), true); });
-    }
   }
 
   function footer(){
@@ -384,7 +478,7 @@
     f.appendChild(el('span', null, USER ? (USER.email || 'signed in') : ''));
     var out = el('button', null, 'Sign out'); out.type = 'button';
     out.addEventListener('click', function(){
-      FB.authM.signOut(FB.auth).then(function(){ current = null; files = []; loaded = false; render(); });
+      FB.authM.signOut(FB.auth).then(function(){ current = null; cache = {}; render(); });
     });
     f.appendChild(out);
     return f;
@@ -409,12 +503,13 @@
       'auth/wrong-password': 'Email or password is incorrect.',
       'auth/user-not-found': 'No account for that email — create one.',
       'auth/too-many-requests': 'Too many attempts. Wait a moment and try again.',
-      'auth/unauthorized-domain': 'This site’s domain isn’t authorised in Firebase Auth settings yet.'
+      'auth/unauthorized-domain': 'This site’s domain isn’t authorised in Firebase Auth settings yet.',
+      'permission-denied': 'The database rules refused this — check firestore.rules is published.'
     };
     return map[c] || (err && err.message ? err.message : 'Something went wrong.');
   }
 
-  /* ── complete a magic-link return on load ── */
+  /* ── boot: magic-link return, or a file sent over from another page ── */
   if(/[?&]mode=signIn/.test(location.search) && /[?&]oobCode=/.test(location.search)){
     load().then(function(){
       if(!FB.authM.isSignInWithEmailLink(FB.auth, location.href)) return;
@@ -428,5 +523,11 @@
         openPanel();
       }).catch(function(err){ alert('Sign-in link failed: ' + niceErr(err)); });
     });
+  } else {
+    var pm = location.search.match(/[?&]olfile=([A-Za-z0-9_-]+)/);
+    if(pm && adapter){
+      pendingOpen = pm[1];
+      load();                                     // auth state will finish the job
+    }
   }
 })();
