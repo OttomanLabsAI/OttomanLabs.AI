@@ -1377,11 +1377,39 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     };
   }
 
+  function exportModel(){
+    /* deep-copied so the exported document is a snapshot, not a live view */
+    return { app:'the-eccentric', version:11, units:'m',
+             model:JSON.parse(JSON.stringify(state)),
+             view:JSON.parse(JSON.stringify(view)),
+             structure:buildStructure() };
+  }
+  function importModel(obj){
+    var m = obj.model || obj;
+    function num(v, dflt){ return isFinite(Number(v)) ? Number(v) : dflt; }
+    state.R = clamp(num(m.R, DEF.R), LIM.R[0], LIM.R[1]);
+    state.r = clamp(num(m.r, DEF.r), LIM.r[0], LIM.r[1]);
+    var d = num(m.d, DEF.d);
+    if (m.theta != null) d = d * Math.cos(rad(num(m.theta, 0)));
+    state.d = clamp(d, LIM.d[0], LIM.d[1]);
+    state.n = Math.round(clamp(num(m.n, DEF.n), LIM.n[0], LIM.n[1]));
+    state.m = Math.round(clamp(num(m.m, DEF.m), LIM.m[0], LIM.m[1]));
+    if (m.oHi == null && m.h != null){
+      var flat = clamp(num(m.h, 30), 0, 100);
+      state.oHi = state.oLo = state.iHi = state.iLo = flat;
+    } else {
+      state.oHi = clamp(num(m.oHi, DEF.oHi), 0, 100);
+      state.oLo = clamp(num(m.oLo, DEF.oLo), 0, 100);
+      state.iHi = clamp(num(m.iHi, DEF.iHi), 0, 100);
+      state.iLo = clamp(num(m.iLo, DEF.iLo), 0, 100);
+    }
+    render();
+  }
+  window.__dymak = { exportModel: exportModel, importModel: importModel };
+
   $('btnExport').addEventListener('click', function(){
-    var payload = { app:'the-eccentric', version:11, units:'m',
-                    model:state, view:view, structure:buildStructure() };
     download('pydymak-model.json',
-      new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' }));
+      new Blob([JSON.stringify(exportModel(), null, 2)], { type:'application/json' }));
   });
 
   $('btnImport').addEventListener('click', function(){ $('fileImport').click(); });
@@ -1392,26 +1420,7 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     var reader = new FileReader();
     reader.onload = function(){
       try{
-        var obj = JSON.parse(reader.result);
-        var m = obj.model || obj;
-        function num(v, dflt){ return isFinite(Number(v)) ? Number(v) : dflt; }
-        state.R = clamp(num(m.R, DEF.R), LIM.R[0], LIM.R[1]);
-        state.r = clamp(num(m.r, DEF.r), LIM.r[0], LIM.r[1]);
-        var d = num(m.d, DEF.d);
-        if (m.theta != null) d = d * Math.cos(rad(num(m.theta, 0)));
-        state.d = clamp(d, LIM.d[0], LIM.d[1]);
-        state.n = Math.round(clamp(num(m.n, DEF.n), LIM.n[0], LIM.n[1]));
-        state.m = Math.round(clamp(num(m.m, DEF.m), LIM.m[0], LIM.m[1]));
-        if (m.oHi == null && m.h != null){
-          var flat = clamp(num(m.h, 30), 0, 100);
-          state.oHi = state.oLo = state.iHi = state.iLo = flat;
-        } else {
-          state.oHi = clamp(num(m.oHi, DEF.oHi), 0, 100);
-          state.oLo = clamp(num(m.oLo, DEF.oLo), 0, 100);
-          state.iHi = clamp(num(m.iHi, DEF.iHi), 0, 100);
-          state.iLo = clamp(num(m.iLo, DEF.iLo), 0, 100);
-        }
-        render();
+        importModel(JSON.parse(reader.result));
       }catch(err){
         alert("Couldn't read that file — expected JSON exported from this dashboard.");
       }
@@ -1478,5 +1487,14 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   render();
 })();
 </script>
+<script>
+  window.OLCloudAdapter = {
+    tool: 'dymak', label: 'Dymak HQ',
+    getState: function(){ return window.__dymak.exportModel(); },
+    setState: function(s){ window.__dymak.importModel(s); }
+  };
+</script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
 </body>
 </html>

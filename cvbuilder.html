@@ -996,6 +996,14 @@ function buildForms(){
 /* ============ toolbar ============ */
 $('#btnPrint').addEventListener('click', ()=>{ if (document.activeElement) document.activeElement.blur(); window.print(); });
 $('#btnSave').addEventListener('click', ()=>saveStorage(false));
+window.__cv = {
+  get: () => ({v:2, savedAt:new Date().toISOString(), state:exportable()}),
+  set: (data) => {
+    const s = data && data.state ? data.state : data;
+    if (s && s.profile && s.tech){ state = s; refresh(); saveStorage(true); }
+    else throw new Error('not a CV document');
+  }
+};
 $('#btnExport').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify({v:2, savedAt:new Date().toISOString(), state:exportable()}, null, 1)], {type:'application/json'});
   const a = document.createElement('a');
@@ -1062,5 +1070,14 @@ if (window.innerWidth <= 920) window.__mset(true);
 restoreStorage().then(()=>{ buildTabs(); buildForms(); tagPaths(); renderPage(); });
 })();
 </script>
+<script>
+  window.OLCloudAdapter = {
+    tool: 'cvbuilder', label: 'CV Builder',
+    getState: function(){ return window.__cv.get(); },
+    setState: function(s){ window.__cv.set(s); }
+  };
+</script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
 </body>
 </html>
