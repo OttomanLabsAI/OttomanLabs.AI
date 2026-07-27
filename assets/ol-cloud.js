@@ -120,13 +120,27 @@
         || document.querySelector('.title-strip')
         || document.body;
   }
+  var mountEl = mount();
+  var btnSave = null, btnLoad = null;
+  if(adapter && typeof adapter.getState === 'function'){
+    btnSave = document.createElement('button');
+    btnSave.type = 'button'; btnSave.className = 'olc-btn';
+    btnSave.textContent = 'Save'; btnSave.title = 'Save this design to your account';
+    btnSave.addEventListener('click', function(){ openPanel('save'); });
+    mountEl.appendChild(btnSave);
+    btnLoad = document.createElement('button');
+    btnLoad.type = 'button'; btnLoad.className = 'olc-btn';
+    btnLoad.textContent = 'Load'; btnLoad.title = 'Open one of your saved designs';
+    btnLoad.addEventListener('click', function(){ openPanel('load'); });
+    mountEl.appendChild(btnLoad);
+  }
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'olc-btn';
   btn.textContent = 'Cloud';
   btn.title = 'Sign in to save your work';
   btn.addEventListener('click', function(){ openPanel(); });
-  mount().appendChild(btn);
+  mountEl.appendChild(btn);
 
   function setBtn(user){
     if(user){
@@ -176,6 +190,7 @@
   var cache = {};                                  // toolId → files[] (per panel open)
   var openFold = {};                               // toolId → expanded?
   var pendingOpen = null, pendingPrompted = false;
+  var panelMode = 'files';                         // 'files' | 'save' | 'load'
 
   function load(){
     if(FB) return Promise.resolve(FB);
@@ -241,7 +256,8 @@
     }).catch(function(){});
   }
 
-  function openPanel(){
+  function openPanel(mode){
+    panelMode = mode || 'files';
     show();
     cache = {};                                    // fresh listing on each open
     modal.innerHTML = '';
@@ -388,13 +404,17 @@
   function renderExplorer(){
     modal.className = 'olc-modal wide';
     modal.innerHTML = '';
-    modal.appendChild(head('Your files'));
+    var canSave = adapter && typeof adapter.getState === 'function';
+    var label = canSave ? (adapter.label || adapter.tool) : '';
+    modal.appendChild(head(
+      panelMode === 'save' && canSave ? 'Save to ' + label :
+      panelMode === 'load' && canSave ? 'Open a file' : 'Your files'));
 
     var note = el('div', 'olc-note');
     function say(msg, isErr){ note.textContent = msg || ''; note.className = 'olc-note' + (isErr ? ' err' : ''); }
 
-    /* save row — only on a page with something to save */
-    if(adapter && typeof adapter.getState === 'function'){
+    /* save row — on a page with something to save (hidden in load mode) */
+    if(canSave && panelMode !== 'load'){
       var row = el('div', 'olc-saverow');
       var name = el('input'); name.type = 'text';
       name.placeholder = 'name this ' + (adapter.label || 'design') + '…';
@@ -404,8 +424,9 @@
       row.appendChild(name); row.appendChild(save);
       modal.appendChild(row);
       modal.appendChild(el('p', 'olc-sub', current
-        ? 'Editing “' + current.name + '” — Save updates it; change the name to store a copy.'
+        ? 'Editing “' + current.name + '” — keep the name to update it (it will ask first), or change it for a copy.'
         : 'Saves into the ' + (adapter.label || adapter.tool) + ' folder below.'));
+      if(panelMode === 'save') setTimeout(function(){ name.focus(); name.select(); }, 0);
       save.addEventListener('click', function(){
         var nm = name.value.trim();
         if(!nm){ say('Give the file a name.', true); return; }
@@ -413,20 +434,37 @@
         try { data = adapter.getState(); }
         catch(e){ say('Could not read the current design.', true); return; }
         say('Saving…');
-        var dbM = FB.dbM, now = dbM.serverTimestamp();
-        var payload = { name: nm, data: data, updatedAt: now };
-        var p;
-        if(current && current.name === nm){
-          p = dbM.setDoc(dbM.doc(toolRefOf(adapter.tool), current.id), payload, { merge: true });
-        } else {
+        /* fresh listing first, so the overwrite check sees the truth */
+        loadFolder(adapter.tool).then(function(files){
+          var existing = null;
+          for(var i2 = 0; i2 < files.length; i2++){
+            if((files[i2].name || '') === nm){ existing = files[i2]; break; }
+          }
+          if(existing){
+            var isCur = current && current.id === existing.id;
+            var msg = isCur
+              ? 'Update “' + nm + '” with the current design? The stored version is replaced.'
+              : 'A file called “' + nm + '” already exists. Overwrite it?';
+            if(!confirm(msg)){ say('Not saved — nothing was overwritten.'); return 'cancelled'; }
+          }
+          var dbM = FB.dbM, now = dbM.serverTimestamp();
+          var payload = { name: nm, data: data, updatedAt: now };
+          if(existing){
+            return dbM.setDoc(dbM.doc(toolRefOf(adapter.tool), existing.id), payload, { merge: true })
+              .then(function(){ current = { id: existing.id, name: nm }; });
+          }
           payload.createdAt = now;
-          p = dbM.addDoc(toolRefOf(adapter.tool), payload)
-                 .then(function(ref){ current = { id: ref.id, name: nm }; });
-        }
-        p.then(function(){ return loadFolder(adapter.tool); })
-         .then(function(){ openFold[adapter.tool] = true; renderExplorer(); })
-         .catch(function(err){ say(niceErr(err), true); });
+          return dbM.addDoc(toolRefOf(adapter.tool), payload)
+            .then(function(ref){ current = { id: ref.id, name: nm }; });
+        }).then(function(v){
+          if(v === 'cancelled') return;
+          return loadFolder(adapter.tool).then(function(){
+            openFold[adapter.tool] = true; renderExplorer();
+          });
+        }).catch(function(err){ say(niceErr(err), true); });
       });
+    } else if(canSave && panelMode === 'load'){
+      modal.appendChild(el('p', 'olc-sub', 'Pick a saved design — this page loads it in place.'));
     } else {
       modal.appendChild(el('p', 'olc-sub',
         'Your saved work, one folder per tool. Open a file and its dashboard loads it.'));
