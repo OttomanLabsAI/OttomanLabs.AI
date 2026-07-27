@@ -801,6 +801,11 @@
           <input type="number" id="fF2FNum" min="0.5" max="100" step="0.1" value="4">
           <span class="unit">m</span>
         </div>
+        <div class="row">
+          <label for="fSkipTop">Skip top levels</label>
+          <input type="range" id="fSkipTop" min="0" max="5" step="1" value="0">
+          <input type="number" id="fSkipTopNum" min="0" max="50" step="1" value="0">
+        </div>
         <div class="statline" id="fModeNote">Floors sit on the exoskeleton levels.</div>
         <div class="statline">Levels: <b id="fLevels">11</b> &middot; spacing <b id="fFloorH">10.0</b> m</div>
       </div>
@@ -1289,6 +1294,7 @@
   var fMatchEl = el('fMatchExo'), fExoInfo = el('fExoInfo'), fModeNote = el('fModeNote');
   var fSecRow = el('fSecRow'), fF2FRow = el('fF2FRow');
   var fF2FEl = el('fF2F'), fF2FNum = el('fF2FNum');
+  var fSkipEl = el('fSkipTop'), fSkipNum = el('fSkipTopNum');
 
   var bldgHeight = 100;
   var levelH = 10;            // exoskeleton level height (m)
@@ -1297,6 +1303,7 @@
   var secSplits = 0;          // match mode: extra levels inside each bay (0–5)
   var fMatch = true;          // floors sit on the exoskeleton levels
   var fF2F = 4;               // free mode: floor-to-floor height (m)
+  var skipTop = 0;            // drop this many levels off the top of the floor stack
 
   /* the one shared profile */
   var P = { pts:[], sel:-1, degree:3, closed:false, showPoly:true, showGrid:true, snap:true, undoStack:[] };
@@ -1474,6 +1481,10 @@
       for(var zf = fs.lo; zf <= fs.hi + 1e-6; zf += s){
         zs.push(zf); primaries.push(true);
       }
+    }
+    if(skipTop > 0){
+      var keep = Math.max(0, zs.length - skipTop);
+      zs = zs.slice(0, keep); primaries = primaries.slice(0, keep);
     }
     var idx = 0;
     for(var i = 0; i < zs.length; i++){
@@ -1851,6 +1862,15 @@
   if(fMatchEl) fMatchEl.addEventListener('change', function(){ setMatch(this.checked); });
   if(fF2FEl) fF2FEl.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
   if(fF2FNum) fF2FNum.addEventListener('input', function(){ setF2F(parseFloat(this.value)); });
+  function setSkipTop(v){
+    skipTop = Math.max(0, Math.min(50, Math.round(isFinite(v) ? v : skipTop)));
+    if(fSkipEl) fSkipEl.value = Math.min(5, skipTop);
+    if(fSkipNum) fSkipNum.value = skipTop;
+    updateFloorOuts();
+    drawAll();
+  }
+  if(fSkipEl) fSkipEl.addEventListener('input', function(){ setSkipTop(parseFloat(this.value)); });
+  if(fSkipNum) fSkipNum.addEventListener('input', function(){ setSkipTop(parseFloat(this.value)); });
 
   // ── undo / clear: one shared history ──
   function undo(){
@@ -3940,7 +3960,7 @@
   // every persisted control, by id. checkboxes store .checked, the rest store .value.
   var FIELDS = [
     'splineDegree','splineClosed','splinePoly','splineGrid','splineSnap',
-    'bldgHeight','zLevelHNum','fZSec','fMatchExo','fF2FNum',
+    'bldgHeight','zLevelHNum','fZSec','fMatchExo','fF2FNum','fSkipTopNum',
     'pointsSlider','connectToggle','evenToggle',
     'fOffset','fWedgeN','fWedgeD','fTwist','fCoreDia','fCoreTop',
     'fBotN','fBotType','fTopN','fTopType','fMidType','fEvery','fEveryType',

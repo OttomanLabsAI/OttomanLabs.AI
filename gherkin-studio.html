@@ -438,6 +438,11 @@
           <input type="range" id="pF2F" min="2" max="20" step="0.5" value="4">
           <input type="number" id="pF2FNum" min="0.5" max="50" step="0.5" value="4">
         </div>
+        <div class="row">
+          <label for="pSkipTop">Skip top levels</label>
+          <input type="range" id="pSkipTop" min="0" max="5" step="1" value="0">
+          <input type="number" id="pSkipTopNum" min="0" max="50" step="1" value="0">
+        </div>
         <div class="statline"><b id="oFloors">0</b> floors &middot; every <b id="oFloorH">0.0</b> m</div>
       </div>
 
@@ -525,7 +530,7 @@
   var S = {
     H:100,
     levelH:8, topOff:1, botOff:0, N:22,
-    match:true, splits:0, f2f:4,
+    match:true, splits:0, f2f:4, skipTop:0,
     offset:0, thick:400, coreDia:0, coreTop:0,
     wedgeN:0, wedgeD:0, twist:2.5
   };
@@ -658,6 +663,10 @@
       for(var zf = fs.lo; zf <= fs.hi + 1e-6; zf += s){
         zs.push(zf); primaries.push(true);
       }
+    }
+    if(S.skipTop > 0){
+      var keep = Math.max(0, zs.length - Math.round(S.skipTop));
+      zs = zs.slice(0, keep); primaries = primaries.slice(0, keep);
     }
     return { zs: zs, primaries: primaries };
   }
@@ -1055,49 +1064,117 @@
     function SS(Pq){ return { x: w / 2 + v.panx + (Pq.x - cc.x) * fit,
                               y: h / 2 + v.pany + (Pq.y - cc.y) * fit }; }
 
-    if(hole && glowOn()){ ctx.shadowColor = HC.plateGlow; ctx.shadowBlur = 7; }
-    if(shaded){
-      /* shaded plates, far → near, ordered by plate-centre depth */
-      var order = plates.map(function(pl, idx){
-        var c = project(0, 0, pl.z + t * 0.5, A, B);
-        return { idx: idx, d: c.depth };
-      }).sort(function(a, b){ return b.d - a.d; });
+    /* member weights — "Thicken" draws the exoskeleton at a real,
+       scale-aware width with sensible caps; joints keep pace */
+    var thicken = el('tThick').checked;
+    var braceW = thicken ? Math.max(2.5, Math.min(16, 0.95 * fit)) : 1.1;
+    var ringW  = thicken ? Math.max(2, Math.min(13, 0.75 * fit)) : 1.1;
+    var nodeR  = thicken ? Math.max(2.4, braceW * 0.62) : 2.4;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
-      order.forEach(function(orr){
-        var pl = plates[orr.idx];
-        var Msam = pl.bot.length - 1;
-        var ni = 0;
-        for(var q = 0; q < Msam; q++){ if(pl.bot[q].depth < pl.bot[ni].depth) ni = q; }
-        var span = Msam >> 1, halfspan = span >> 1;
-        var botArc = [], topArc = [];
-        for(var q2 = -halfspan; q2 <= halfspan; q2++){
-          var ii = ((ni + q2) % Msam + Msam) % Msam;
-          botArc.push(pl.bot[ii]); topArc.push(pl.top[ii]);
-        }
+    function drawPlate(pl){
+      if(hole && glowOn()){ ctx.shadowColor = HC.plateGlow; ctx.shadowBlur = 7; }
+      var Msam = pl.bot.length - 1;
+      var ni = 0;
+      for(var q = 0; q < Msam; q++){ if(pl.bot[q].depth < pl.bot[ni].depth) ni = q; }
+      var span = Msam >> 1, halfspan = span >> 1;
+      var botArc = [], topArc = [];
+      for(var q2 = -halfspan; q2 <= halfspan; q2++){
+        var ii = ((ni + q2) % Msam + Msam) % Msam;
+        botArc.push(pl.bot[ii]); topArc.push(pl.top[ii]);
+      }
+      ctx.beginPath();
+      var p0 = SS(botArc[0]); ctx.moveTo(p0.x, p0.y);
+      for(var q3 = 1; q3 < botArc.length; q3++){ var ps = SS(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
+      for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = SS(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
+      ctx.closePath();
+      ctx.fillStyle = hole ? HC.plateSide : FC('--c-band'); ctx.fill();
+      ctx.strokeStyle = hole ? HC.plateEdge : FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.beginPath();
+      var t1 = SS(pl.top[0]); ctx.moveTo(t1.x, t1.y);
+      for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = SS(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
+      ctx.closePath();
+      ctx.fillStyle = hole ? HC.plateTop : FC('--c-paper');
+      ctx.fill();
+      ctx.stroke();
+      if(pl.hole){
         ctx.beginPath();
-        var p0 = SS(botArc[0]); ctx.moveTo(p0.x, p0.y);
-        for(var q3 = 1; q3 < botArc.length; q3++){ var ps = SS(botArc[q3]); ctx.lineTo(ps.x, ps.y); }
-        for(var q4 = topArc.length - 1; q4 >= 0; q4--){ var pt2 = SS(topArc[q4]); ctx.lineTo(pt2.x, pt2.y); }
+        var h0 = SS(pl.hole[0]); ctx.moveTo(h0.x, h0.y);
+        for(var q6 = 1; q6 < pl.hole.length; q6++){ var hp = SS(pl.hole[q6]); ctx.lineTo(hp.x, hp.y); }
         ctx.closePath();
         ctx.fillStyle = hole ? HC.plateSide : FC('--c-band'); ctx.fill();
-        ctx.strokeStyle = hole ? HC.plateEdge : FC('--c-ink'); ctx.lineWidth = 1.2; ctx.stroke();
-        ctx.beginPath();
-        var t1 = SS(pl.top[0]); ctx.moveTo(t1.x, t1.y);
-        for(var q5 = 1; q5 < pl.top.length; q5++){ var tp = SS(pl.top[q5]); ctx.lineTo(tp.x, tp.y); }
-        ctx.closePath();
-        ctx.fillStyle = hole ? HC.plateTop : FC('--c-paper');
-        ctx.fill();
         ctx.stroke();
-        if(pl.hole){
-          ctx.beginPath();
-          var h0 = SS(pl.hole[0]); ctx.moveTo(h0.x, h0.y);
-          for(var q6 = 1; q6 < pl.hole.length; q6++){ var hp = SS(pl.hole[q6]); ctx.lineTo(hp.x, hp.y); }
-          ctx.closePath();
-          ctx.fillStyle = hole ? HC.plateSide : FC('--c-band'); ctx.fill();
-          ctx.stroke();
-        }
+      }
+      ctx.shadowBlur = 0;
+    }
+    function drawSeg(a, b, isRing){
+      if(hole && glowOn()){ ctx.shadowColor = HC.glow; ctx.shadowBlur = thicken ? 10 : 8; }
+      ctx.strokeStyle = hole ? (isRing ? HC.ring : HC.brace) : inkA(.9);
+      ctx.lineWidth = isRing ? ringW : braceW;
+      var A2 = SS(a), B2 = SS(b);
+      ctx.beginPath(); ctx.moveTo(A2.x, A2.y); ctx.lineTo(B2.x, B2.y); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    function drawNode(p){
+      if(hole && glowOn()){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
+      ctx.fillStyle = hole ? HC.node : FC('--c-paper');
+      ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
+      ctx.lineWidth = 1;
+      var pd = SS(p);
+      ctx.beginPath(); ctx.arc(pd.x, pd.y, nodeR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    if(shaded){
+      /* ONE depth-sorted pass: plates, braces, ring beams and points all
+         occlude each other — a member behind a shaded plate stays hidden */
+      var draws = [];
+      plates.forEach(function(pl){
+        draws.push({ d: project(0, 0, pl.z + t * 0.5, A, B).depth, run: (function(p2){
+          return function(){ drawPlate(p2); };
+        })(pl) });
       });
+      if(showGrid){
+        for(k = 0; k + 1 < nodePts.length; k++){
+          var ndLo = nodePts[k], ndUp = nodePts[k + 1];
+          if(!ndLo || !ndUp) continue;
+          for(var j = 0; j < NN; j++){
+            [ndUp[(j + 1) % NN], ndUp[(j - 1 + NN) % NN]].forEach(function(up){
+              var a = ndLo[j];
+              draws.push({ d: (a.depth + up.depth) / 2, run: (function(a2, b2){
+                return function(){ drawSeg(a2, b2, false); };
+              })(a, up) });
+            });
+          }
+        }
+      }
+      if(showRings){
+        for(k = 0; k < nodePts.length; k++){
+          var ndr = nodePts[k];
+          if(!ndr) continue;
+          for(var jr = 0; jr < NN; jr++){
+            var Pa = ndr[jr], Pb = ndr[(jr + 1) % NN];
+            draws.push({ d: (Pa.depth + Pb.depth) / 2, run: (function(a2, b2){
+              return function(){ drawSeg(a2, b2, true); };
+            })(Pa, Pb) });
+          }
+        }
+      }
+      if(showNodes){
+        for(k = 0; k < nodePts.length; k++){
+          var ndp = nodePts[k];
+          if(!ndp) continue;
+          for(var j2 = 0; j2 < NN; j2++){
+            draws.push({ d: ndp[j2].depth - 0.05, run: (function(p2){
+              return function(){ drawNode(p2); };
+            })(ndp[j2]) });
+          }
+        }
+      }
+      draws.sort(function(x, y){ return y.d - x.d; });     /* far → near */
+      draws.forEach(function(o){ o.run(); });
     } else {
+      /* wireframe: outlines only, everything visible */
       ctx.strokeStyle = hole ? HC.plateEdge : FC('--c-ink'); ctx.lineWidth = 1; ctx.lineJoin = 'round';
       plates.forEach(function(pl){
         ctx.beginPath();
@@ -1115,56 +1192,30 @@
           ctx.closePath(); ctx.stroke();
         }
       });
-    }
-
-    /* the exoskeleton wraps it: diagrid braces + horizontal ring beams.
-       "Thicken" draws the members at a real, scale-aware width — the
-       Gherkin's diagrid is roughly a metre deep, so the line width tracks
-       the fit scale (thicker as you zoom in) with sensible caps */
-    var thicken = el('tThick').checked;
-    var braceW = thicken ? Math.max(2.5, Math.min(16, 0.95 * fit)) : 1.1;
-    var ringW  = thicken ? Math.max(2, Math.min(13, 0.75 * fit)) : 1.1;
-    ctx.strokeStyle = hole ? HC.brace : inkA(.9);
-    ctx.lineWidth = braceW;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    if(hole && glowOn()){ ctx.shadowColor = HC.glow; ctx.shadowBlur = 10; }
-    if(showGrid){
-      for(k = 0; k + 1 < nodePts.length; k++){
-        var ndLo = nodePts[k], ndUp = nodePts[k + 1];
-        if(!ndLo || !ndUp) continue;
-        for(var j = 0; j < NN; j++){
-          var P1 = SS(ndLo[j]);
-          var PR = SS(ndUp[(j + 1) % NN]);
-          var PL = SS(ndUp[(j - 1 + NN) % NN]);
-          ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PR.x, PR.y); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(PL.x, PL.y); ctx.stroke();
+      if(showGrid){
+        for(k = 0; k + 1 < nodePts.length; k++){
+          var ndLo2 = nodePts[k], ndUp2 = nodePts[k + 1];
+          if(!ndLo2 || !ndUp2) continue;
+          for(var jw = 0; jw < NN; jw++){
+            drawSeg(ndLo2[jw], ndUp2[(jw + 1) % NN], false);
+            drawSeg(ndLo2[jw], ndUp2[(jw - 1 + NN) % NN], false);
+          }
         }
       }
-    }
-    if(showRings){
-      if(hole) ctx.strokeStyle = HC.ring;
-      ctx.lineWidth = ringW;
-      for(k = 0; k < nodePts.length; k++){
-        var ndr = nodePts[k];
-        if(!ndr) continue;
-        for(var jr = 0; jr < NN; jr++){
-          var Pa = SS(ndr[jr]), Pb = SS(ndr[(jr + 1) % NN]);
-          ctx.beginPath(); ctx.moveTo(Pa.x, Pa.y); ctx.lineTo(Pb.x, Pb.y); ctx.stroke();
+      if(showRings){
+        for(k = 0; k < nodePts.length; k++){
+          var ndr2 = nodePts[k];
+          if(!ndr2) continue;
+          for(var jr2 = 0; jr2 < NN; jr2++){
+            drawSeg(ndr2[jr2], ndr2[(jr2 + 1) % NN], true);
+          }
         }
       }
-    }
-    if(showNodes){
-      ctx.fillStyle = hole ? HC.node : FC('--c-paper');
-      ctx.strokeStyle = hole ? HC.nodeEdge : FC('--c-ink');
-      ctx.lineWidth = 1;
-      if(hole && glowOn()){ ctx.shadowColor = HC.nodeGlow; ctx.shadowBlur = 10; }
-      var nodeR = thicken ? Math.max(2.4, braceW * 0.62) : 2.4;   /* joints keep pace with the members */
-      for(k = 0; k < nodePts.length; k++){
-        var ndp = nodePts[k];
-        if(!ndp) continue;
-        for(var j2 = 0; j2 < NN; j2++){
-          var pd = SS(ndp[j2]);
-          ctx.beginPath(); ctx.arc(pd.x, pd.y, nodeR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if(showNodes){
+        for(k = 0; k < nodePts.length; k++){
+          var ndp2 = nodePts[k];
+          if(!ndp2) continue;
+          for(var jn2 = 0; jn2 < NN; jn2++) drawNode(ndp2[jn2]);
         }
       }
     }
@@ -1416,6 +1467,7 @@
   bindPair('N',       'pPoints',   3, 60);
   bindPair('splits',  'pSplits',   0, 10);
   bindPair('f2f',     'pF2F',    0.5, 50);
+  bindPair('skipTop', 'pSkipTop',  0, 50);
   bindPair('offset',  'pOffset', -20, 20);
   bindPair('thick',   'pThick',   50, 2000);
   bindPair('coreDia', 'pCoreDia',  0, 60);
@@ -1511,7 +1563,7 @@
   });
   /* ── one document: the params + the drawn profile, in and out ── */
   var PAIRS = { H:'pHeight', levelH:'pLevelH', topOff:'pTopOff', botOff:'pBotOff',
-    N:'pPoints', splits:'pSplits', f2f:'pF2F', offset:'pOffset', thick:'pThick',
+    N:'pPoints', splits:'pSplits', f2f:'pF2F', skipTop:'pSkipTop', offset:'pOffset', thick:'pThick',
     coreDia:'pCoreDia', coreTop:'pCoreTop', wedgeN:'pWedgeN', wedgeD:'pWedgeD', twist:'pTwist' };
   function exportState(){
     var out = { page:'gherkin-studio', version:2, params:{} };
