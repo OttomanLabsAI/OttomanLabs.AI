@@ -137,8 +137,8 @@
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'olc-btn';
-  btn.textContent = 'Cloud';
-  btn.title = 'Sign in to save your work';
+  btn.textContent = 'Log in';
+  btn.title = 'Log in to save your work';
   btn.addEventListener('click', function(){ openPanel(); });
   mountEl.appendChild(btn);
 
@@ -150,8 +150,8 @@
       btn.appendChild(document.createTextNode(user.email || 'Signed in'));
       btn.title = 'Your files — ' + (user.email || 'signed in');
     } else {
-      btn.textContent = 'Cloud';
-      btn.title = 'Sign in to save your work';
+      btn.textContent = 'Log in';
+      btn.title = 'Log in to save your work';
     }
   }
 
@@ -287,7 +287,7 @@
   function renderAuth(){
     modal.className = 'olc-modal';
     modal.innerHTML = '';
-    modal.appendChild(head('Sign in'));
+    modal.appendChild(head('Log in'));
     modal.appendChild(el('p', 'olc-sub', 'One account for every dashboard — save named versions of your work and reopen them anywhere.'));
 
     var tabs = el('div', 'olc-tabs');
@@ -568,7 +568,7 @@
   function footer(){
     var f = el('div', 'olc-foot');
     f.appendChild(el('span', null, USER ? (USER.email || 'signed in') : ''));
-    var out = el('button', null, 'Sign out'); out.type = 'button';
+    var out = el('button', null, 'Log out'); out.type = 'button';
     out.addEventListener('click', function(){
       FB.authM.signOut(FB.auth).then(function(){ current = null; cache = {}; render(); });
     });
