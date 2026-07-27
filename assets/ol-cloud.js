@@ -30,6 +30,7 @@
   var BASE = 'https://www.gstatic.com/firebasejs/' + SDK + '/';
   var adapter = window.OLCloudAdapter || null;
   var LINK_KEY = 'ol-cloud-emailForSignIn';
+  var HINT_KEY = 'ol-cloud-user';          // last signed-in email — instant button label
 
   /* every drawer in the explorer — id must match each page's adapter.tool */
   var TOOLS = [
@@ -63,12 +64,15 @@
     '.olc-x:hover{color:var(--ink,#111);}' +
     '.olc-sub{font-family:var(--font-serif,Georgia,serif);font-style:italic;font-size:.86rem;' +
       'color:var(--ink-60,#5a5a5a);line-height:1.5;margin:.1rem 0 .8rem;}' +
+    '.olc-sub a{color:inherit;text-decoration:underline;}' +
+    '.olc-sub a:hover{color:#B01018;}' +
     '.olc-tabs{display:flex;gap:.4rem;margin-bottom:.7rem;}' +
     '.olc-tab{flex:1;font-family:var(--font-brand,sans-serif);font-size:.58rem;letter-spacing:.14em;' +
       'text-transform:uppercase;border:1px solid var(--hair,#e3e3e3);background:var(--paper,#fff);' +
       'color:var(--ink-60,#5a5a5a);padding:.5rem;cursor:pointer;}' +
     '.olc-tab.on{background:var(--ink,#111);color:var(--paper,#fff);border-color:var(--ink,#111);}' +
     '.olc-f{display:flex;flex-direction:column;gap:.5rem;}' +
+    '.olc-modal [hidden]{display:none!important;}' +
     '.olc-f input{font-family:var(--font-brand,sans-serif);font-size:.86rem;padding:.5rem .55rem;' +
       'border:1px solid var(--hair,#e3e3e3);background:var(--paper,#fff);color:var(--ink,#111);border-radius:0;width:100%;}' +
     '.olc-f input:focus{outline:2px solid var(--ink,#111);outline-offset:1px;}' +
@@ -137,6 +141,16 @@
     }
   }
 
+  /* a signed-in visitor keeps their email on the button across pages: show
+     the remembered label instantly, then load Firebase in the background to
+     confirm (it corrects the button + hint if the session ended) */
+  var hint = null;
+  try { hint = localStorage.getItem(HINT_KEY); } catch(_){}
+  if(hint != null){
+    setBtn({ email: hint || 'Signed in' });
+    load().catch(function(){});           // background confirm — quiet if offline
+  }
+
   /* ── overlay + modal shell ── */
   var ov = document.createElement('div');
   ov.className = 'olc-ov'; ov.hidden = true;
@@ -179,11 +193,18 @@
         var changed = !u || !USER || USER.uid !== u.uid;
         if(changed){ current = null; cache = {}; }
         USER = u; setBtn(u);
+        try {
+          if(u) localStorage.setItem(HINT_KEY, u.email || '');
+          else localStorage.removeItem(HINT_KEY);
+        } catch(_){}
         if(u && pendingOpen) applyPendingOpen();
         else if(!u && pendingOpen && !pendingPrompted){ pendingPrompted = true; openPanel(); }
         if(!ov.hidden) render();
       });
       return FB;
+    }).catch(function(err){
+      loading = null;                     // a CDN hiccup shouldn't wedge the panel forever
+      throw err;
     });
     return loading;
   }
@@ -269,16 +290,36 @@
       body.innerHTML = ''; say('');
       var mkNew = { v: false };
       var f = el('div', 'olc-f');
+      /* sign-up only: who you are, and the email typed twice */
+      var names = el('div', 'olc-f'); names.hidden = true;
+      var first = el('input'); first.type = 'text'; first.placeholder = 'first name'; first.autocomplete = 'given-name';
+      var last = el('input'); last.type = 'text'; last.placeholder = 'surname'; last.autocomplete = 'family-name';
+      names.appendChild(first); names.appendChild(last);
       var email = el('input'); email.type = 'email'; email.placeholder = 'you@studio.com'; email.autocomplete = 'email';
+      var email2 = el('input'); email2.type = 'email'; email2.placeholder = 'confirm email'; email2.autocomplete = 'email';
+      email2.hidden = true;
       var pass = el('input'); pass.type = 'password'; pass.placeholder = 'password'; pass.autocomplete = 'current-password';
       var go = el('button', 'olc-go', 'Sign in'); go.type = 'button';
       var toggle = el('button', 'olc-lnk', 'New here? Create an account'); toggle.type = 'button';
       var forgot = el('button', 'olc-lnk', 'Forgot password?'); forgot.type = 'button';
-      f.appendChild(email); f.appendChild(pass); f.appendChild(go);
+      f.appendChild(names); f.appendChild(email); f.appendChild(email2);
+      f.appendChild(pass); f.appendChild(go);
       f.appendChild(toggle); f.appendChild(forgot);
       body.appendChild(f);
+      /* the nudge that saves everyone a reset email */
+      var pm = el('p', 'olc-sub');
+      pm.appendChild(document.createTextNode('Hate forgetting passwords? Use a free password manager — it’s life-changing. '));
+      var pmA = document.createElement('a');
+      pmA.href = 'https://proton.me/pass'; pmA.target = '_blank'; pmA.rel = 'noopener';
+      pmA.textContent = 'Proton Pass';
+      pm.appendChild(pmA);
+      pm.appendChild(document.createTextNode(' is a good one.'));
+      body.appendChild(pm);
       toggle.addEventListener('click', function(){
         mkNew.v = !mkNew.v;
+        names.hidden = !mkNew.v;
+        email2.hidden = !mkNew.v;
+        forgot.hidden = mkNew.v;
         go.textContent = mkNew.v ? 'Create account' : 'Sign in';
         toggle.textContent = mkNew.v ? 'Have an account? Sign in' : 'New here? Create an account';
         pass.autocomplete = mkNew.v ? 'new-password' : 'current-password';
@@ -287,11 +328,24 @@
       go.addEventListener('click', function(){
         var e = email.value.trim(), p = pass.value;
         if(!e || !p){ say('Enter an email and password.', true); return; }
-        say('Working…');
         var A = FB.authM, auth = FB.auth;
-        var op = mkNew.v ? A.createUserWithEmailAndPassword(auth, e, p)
-                         : A.signInWithEmailAndPassword(auth, e, p);
-        op.catch(function(err){ say(niceErr(err), true); });
+        if(mkNew.v){
+          var fn = first.value.trim(), ln = last.value.trim();
+          if(!fn || !ln){ say('Enter your first name and surname.', true); return; }
+          if(e.toLowerCase() !== email2.value.trim().toLowerCase()){
+            say('The two email addresses don’t match.', true); return;
+          }
+          say('Working…');
+          A.createUserWithEmailAndPassword(auth, e, p)
+            .then(function(cred){
+              return A.updateProfile(cred.user, { displayName: fn + ' ' + ln });
+            })
+            .catch(function(err){ say(niceErr(err), true); });
+        } else {
+          say('Working…');
+          A.signInWithEmailAndPassword(auth, e, p)
+            .catch(function(err){ say(niceErr(err), true); });
+        }
       });
       forgot.addEventListener('click', function(){
         var e = email.value.trim();
