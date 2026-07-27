@@ -25,6 +25,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
 <style>
   .intro{ margin-bottom:var(--gap); }
 
@@ -209,19 +210,7 @@
 
 <script>
 (function(){
-  var root=document.documentElement, btn=document.getElementById('themeToggle'), lbl=document.getElementById('themeLabel');
-  function paint(dark){
-    if(dark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
-    if(btn) btn.setAttribute('aria-pressed', dark?'true':'false');
-    if(lbl) lbl.textContent = dark ? 'Light' : 'Dark';
-  }
-  var saved=false; try{ saved = localStorage.getItem('ol-theme')==='dark'; }catch(e){}
-  paint(saved);
-  if(btn) btn.addEventListener('click', function(){
-    var dark = root.getAttribute('data-theme')!=='dark';
-    paint(dark);
-    try{ localStorage.setItem('ol-theme', dark?'dark':'light'); }catch(e){}
-  });
+  /* theme toggle wired by assets/site-header.js */
 })();
 
 (function(){
