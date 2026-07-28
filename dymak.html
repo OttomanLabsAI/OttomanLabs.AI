@@ -330,8 +330,11 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     </div>
     <button class="btn" id="btnExport">Export</button>
     <button class="btn" id="btnImport">Import</button>
+    <button class="btn" id="btn3dObj">OBJ</button>
+    <button class="btn" id="btn3dUsd">USD</button>
+    <button class="btn" id="btn3dDxf">DXF</button>
     <button class="btn" id="btnTheme">Dark</button>
-    <span class="hint">Export saves the model + column/beam data to one JSON for the pyRevit add-in · Import restores it.</span>
+    <span class="hint">Export saves the model + column/beam data to one JSON for the pyRevit add-in &middot; Import restores it · OBJ / USD / DXF write the frame as a 3D model, metres, Z-up.</span>
     <input type="file" id="fileImport" accept=".json,application/json" hidden>
   </div>
   </div>
@@ -1391,6 +1394,26 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   }
   window.__dymak = { exportModel: exportModel, importModel: importModel };
 
+  /* ── 3D model exports: the same structure pyDymak places, as solids ── */
+  function scene3d(){
+    var st = buildStructure();
+    var colL = [], priL = [], secL = [];
+    st.columns.forEach(function(c){ colL.push([c.x, c.y, c.base_z, c.x, c.y, c.top_z]); });
+    st.beams.forEach(function(b){
+      (b.role === 'primary' ? priL : secL).push([b.x1, b.y1, b.z1, b.x2, b.y2, b.z2]);
+    });
+    return { name:'dymak-hq-frame', groups:[
+      { id:'Columns',        kind:'lines', color:[0.10,0.10,0.10], radius:0.45, lines:colL },
+      { id:'PrimaryBeams',   kind:'lines', color:[0.69,0.06,0.09], radius:0.35, lines:priL },
+      { id:'SecondaryBeams', kind:'lines', color:[0.35,0.35,0.35], radius:0.22, lines:secL }
+    ] };
+  }
+  [['btn3dObj','obj'], ['btn3dUsd','usd'], ['btn3dDxf','dxf']].forEach(function(pair){
+    $(pair[0]).addEventListener('click', function(){
+      window.OLX3D.save(scene3d(), pair[1]);
+    });
+  });
+
   $('btnExport').addEventListener('click', function(){
     download('pydymak-model.json',
       new Blob([JSON.stringify(exportModel(), null, 2)], { type:'application/json' }));
@@ -1478,6 +1501,7 @@ html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
     setState: function(s){ window.__dymak.importModel(s); }
   };
 </script>
+<script src="assets/ol-export3d.js" defer></script>
 <script src="assets/firebase-config.js"></script>
 <script src="assets/ol-cloud.js" defer></script>
 </body>

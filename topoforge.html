@@ -271,6 +271,7 @@
     <div class="sb-actions">
       <button id="bCsv" title="Surface points X,Y,Z">CSV</button>
       <button id="bObj" title="Triangulated mesh · Z-up">OBJ</button>
+      <button id="bUsd" title="USD mesh for Omniverse / Blender · Z-up">USD</button>
       <button id="bDxf" title="3DFACE mesh for CAD / Civil 3D">DXF</button>
       <label class="sbctl" title="Units written into the exported files">as
         <select id="expUnits">
@@ -1540,6 +1541,18 @@ el('bObj').onclick = () => {
   for(let i = 0; i < S.P.length; i++) s += `v ${(S.P[i].x * sc).toFixed(d)} ${(S.P[i].y * sc).toFixed(d)} ${(S.h[i] * sc).toFixed(d)}\n`;
   for(const t of S.tris) s += `f ${t[0] + 1} ${t[1] + 1} ${t[2] + 1}\n`;
   dl(`topo_mesh_${u}.obj`, s, 'text/plain');
+};
+el('bUsd').onclick = () => {
+  if(needTerrain()) return;
+  const sc = expScale(), u = expU(), d = expDec(4);
+  /* metersPerUnit declares the written unit so USD apps rescale correctly */
+  const mpu = u === 'mm' ? 0.001 : (u === 'ft' ? 0.3048 : 1);
+  let s = `#usda 1.0\n(\n    defaultPrim = "Topo"\n    metersPerUnit = ${mpu}\n    upAxis = "Z"\n)\n\ndef Xform "Topo"\n{\n    def Mesh "Terrain"\n    {\n`;
+  s += `        int[] faceVertexCounts = [${S.tris.map(() => 3).join(', ')}]\n`;
+  s += `        int[] faceVertexIndices = [${S.tris.map(t => t.join(', ')).join(', ')}]\n`;
+  s += `        point3f[] points = [${S.P.map((p, i) => `(${(p.x * sc).toFixed(d)}, ${(p.y * sc).toFixed(d)}, ${(S.h[i] * sc).toFixed(d)})`).join(', ')}]\n`;
+  s += `        uniform token subdivisionScheme = "none"\n    }\n}\n`;
+  dl(`topo_mesh_${u}.usda`, s, 'text/plain');
 };
 el('bDxf').onclick = () => {
   if(needTerrain()) return;
