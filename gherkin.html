@@ -180,6 +180,7 @@
   .settings-bar .sb-label{ font-family:var(--font-brand); font-weight:600; font-size:.7rem;
     letter-spacing:.28em; text-transform:uppercase; }
   .settings-bar .sb-actions{ display:flex; align-items:center; gap:.5rem; }
+  .settings-bar .sb-div{ width:1px; align-self:stretch; background:var(--hair); }
   .settings-bar .sb-info{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.14em;
     text-transform:uppercase; color:var(--ink-60); margin-left:auto; }
   .settings-bar button{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.16em;
@@ -548,7 +549,14 @@
       <button id="cfgImport">Import</button>
       <input type="file" id="cfgFile" accept="application/json,.json" hidden>
     </div>
-    <span class="sb-info" id="cfgInfo">Export saves the whole model to JSON &middot; Import restores it.</span>
+    <span class="sb-div" aria-hidden="true"></span>
+    <div class="sb-actions">
+      <span class="sb-label">3D model</span>
+      <button id="b3dObj">OBJ</button>
+      <button id="b3dUsd">USD</button>
+      <button id="b3dDxf">DXF</button>
+    </div>
+    <span class="sb-info" id="cfgInfo">Export saves the whole model to JSON &middot; Import restores it &middot; 3D model writes the tower as OBJ / USD / DXF, metres, Z-up.</span>
   </div>
 
   <div class="tabs toptabs">
@@ -2245,6 +2253,7 @@
     }
     return { levels:Ls, members:members, connections:buildConnections(members), N:N, H:H, unit:'m' };
   }
+  window.__revitModel = revitModel;   /* the 3D exports read it across scripts */
 
   // Connections: every node (hub) where one or more members meet.
   // A node is identified by (levelIndex, pointIndex k). We collect the member
@@ -3755,6 +3764,7 @@
     }
     return { levels:Ls, exo:Es, plates:plates, H:m.H, thickness:tM, offset:offset };
   }
+  window.__floorsModel = floorsModel;   /* the 3D exports read it across scripts */
 
   function noteIfEmpty(list, msg){
     return list.length ? null : '<div class="revit-note">' + msg + '</div>';
@@ -3989,6 +3999,32 @@
     // through the shared saver: save dialog where supported, download otherwise
     window.saveCSVBatch([{ name:name, text:JSON.stringify(obj, null, 2), mime:'application/json' }]);
   }
+
+  /* ── whole-tower 3D exports (shared writer in assets/ol-export3d.js) ── */
+  function scene3d(){
+    var md = window.__revitModel(), fd = window.__floorsModel();
+    var br = [], rg = [];
+    md.members.forEach(function(m){
+      (m.group === 'Ring' ? rg : br).push([m.sx, m.sy, m.sz, m.ex, m.ey, m.ez]);
+    });
+    var pv = [], pf = [], po = [];
+    fd.plates.forEach(function(pl){
+      window.OLX3D.plate(pv, pf, po, pl.outline, pl.hole, pl.elevation, pl.thickness);
+    });
+    return { name:'gherkin-tower', groups:[
+      { id:'Diagrid',     kind:'lines',  color:[0.10,0.10,0.10], radius:0.30, lines:br },
+      { id:'RingBeams',   kind:'lines',  color:[0.28,0.28,0.28], radius:0.22, lines:rg },
+      { id:'Nodes',       kind:'points', color:[0.69,0.06,0.09], radius:0.55,
+        pts: md.connections.map(function(c){ return [c.x, c.y, c.z]; }) },
+      { id:'FloorPlates', kind:'mesh',   color:[0.86,0.86,0.86], verts:pv, faces:pf, dxfOutlines:po }
+    ] };
+  }
+  ['Obj', 'Usd', 'Dxf'].forEach(function(F){
+    var b = el('b3d' + F);
+    if(b) b.addEventListener('click', function(){
+      window.OLX3D.save(scene3d(), F.toLowerCase());
+    });
+  });
 
   function apply(cfg){
     if(!cfg || !cfg.controls) return;
@@ -4844,6 +4880,7 @@
     setState: function(s){ window.__applyCfg(s); }
   };
 </script>
+<script src="assets/ol-export3d.js" defer></script>
 <script src="assets/firebase-config.js"></script>
 <script src="assets/ol-cloud.js" defer></script>
 </body>

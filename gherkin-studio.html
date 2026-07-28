@@ -498,8 +498,11 @@
           <button id="dlExo" type="button">Exoskeleton CSVs</button>
           <button id="dlFloors" type="button">Floor CSVs</button>
           <button id="dlJson" type="button">Settings JSON</button>
+          <button id="dl3dObj" type="button">3D &middot; OBJ</button>
+          <button id="dl3dUsd" type="button">3D &middot; USD</button>
+          <button id="dl3dDxf" type="button">3D &middot; DXF</button>
         </div>
-        <div class="revit-note">Units: meters, origin at the centre, base at Z=0. Exoskeleton gives <b>levels</b>, <b>framing</b> and <b>connections</b>; floors give <b>exoskeleton-levels</b>, <b>floor-ssl-levels</b> and <b>floor-plates</b> with each slab&rsquo;s full outline &mdash; the same files the dashboard exports, ready for the pyGherkin add-in.</div>
+        <div class="revit-note">Units: meters, origin at the centre, base at Z=0. Exoskeleton gives <b>levels</b>, <b>framing</b> and <b>connections</b>; floors give <b>exoskeleton-levels</b>, <b>floor-ssl-levels</b> and <b>floor-plates</b> with each slab&rsquo;s full outline &mdash; the same files the dashboard exports, ready for the pyGherkin add-in. The <b>3D model</b> exports carry the whole tower &mdash; braces and ring beams as members, floor plates and nodes &mdash; as <b>OBJ</b>, <b>USD</b> or a CAD wireframe <b>DXF</b>, metres, Z-up.</div>
       </div>
     </aside>
   </div>
@@ -1597,6 +1600,30 @@
       text:JSON.stringify(exportState(), null, 2), mime:'application/json' }]);
   });
 
+  /* ── whole-tower 3D exports through the shared writer ── */
+  function scene3d(){
+    var br = [], rg = [];
+    M.members.forEach(function(m){
+      (m.group === 'Ring' ? rg : br).push([m.sx, m.sy, m.sz, m.ex, m.ey, m.ez]);
+    });
+    var pv = [], pf = [], po = [];
+    M.plates.forEach(function(pl){
+      window.OLX3D.plate(pv, pf, po, pl.outline, pl.hole, pl.elevation, pl.thickness);
+    });
+    return { name:'gherkin-tower', groups:[
+      { id:'Diagrid',     kind:'lines',  color:[0.10,0.10,0.10], radius:0.30, lines:br },
+      { id:'RingBeams',   kind:'lines',  color:[0.28,0.28,0.28], radius:0.22, lines:rg },
+      { id:'Nodes',       kind:'points', color:[0.69,0.06,0.09], radius:0.55,
+        pts: M.connections.map(function(c){ return [c.x, c.y, c.z]; }) },
+      { id:'FloorPlates', kind:'mesh',   color:[0.86,0.86,0.86], verts:pv, faces:pf, dxfOutlines:po }
+    ] };
+  }
+  ['Obj', 'Usd', 'Dxf'].forEach(function(F){
+    el('dl3d' + F).addEventListener('click', function(){
+      window.OLX3D.save(scene3d(), F.toLowerCase());
+    });
+  });
+
   window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute,
                       toggleProfile:toggleProfile, exportState:exportState, importState:importState };
 
@@ -1681,6 +1708,7 @@
     setState: function(s){ window.__studio.importState(s); }
   };
 </script>
+<script src="assets/ol-export3d.js" defer></script>
 <script src="assets/firebase-config.js"></script>
 <script src="assets/ol-cloud.js" defer></script>
 </body>

@@ -38,6 +38,8 @@
   Cache-Control: public, max-age=0, must-revalidate
 /assets/ol-cloud.js
   Cache-Control: public, max-age=0, must-revalidate
+/assets/ol-export3d.js
+  Cache-Control: public, max-age=0, must-revalidate
 
 # HTML pages: always revalidate so edits show up immediately on redeploy.
 /*.html
