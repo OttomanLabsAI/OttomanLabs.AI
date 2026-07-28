@@ -498,9 +498,8 @@
           <button id="dlExo" type="button">Exoskeleton CSVs</button>
           <button id="dlFloors" type="button">Floor CSVs</button>
           <button id="dlJson" type="button">Settings JSON</button>
-          <button id="dlPrompt" type="button">AI Prompt</button>
         </div>
-        <div class="revit-note">Units: meters, origin at the centre, base at Z=0. Exoskeleton gives <b>levels</b>, <b>framing</b> and <b>connections</b>; floors give <b>exoskeleton-levels</b>, <b>floor-ssl-levels</b> and <b>floor-plates</b> with each slab&rsquo;s full outline &mdash; the same files the dashboard exports, ready for the pyGherkin add-in. <b>AI Prompt</b> bundles these settings with a written geometry brief &mdash; paste it into any Claude chat to rebuild the tower and render an image.</div>
+        <div class="revit-note">Units: meters, origin at the centre, base at Z=0. Exoskeleton gives <b>levels</b>, <b>framing</b> and <b>connections</b>; floors give <b>exoskeleton-levels</b>, <b>floor-ssl-levels</b> and <b>floor-plates</b> with each slab&rsquo;s full outline &mdash; the same files the dashboard exports, ready for the pyGherkin add-in.</div>
       </div>
     </aside>
   </div>
@@ -1596,90 +1595,6 @@
   el('dlJson').addEventListener('click', function(){
     window.saveCSVBatch([{ name:'gherkin-studio-settings.json',
       text:JSON.stringify(exportState(), null, 2), mime:'application/json' }]);
-  });
-
-  /* ── AI hand-off: the full geometry brief with the current settings baked in,
-        one file any Claude chat can rebuild and render the tower from ── */
-  function aiPromptText(){
-    var L = [
-      '# Recreate my Gherkin tower and render it',
-      '',
-      'Below is the complete parametric definition of a diagrid tower, exported from my',
-      'OttomanLabs.AI design studio. Rebuild the geometry exactly as specified, then render',
-      'one high-resolution presentation image of it (PNG, at least 2000 px tall).',
-      '',
-      'Work in metres. Origin at the tower centre, base at Z = 0, +Z up.',
-      '',
-      '## Parameters (the `params` object below)',
-      '- `H` building height (m) · `levelH` exoskeleton level height (m)',
-      '- `topOff` / `botOff`: the frame spans lo = max(0, botOff) to hi = max(lo, H - topOff)',
-      '- `N` diagrid nodes per ring · `twist` plate twist per floor (degrees)',
-      '- `match` floors follow exo levels (true) with `splits` extra levels between each pair;',
-      '  otherwise floors step `f2f` (m)',
-      '- `skipTop` floor levels removed from the top of the floor list',
-      '- `offset` plate edge offset (m, applied as offset/2) · `thick` plate thickness (mm)',
-      '- `coreDia` core diameter (m), cut into floors with index <= `coreTop`',
-      '- `wedgeN` wedge bites per plate · `wedgeD` wedge tip distance from centre (m)',
-      '',
-      '## 1 · Profile curve to radius at height',
-      '`splinePoints` are control points on a 600 x 600 logical board: x is the radius',
-      'direction, y runs DOWN from the tip (y = 0 top, y = 600 bottom).',
-      'Build a clamped open B-spline: degree p = min(3, nPts - 1); knot vector = (p+1) zeros,',
-      'interior knots i/(interior+1), then (p+1) ones; evaluate with de Boor at 200+ samples.',
-      'If p = 1 the polyline through the points is the curve.',
-      'Radius at height z: let yL = 600 * (1 - z/H); intersect the sampled curve with the',
-      'horizontal line y = yL and keep the OUTERMOST crossing x; r(z) = (x/600) * H metres.',
-      'If the line misses the curve, snap to the curve apex (top) or foot (bottom).',
-      '',
-      '## 2 · Exoskeleton levels',
-      'From lo, step levelH (min 1 m) while z < hi minus 1% of the step; always append hi.',
-      '',
-      '## 3 · Diagrid nodes',
-      'Ring i sits at z_i with radius r(z_i); node k at angle 2*pi*k/N, and ODD rings are',
-      'rotated a further pi/N (staggered). Drop leading/trailing rings whose radius is ~0.',
-      '',
-      '## 4 · Braces and ring beams',
-      'Between ring i and i+1, for every k connect lower node k to TWO upper nodes:',
-      'i even: up[(k-1) mod N] and up[k] · i odd: up[k] and up[(k+1) mod N].',
-      'That makes the diamonds. Ring beams: on every ring connect node k to node k+1.',
-      '',
-      '## 5 · Floor levels',
-      'match = true: floor levels = the exo levels plus `splits` evenly spaced extras between',
-      'each consecutive pair. match = false: from lo step f2f (min 0.5 m) up to hi.',
-      'Then remove `skipTop` levels from the TOP of the list.',
-      '',
-      '## 6 · Floor plates',
-      'Plate i (bottom = 0): radius re = r(z) + offset/2, rotated i * twist degrees.',
-      'No wedges (wedgeN < 1, or wedgeD outside 0 < wedgeD < re): a plain disc.',
-      'With wedges: wedgeN bites, each tip at wedgeD from the centre. Per sector:',
-      'sg = 2*pi/wedgeN, hs = sg/2,',
-      'tu = -wedgeD*cos(hs) + sqrt(wedgeD^2*cos(hs)^2 + re^2 - wedgeD^2),',
-      'del = atan2(tu*sin(hs), wedgeD + tu*cos(hs)); each rim arc spans sg - 2*del starting',
-      'at b + del where b = k*sg - pi/2 + plate rotation; the outline alternates rim arc,',
-      'straight line in to the wedge tip at angle b + sg, straight line out to the next arc.',
-      'Core: if coreDia > 0 and floor index i <= coreTop, cut a round hole of radius coreDia/2.',
-      'Plate thickness = `thick` mm (visual extrusion only).',
-      '',
-      '## Rendering',
-      'Orthographic-style projection (yaw about 25 deg, pitch about 20 deg), camera fitted to',
-      'the bounding sphere so nothing clips. Depth-sort far to near and fill the plates so',
-      'they hide members behind them. Two schemes I use — default to Black Hole:',
-      '- Paper: white background, near-black #111111 members, light grey plates.',
-      '- Black Hole: #05060A background with a sparse starfield, glowing amber #FFB000',
-      '  diagrid, light-blue #3E9EFF plate edges, burgundy #E63A50 nodes.',
-      'Show me the image and iterate on the camera angle if I ask.',
-      '',
-      '## My exported settings',
-      '```json',
-      JSON.stringify(exportState(), null, 2),
-      '```',
-      ''
-    ];
-    return L.join('\n');
-  }
-  el('dlPrompt').addEventListener('click', function(){
-    window.saveCSVBatch([{ name:'gherkin-ai-prompt.md',
-      text:aiPromptText(), mime:'text/markdown' }]);
   });
 
   window.__studio = { S:S, M:M, v:v, SP:SP, recompute:recompute,
