@@ -788,7 +788,15 @@ async function fetchJson(url, onRoute) {
       const ctl = new AbortController();
       tid = setTimeout(() => ctl.abort(new Error('timeout')), 9000);
       const res = await fetch(route.wrap(url), { headers: { 'Accept': 'application/json' }, signal: ctl.signal });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) {
+        /* Our own relay stamps X-OL-Relay. With the stamp the status came from
+           the SEC; without it on the site route, nothing answered at /api/sec. */
+        const ours = !!res.headers.get('X-OL-Relay');
+        throw new Error(ours ? 'SEC HTTP ' + res.status
+          : (route.name === 'site relay' && res.status === 404)
+            ? 'no /api/sec (not deployed)'
+            : 'HTTP ' + res.status);
+      }
       const data = await res.json();
       preferredRoute = route;
       if (onRoute) onRoute(route.name, failures);
@@ -977,7 +985,7 @@ async function select(e) {
   if (status === 'na') return renderStamp('Not an SEC filer', `${esc(e.company)} is an index, commodity, currency or crypto instrument — there are no corporate filings behind it.`);
   if (status === 'foreign') return renderStamp('No filings on record', `${esc(e.company)} is listed on ${esc(e.exchange)} and does not report to the SEC. Its filings live with the ${esc(e.exchange)} regulator instead.`);
   if (status === 'pending') return renderStamp('Registry still loading', regFailDetail
-    ? `Live routes are failing — <b>${regFailDetail}</b>. Retrying automatically every 45s. If “site relay” says HTTP 404, the /api/sec function has not deployed; check the Cloudflare Pages build settings.`
+    ? `Live routes are failing — <b>${regFailDetail}</b>. Retrying automatically every 45s. “not deployed” means Cloudflare Pages built no Functions — open <b>/api/subscribe</b> in a tab; JSON proves Functions work, a 404 page proves they don’t. “SEC HTTP …” means the relay is live and sec.gov refused the file.`
     : 'The EDGAR ticker registry has not loaded yet — give it a second, or hit Retry in the status bar.');
   if (status === 'notfound') return renderStamp('Ticker not in EDGAR registry', `${esc(e.ticker)} does not appear in the SEC's ticker file — usually an unsponsored ADR whose issuer never registered (no 10-K/20-F to fetch).`);
 
