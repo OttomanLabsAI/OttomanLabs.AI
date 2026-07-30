@@ -5,8 +5,13 @@
   "observability": {
     "enabled": true
   },
+  // worker.js serves /api/* (the SEC relay and the newsletter signup);
+  // every other request falls through to the static assets below.
+  "main": "worker.js",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
   },
   "compatibility_flags": [
     "nodejs_compat"
