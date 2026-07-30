@@ -306,20 +306,20 @@
       body.innerHTML = ''; say('');
       var mkNew = { v: false };
       var f = el('div', 'olc-f');
-      /* sign-up only: who you are, and the email typed twice */
+      /* sign-up only: who you are, and the password typed twice */
       var names = el('div', 'olc-f'); names.hidden = true;
       var first = el('input'); first.type = 'text'; first.placeholder = 'first name'; first.autocomplete = 'given-name';
       var last = el('input'); last.type = 'text'; last.placeholder = 'surname'; last.autocomplete = 'family-name';
       names.appendChild(first); names.appendChild(last);
       var email = el('input'); email.type = 'email'; email.placeholder = 'you@studio.com'; email.autocomplete = 'email';
-      var email2 = el('input'); email2.type = 'email'; email2.placeholder = 'confirm email'; email2.autocomplete = 'email';
-      email2.hidden = true;
       var pass = el('input'); pass.type = 'password'; pass.placeholder = 'password'; pass.autocomplete = 'current-password';
+      var pass2 = el('input'); pass2.type = 'password'; pass2.placeholder = 'confirm password'; pass2.autocomplete = 'new-password';
+      pass2.hidden = true;
       var go = el('button', 'olc-go', 'Sign in'); go.type = 'button';
       var toggle = el('button', 'olc-lnk', 'New here? Create an account'); toggle.type = 'button';
       var forgot = el('button', 'olc-lnk', 'Forgot password?'); forgot.type = 'button';
-      f.appendChild(names); f.appendChild(email); f.appendChild(email2);
-      f.appendChild(pass); f.appendChild(go);
+      f.appendChild(names); f.appendChild(email);
+      f.appendChild(pass); f.appendChild(pass2); f.appendChild(go);
       f.appendChild(toggle); f.appendChild(forgot);
       body.appendChild(f);
       /* the nudge that saves everyone a reset email */
@@ -334,7 +334,7 @@
       toggle.addEventListener('click', function(){
         mkNew.v = !mkNew.v;
         names.hidden = !mkNew.v;
-        email2.hidden = !mkNew.v;
+        pass2.hidden = !mkNew.v;
         forgot.hidden = mkNew.v;
         go.textContent = mkNew.v ? 'Create account' : 'Sign in';
         toggle.textContent = mkNew.v ? 'Have an account? Sign in' : 'New here? Create an account';
@@ -348,8 +348,8 @@
         if(mkNew.v){
           var fn = first.value.trim(), ln = last.value.trim();
           if(!fn || !ln){ say('Enter your first name and surname.', true); return; }
-          if(e.toLowerCase() !== email2.value.trim().toLowerCase()){
-            say('The two email addresses don’t match.', true); return;
+          if(p !== pass2.value){
+            say('The two passwords don’t match.', true); return;
           }
           say('Working…');
           A.createUserWithEmailAndPassword(auth, e, p)
