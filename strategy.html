@@ -7,19 +7,19 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
 <title>AI Strategy of BIM &amp; Construction — OttomanLabs.AI</title>
-<meta name="description" content="The OttomanLabs.AI playbook: a practical AI strategy for BIM & Construction teams — coming soon.">
+<meta name="description" content="The OttomanLabs.AI strategy: parametric design with Claude Code — briefed in plain English, built in hours, one ID-tracked model from concept to as-built (RIBA 2–6).">
 <link rel="canonical" href="https://ottomanlabs.ai/strategy.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OttomanLabs.AI">
 <meta property="og:title" content="AI Strategy of BIM &amp; Construction — OttomanLabs.AI">
-<meta property="og:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta property="og:description" content="Briefed in plain English, built in hours — one ID-tracked model from first massing study to handover record.">
 <meta property="og:url" content="https://ottomanlabs.ai/strategy.html">
 <meta property="og:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AI Strategy of BIM &amp; Construction — OttomanLabs.AI">
-<meta name="twitter:description" content="Practical AI for BIM & Construction — weeks of work in minutes, from day 1.">
+<meta name="twitter:description" content="Briefed in plain English, built in hours — one ID-tracked model from concept to as-built.">
 <meta name="twitter:image" content="https://ottomanlabs.ai/assets/og-thumb.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,20 +27,100 @@
 <link rel="stylesheet" href="assets/styles.css?v=2">
 <script src="assets/site-header.js" defer></script>
 <style>
+  :root{ --acc:#B01018; }
+  [data-theme="dark"]{ --acc:#DE8286; }
+
   .hero{ border:1px solid var(--hair); padding:.9rem 1.2rem; margin-bottom:var(--gap);
     display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; }
   .hero .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.5rem; }
   .hero .display{ font-family:var(--font-display); font-size:1.9rem; letter-spacing:.04em; }
   .hero .sub{ font-family:var(--font-brand); font-size:.62rem; letter-spacing:.2em;
     text-transform:uppercase; color:var(--ink-60); }
+  .hero .chip{ font-family:var(--font-brand); font-weight:600; font-size:.6rem; letter-spacing:.22em;
+    text-transform:uppercase; background:var(--acc); color:#fff; padding:.35rem .7rem; margin-left:auto; }
 
-  .soon-panel{ border:1px solid var(--hair); padding:clamp(3rem,12vh,7rem) 1.5rem;
-    display:flex; flex-direction:column; align-items:center; gap:1.2rem; text-align:center; }
-  .soon-word{ font-family:var(--font-brand); font-weight:600;
-    font-size:clamp(2rem,6vw,3.6rem); letter-spacing:.3em; text-transform:uppercase; color:var(--ink); }
-  .soon-panel p{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60);
-    font-size:1.02rem; max-width:36rem; margin:0; line-height:1.6; }
-  .soon-form{ display:flex; gap:.5rem; width:min(26rem,100%); }
+  .sheet{ border:1px solid var(--hair); padding:1.4rem 1.5rem 1.6rem; margin-bottom:var(--gap); }
+  .sheet-head{ display:flex; justify-content:space-between; align-items:baseline; gap:1rem;
+    flex-wrap:wrap; border-bottom:1px solid var(--ink); padding-bottom:.5rem; margin-bottom:1.2rem; }
+  .lbl{ font-family:var(--font-brand); font-weight:600; font-size:.66rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink); }
+  .sheet-head .note{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60); font-size:.95rem; }
+  .prose{ font-family:var(--font-serif); font-size:1rem; line-height:1.65; max-width:76ch; }
+  .prose b{ font-weight:600; }
+
+  /* ── the numbered workflow / RIBA strip ── */
+  .steps{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; position:relative; margin:.4rem 0 .2rem; }
+  .steps::before{ content:""; position:absolute; left:8%; right:8%; top:15px; height:1px; background:var(--ink); }
+  .stp{ text-align:center; padding:0 .45rem; position:relative; }
+  .stp .n{ width:30px; height:30px; border-radius:50%; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); font-family:var(--font-brand); font-weight:600; font-size:.72rem;
+    display:inline-flex; align-items:center; justify-content:center; position:relative; z-index:1; }
+  .stp.acc .n{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  .stp .rb{ display:block; font-family:var(--font-brand); font-size:.54rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60); margin-top:.5rem; }
+  .stp .t{ display:block; font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.18em; text-transform:uppercase; margin-top:.25rem; }
+  .stp .d{ display:block; font-family:var(--font-serif); font-style:italic; font-size:.82rem;
+    color:var(--ink-60); margin-top:.3rem; line-height:1.45; }
+
+  /* ── stats strip ── */
+  .statstrip{ border:1px solid var(--ink); padding:.7rem 1rem; margin-top:1.2rem; text-align:center;
+    font-family:var(--font-brand); font-size:.66rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink-60); line-height:2; }
+  .statstrip b{ color:var(--acc); font-weight:600; }
+
+  /* ── benefit cards ── */
+  .cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap); margin-top:1.2rem; }
+  .card4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .bcard{ border:1px solid var(--ink); padding:.9rem 1rem 1rem; }
+  .bcard .t{ display:block; font-family:var(--font-brand); font-weight:600; font-size:.62rem;
+    letter-spacing:.22em; text-transform:uppercase; text-align:center;
+    border-bottom:1px solid var(--ink); padding-bottom:.5rem; margin-bottom:.6rem; }
+  .bcard p{ font-family:var(--font-serif); font-size:.92rem; line-height:1.55; margin:0; }
+
+  /* ── hand-off + spine diagrams ── */
+  .flowline{ display:flex; align-items:center; justify-content:center; gap:.7rem; flex-wrap:wrap; margin-top:1.1rem; }
+  .fnode{ font-family:var(--font-brand); font-weight:600; font-size:.6rem; letter-spacing:.2em;
+    text-transform:uppercase; border:1px solid var(--ink); padding:.55rem .9rem; white-space:nowrap; }
+  .fnode.dark{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .fnode.red{ background:var(--acc); color:#fff; border-color:var(--acc); }
+  .fedge{ font-family:var(--font-serif); font-style:italic; font-size:.8rem; color:var(--ink-60);
+    display:flex; flex-direction:column; align-items:center; line-height:1.3; }
+  .fedge::after{ content:"⟶"; font-style:normal; color:var(--ink); }
+
+  .spine{ position:relative; margin:1.6rem 0 .6rem; }
+  .spine .rail{ display:flex; align-items:center; gap:0; }
+  .spine .rail::before{ content:""; flex:1; height:2px; background:var(--ink); }
+  .spine .rail::after{ content:""; flex:1; height:2px; background:var(--ink); }
+  .taps{ display:flex; justify-content:space-evenly; gap:.5rem; flex-wrap:wrap; margin-top:.8rem; }
+  .tap{ font-family:var(--font-brand); font-size:.58rem; letter-spacing:.18em; text-transform:uppercase;
+    border:1px solid var(--hair); padding:.45rem .7rem; color:var(--ink); white-space:nowrap; }
+  .spineline{ font-family:var(--font-serif); font-style:italic; font-size:.9rem; color:var(--ink-60);
+    text-align:center; margin-top:.9rem; }
+
+  /* ── maturity legend ── */
+  .legend{ display:flex; gap:1.2rem 1.8rem; flex-wrap:wrap; justify-content:center; margin-top:1.1rem; }
+  .leg{ display:flex; align-items:center; gap:.45rem; font-family:var(--font-brand); font-size:.58rem;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); }
+  .leg i{ width:26px; height:12px; border:1px solid var(--ink); display:inline-block; }
+  .leg .full{ background:var(--acc); border-color:var(--acc); }
+  .leg .hatch{ background:repeating-linear-gradient(45deg, var(--acc) 0 1px, transparent 1px 4px); }
+  .leg .dash{ border-style:dashed; }
+
+  /* ── banner ── */
+  .banner{ border:1px solid var(--ink); padding:.75rem 1rem; margin-top:1.3rem; text-align:center;
+    font-family:var(--font-brand); font-size:.64rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink-60); line-height:2; }
+  .banner b{ color:var(--acc); }
+  .closing{ font-family:var(--font-serif); font-style:italic; color:var(--ink-60); font-size:.98rem;
+    line-height:1.7; max-width:80ch; margin-top:1rem; }
+  .closing b{ color:var(--ink); font-style:normal; }
+
+  .hoodlink{ font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.2em;
+    text-transform:uppercase; }
+
+  /* ── signup ── */
+  .soon-form{ display:flex; gap:.5rem; width:min(26rem,100%); margin-top:.8rem; }
   .soon-form input{ flex:1; min-width:0; font-family:var(--font-serif); font-size:.95rem;
     padding:.65rem .7rem; border:1px solid var(--hair); background:var(--paper); color:var(--ink); border-radius:0; }
   .soon-form input:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
@@ -48,8 +128,20 @@
     letter-spacing:.16em; text-transform:uppercase; background:var(--ink); color:var(--paper);
     border:1px solid var(--ink); padding:.65rem 1.1rem; cursor:pointer; }
   .soon-form button:hover{ background:var(--paper); color:var(--ink); }
-  .soon-note{ font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
-    text-transform:uppercase; color:var(--ink-60); min-height:1em; }
+  .soon-note{ display:block; font-family:var(--font-brand); font-size:.66rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); min-height:1em; margin-top:.5rem; }
+
+  @media (max-width:860px){
+    .steps{ grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:1.2rem; }
+    .steps::before{ display:none; }
+    .cards{ grid-template-columns:1fr 1fr; }
+    .card4{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){
+    .steps{ grid-template-columns:1fr 1fr; }
+    .cards,.card4{ grid-template-columns:1fr; }
+    .hero .chip{ margin-left:0; }
+  }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
@@ -70,20 +162,134 @@
 
   <div class="hero">
     <span><span class="ital">AI Strategy of</span> <span class="display">BIM &amp; CONSTRUCTION</span></span>
-    <span class="sub">the playbook &middot; adoption &middot; tooling &middot; day-one wins</span>
+    <span class="sub">parametric design with Claude Code &middot; briefed in plain English &middot; built in hours</span>
+    <span class="chip">RIBA 2–6</span>
   </div>
 
-  <div class="soon-panel">
-    <div class="soon-word">Coming Soon</div>
-    <p>A practical playbook for bringing AI into BIM &amp; Construction teams &mdash; where it pays off
-      first, how the tooling fits together, and how to bank weeks of work in minutes from day one.</p>
+  <!-- ════════ SHEET 1 · THE WORKFLOW ════════ -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <span class="lbl">The Workflow</span>
+      <span class="note">minutes per change — the iteration happens in the meeting, not between meetings</span>
+    </div>
+    <div class="steps">
+      <div class="stp"><span class="n">1</span><span class="t">Scope</span><span class="d">geometry drivers agreed with the engineer</span></div>
+      <div class="stp"><span class="n">2</span><span class="t">Brief</span><span class="d">rules described in plain English</span></div>
+      <div class="stp"><span class="n">3</span><span class="t">Build</span><span class="d">live 3D dashboard written by Claude Code</span></div>
+      <div class="stp"><span class="n">4</span><span class="t">Iterate</span><span class="d">changes land in minutes, in the meeting</span></div>
+      <div class="stp"><span class="n">5</span><span class="t">Export</span><span class="d">Revit-ready CSVs + settings JSON</span></div>
+      <div class="stp acc"><span class="n">6</span><span class="t">Place &amp; Track</span><span class="d">pyRevit places &amp; tracks the model in Revit</span></div>
+    </div>
+
+    <div class="statstrip">The Gherkin Studio, built in one conversation —
+      height <b>180&nbsp;m</b> &middot; levels <b>24</b> &middot; members <b>1,540</b> &middot;
+      connections <b>528</b> &middot; plates <b>43</b> &middot;
+      <a class="hoodlink" href="gherkin-studio.html">open the live studio</a></div>
+
+    <div class="cards">
+      <div class="bcard"><span class="t">Hours, not weeks</span>
+        <p>A working tool with a proper UI from the first conversation — the Grasshopper / Dynamo
+        equivalent takes weeks, and years of experience to build well.</p></div>
+      <div class="bcard"><span class="t">Zero licence cost</span>
+        <p>Runs in any browser; pyRevit is free. No Rhino, no add-on stacks, no training programme
+        for the team.</p></div>
+      <div class="bcard"><span class="t">Anyone can drive it</span>
+        <p>It is a web page, not a node graph — good enough UX to hand to the whole team on day one.</p></div>
+    </div>
+
+    <div class="flowline" role="img" aria-label="Hand-off diagram: dashboard exports CSV and JSON to pyRevit, which places and tracks the model in Revit.">
+      <span class="fnode">Dashboard</span>
+      <span class="fedge">csv + json</span>
+      <span class="fnode dark">pyRevit</span>
+      <span class="fedge">place + track</span>
+      <span class="fnode red">Revit</span>
+    </div>
+    <p class="closing" style="text-align:center;max-width:none">One click exports the full model — and the
+      same files let any Claude chat rebuild it exactly and render presentation views on demand.
+      For the machinery — the language and the computation model vs Grasshopper &amp; Dynamo —
+      see <a class="hoodlink" href="under-the-hood.html">Under the Hood</a>.</p>
+  </section>
+
+  <!-- ════════ SHEET 2 · CONCEPT TO AS-BUILT ════════ -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <span class="lbl">Concept to As-Built</span>
+      <span class="note">one ID-tracked model, from first massing study to handover record</span>
+    </div>
+    <p class="prose">In use on <b>live projects</b> at concept design today — <b>project setup is already
+      faster</b>. Built to carry the same model straight through detailed design and beyond.</p>
+
+    <div class="steps" style="margin-top:1.3rem">
+      <div class="stp acc"><span class="n">1</span><span class="rb">RIBA 2</span><span class="t">Concept Design</span><span class="d">options explored live, in the meeting</span></div>
+      <div class="stp"><span class="n">2</span><span class="rb">RIBA 3</span><span class="t">Spatial Coordination</span><span class="d">one click into Revit via pyRevit</span></div>
+      <div class="stp"><span class="n">3</span><span class="rb">RIBA 4</span><span class="t">Technical Design</span><span class="d">detail extends the same CSV schema</span></div>
+      <div class="stp"><span class="n">4</span><span class="rb">RIBA 4–5</span><span class="t">Fabrication</span><span class="d">solid OBJ / USD, CAD-true DXF</span></div>
+      <div class="stp"><span class="n">5</span><span class="rb">RIBA 5</span><span class="t">Construction</span><span class="d">re-import diffs against the same IDs</span></div>
+      <div class="stp"><span class="n">6</span><span class="rb">RIBA 6</span><span class="t">As-Built</span><span class="d">site deltas reconciled to handover</span></div>
+    </div>
+    <div class="legend">
+      <span class="leg"><i class="full"></i>proven — on live projects</span>
+      <span class="leg"><i class="hatch"></i>mechanism working today</span>
+      <span class="leg"><i></i>straight extension</span>
+      <span class="leg"><i class="dash"></i>next step</span>
+    </div>
+    <p class="spineline">the strength today is concept design — every mechanism the later stages need is already running underneath it</p>
+
+    <div class="sheet-head" style="margin-top:1.6rem">
+      <span class="lbl">One Model, One Set of IDs</span>
+      <span class="note">every stage adds data to the same spine instead of starting again</span>
+    </div>
+    <div class="flowline" role="img" aria-label="Spine diagram: from browser to handover, with settings JSON, Revit-ready CSVs, OBJ/USD/DXF, pyRevit placement, re-import diff and handover record hanging off one line.">
+      <span class="fnode red">Browser</span>
+      <span class="fedge">stable IDs</span>
+      <span class="fnode">Settings JSON</span>
+      <span class="fnode">Revit-ready CSVs</span>
+      <span class="fnode">OBJ / USD / DXF</span>
+      <span class="fedge">stable IDs</span>
+      <span class="fnode red">Handover</span>
+    </div>
+    <div class="taps">
+      <span class="tap">pyRevit placement</span>
+      <span class="tap">re-import diff</span>
+      <span class="tap">handover record</span>
+    </div>
+    <p class="spineline">stable tracking IDs, end to end — the concept model is already the delivery model</p>
+
+    <div class="cards card4" style="margin-top:1.4rem">
+      <div class="bcard"><span class="t">Revit-native</span>
+        <p>Concept output already lands in Revit — pyRevit places levels, framing and plates today,
+        with stable IDs from the first slider move.</p></div>
+      <div class="bcard"><span class="t">Schema, not rebuild</span>
+        <p>Detailed design hangs connections, sections and specs off IDs that already exist —
+        an extension, not a new model.</p></div>
+      <div class="bcard"><span class="t">Change control</span>
+        <p>Re-import diffs the model — moved, new, deleted — so coordination and site changes are
+        tracked, not re-drawn.</p></div>
+      <div class="bcard"><span class="t">ISO 19650-shaped</span>
+        <p>The settings JSON is a one-file audit trail — named deliverables, versioned states,
+        CDE-native from day one.</p></div>
+    </div>
+
+    <div class="banner">days &rarr; <b>hours</b> to a working studio &middot; days &rarr; <b>minutes</b> per design change &middot;
+      <b>&pound;0</b> licence cost &middot; <b>1 click</b> to Revit</div>
+    <p class="closing">The sweet spot today is concept design — but the pipeline is Revit-native and
+      ID-tracked from day one, so every later stage extends the same model rather than starting a new
+      tool. <b>Extending into a new stage needs prompts, not products.</b></p>
+  </section>
+
+  <!-- ════════ FOLLOW THE PLAYBOOK ════════ -->
+  <section class="sheet">
+    <div class="sheet-head">
+      <span class="lbl">Follow Along</span>
+      <span class="note">the playbook grows as the pipeline moves through the stages</span>
+    </div>
     <form class="soon-form" id="soonForm" novalidate>
       <label class="skip" for="soonEmail">Email address</label>
-      <input type="email" id="soonEmail" placeholder="your@address &mdash; tell me when it lands" required autocomplete="email">
+      <input type="email" id="soonEmail" placeholder="your@address &mdash; tell me when it moves" required autocomplete="email">
       <button type="submit">Inform me</button>
     </form>
     <span class="soon-note" id="soonNote" role="status" aria-live="polite"></span>
-  </div>
+  </section>
 
 </main>
 
@@ -129,11 +335,9 @@
   "use strict";
   /* theme toggle wired by assets/site-header.js */
 
-  /* Signups prefer /api/subscribe on this domain (a Cloudflare Pages
-     Function that relays to Mailchimp server-side, immune to ad-blockers).
-     If that endpoint isn't deployed, fall back to calling Mailchimp's
-     JSONP endpoint directly — ad-blockers may stop that hop, and the
-     note says so. */
+  /* Signups prefer /api/subscribe on this domain (relayed to Mailchimp
+     server-side, immune to ad-blockers); fall back to Mailchimp's JSONP
+     endpoint if the function isn't reachable. */
   var MC_FALLBACK = 'https://moneyafterdark.us17.list-manage.com/subscribe/post-json?u=9a95e7b3013f3d844b00eb3f0&id=d15601aa5d&f_id=00cccae3f0&b_9a95e7b3013f3d844b00eb3f0_d15601aa5d=';
   function subscribeJsonp(email, done){
     var cb = 'mc' + Math.floor(Math.random() * 1e9);
@@ -165,13 +369,13 @@
     .catch(function(){ subscribeJsonp(email, once); });
   }
   function mcFail(msg){
-    if(msg === '__blocked__') return 'Blocked in this browser \u2014 pause the ad-blocker and retry, or <a href="https://eepurl.com/ieW19L" target="_blank" rel="noopener">sign up on the direct form</a>.';
-    if(msg === '__nofn__') return 'The signup service hasn\u2019t finished deploying \u2014 try again in a few minutes.';
-    if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') \u2014 tell the site owner.';
+    if(msg === '__blocked__') return 'Blocked in this browser — pause the ad-blocker and retry, or <a href="https://eepurl.com/ieW19L" target="_blank" rel="noopener">sign up on the direct form</a>.';
+    if(msg === '__nofn__') return 'The signup service hasn’t finished deploying — try again in a few minutes.';
+    if(/^__http_/.test(msg)) return 'The signup service answered with an error (HTTP ' + msg.slice(7) + ') — tell the site owner.';
     var t = msg && String(msg).replace(/<[^>]*>/g, '').replace(/^\d+\s*-\s*/, '').trim();
-    if(t && /already subscribed/i.test(t)) return 'You\u2019re already on the list \u2014 nothing to do.';
-    if(!t && msg) return 'Mailchimp rejected the signup \u2014 no reason given.';
-    return (t && t.slice(0, 140)) || 'That didn\u2019t go through \u2014 try again in a moment.';
+    if(t && /already subscribed/i.test(t)) return 'You’re already on the list — nothing to do.';
+    if(!t && msg) return 'Mailchimp rejected the signup — no reason given.';
+    return (t && t.slice(0, 140)) || 'That didn’t go through — try again in a moment.';
   }
   var form = document.getElementById('soonForm');
   var email = document.getElementById('soonEmail');

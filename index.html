@@ -94,7 +94,8 @@
     grid-template-areas:
       "news    read   follow github"
       "stocks  cv     cv     github"
-      "youtube strategy strategy b2";
+      "youtube strategy strategy b2"
+      "hood    hood   hood   hood";
   }
   /* ── the playground hero banner ── */
   .pg-hero{ position:relative; display:block; border:1px solid var(--hair);
@@ -157,7 +158,7 @@
   .a-github{grid-area:github} .a-news{grid-area:news} .a-read{grid-area:read}
   .a-follow{grid-area:follow} .a-cv{grid-area:cv}
   .a-stocks{grid-area:stocks} .a-youtube{grid-area:youtube}
-  .a-cvb{grid-area:b2} .a-strategy{grid-area:strategy}
+  .a-cvb{grid-area:b2} .a-strategy{grid-area:strategy} .a-hood{grid-area:hood}
   .box.blank{ min-height:150px; }
 
   .a-github{ justify-content:space-between; padding-top:1.8rem; padding-bottom:1.8rem; gap:.8rem; }
@@ -187,6 +188,7 @@
         "stocks  youtube"
         "strategy strategy"
         "b2 b2"
+        "hood    hood"
         "cv      cv";
     }
     .box.blank{ display:none; }
@@ -379,7 +381,7 @@
       </svg>
       <span class="ital">AI Strategy of</span>
       <span class="display" style="font-size:1.4rem">BIM &amp; CONSTRUCTION</span>
-      <span class="caps caps-tight muted" style="font-size:.6rem">the playbook &middot; coming soon</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">RIBA 2&ndash;6 &middot; briefed in plain English &middot; built in hours</span>
     </a>
     <!-- ════════ CV BUILDER ════════ -->
     <a class="box a-cvb" href="cvbuilder.html">
@@ -394,6 +396,21 @@
       <span class="ital">OttomanLabsAI</span>
       <span class="display" style="font-size:1.45rem">CV BUILDER</span>
       <span class="caps caps-tight muted" style="font-size:.6rem">Build a CV in my style</span>
+    </a>
+    <!-- ════════ UNDER THE HOOD ════════ -->
+    <a class="box a-hood" href="under-the-hood.html">
+      <svg viewBox="0 0 150 44" width="132" height="39" fill="none" stroke="#111" stroke-width="2" aria-hidden="true">
+        <path d="M18,6 Q6,6 6,16 Q6,22 2,22 Q6,22 6,28 Q6,38 18,38" stroke-linecap="round"/>
+        <path d="M40,6 Q52,6 52,16 Q52,22 56,22 Q52,22 52,28 Q52,38 40,38" stroke-linecap="round"/>
+        <line x1="24" y1="34" x2="34" y2="10" stroke-width="1.6"/>
+        <rect x="72" y="8" width="18" height="12" stroke-width="1.6"/>
+        <rect x="72" y="26" width="18" height="12" stroke-width="1.6"/>
+        <rect x="118" y="17" width="18" height="12" stroke-width="1.6"/>
+        <path d="M90 14 Q106 14 106 23 M90 32 Q106 32 106 23 M106 23 H118" stroke-width="1.2"/>
+      </svg>
+      <span class="ital">what it&rsquo;s written in</span>
+      <span class="display" style="font-size:1.45rem">UNDER THE HOOD</span>
+      <span class="caps caps-tight muted" style="font-size:.6rem">vanilla JavaScript vs Grasshopper &amp; Dynamo &middot; live demo inside</span>
     </a>
 
   </div>
