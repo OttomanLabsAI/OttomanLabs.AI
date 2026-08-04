@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<title>Website Design — OttomanLabs.AI</title>
+<meta name="description" content="The pages of OttomanLabs.AI, designed in-house by Fadil Karim — dashboards, studios and reading rooms, art-directed to the last hairline and built with Claude Code.">
+<link rel="canonical" href="https://ottomanlabs.ai/website-design.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="Website Design — OttomanLabs.AI">
+<meta property="og:description" content="Dashboards, studios and reading rooms — every page designed in-house, art-directed to the last hairline.">
+<meta property="og:url" content="https://ottomanlabs.ai/website-design.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og/og-website-design.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og/og-website-design.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Prata&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css?v=2">
+<script src="assets/site-header.js" defer></script>
+<style>
+  :root{ --acc:#B01018; }
+  [data-theme="dark"]{ --acc:#DE8286; }
+
+  .hero{ border:1px solid var(--hair); padding:.9rem 1.2rem; margin-bottom:var(--gap);
+    display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  .hero .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.5rem; }
+  .hero .display{ font-family:var(--font-display); font-size:1.9rem; letter-spacing:.04em; }
+  .hero .sub{ font-family:var(--font-brand); font-size:.62rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); }
+
+  .lede{ font-family:var(--font-serif); font-size:1.02rem; line-height:1.65; max-width:76ch;
+    margin-bottom:var(--gap); }
+  .lede b{ font-weight:600; }
+  .lede i{ font-style:italic; }
+
+  .designs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap); }
+  .design{ border:1px solid var(--hair); text-decoration:none; color:var(--ink); display:flex;
+    flex-direction:column; transition:border-color .15s; }
+  .design:hover{ border-color:var(--ink); text-decoration:none; }
+  .design:focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+
+  /* the little browser frame */
+  .chrome{ display:flex; align-items:center; gap:.55rem; border-bottom:1px solid var(--hair);
+    padding:.45rem .8rem; }
+  .chrome .dots{ display:flex; gap:.28rem; }
+  .chrome .dots i{ width:8px; height:8px; border-radius:50%; border:1px solid var(--ink); display:block; }
+  .design:hover .chrome .dots i:first-child{ background:var(--acc); border-color:var(--acc); }
+  .chrome .url{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.66rem;
+    color:var(--ink-60); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .design .shot{ display:block; width:100%; height:auto; border-bottom:1px solid var(--hair);
+    aspect-ratio:40/21; object-fit:cover; object-position:top; background:var(--paper); }
+
+  .design .meta{ padding:.8rem 1rem .95rem; display:flex; flex-direction:column; gap:.25rem; }
+  .design .name{ display:flex; align-items:baseline; gap:.55rem; flex-wrap:wrap; }
+  .design .name .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.05rem; }
+  .design .name .display{ font-family:var(--font-display); font-size:1.2rem; letter-spacing:.03em; }
+  .design .caps{ font-family:var(--font-brand); font-size:.6rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); line-height:1.8; }
+
+  .sec-rule{ font-family:var(--font-brand); font-weight:600; font-size:.66rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--ink);
+    padding-bottom:.5rem; margin:calc(var(--gap) * 1.4) 0 var(--gap); display:flex;
+    justify-content:space-between; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  .sec-rule .note{ font-family:var(--font-serif); font-style:italic; font-weight:400;
+    text-transform:none; letter-spacing:0; color:var(--ink-60); font-size:.95rem; }
+
+  @media (max-width:760px){
+    .designs{ grid-template-columns:1fr; }
+  }
+</style>
+<script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <nav class="nav-row" aria-label="Sections">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark"><span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span></button>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="hero">
+    <span><span class="ital">Website</span> <span class="display">DESIGN</span></span>
+    <span class="sub">every page on this site, designed in-house &middot; Fadil Karim</span>
+  </div>
+
+  <p class="lede">Every page here is <b>designed in-house</b> — the layouts, the drawn 3D isles, the
+    hairline borders, the ink-on-paper palette, all of it art-directed page by page and
+    <i>built with Claude Code from a plain-English brief</i>. Set in Flux, Newsreader &amp; Prata.
+    Click any design to visit it live.</p>
+
+  <div class="sec-rule">Dashboards &amp; Studios<span class="note">live parametric tools — the model in the middle, every parameter around it</span></div>
+  <div class="designs">
+    <a class="design" href="gherkin.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/gherkin</span></span>
+      <img class="shot" src="assets/og/og-gherkin.png" alt="The Gherkin dashboard design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">The</span> <span class="display">GHERKIN</span></span>
+      <span class="caps">parametric diagrid dashboard &middot; spline profile &middot; Revit-ready exports</span></span>
+    </a>
+    <a class="design" href="gherkin-studio.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/gherkin-studio</span></span>
+      <img class="shot" src="assets/og/og-gherkin-studio.png" alt="The Gherkin Studio design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">The Gherkin</span> <span class="display">STUDIO</span></span>
+      <span class="caps">one board &middot; the tower in the middle &middot; Paper / Dark / Black Hole schemes</span></span>
+    </a>
+    <a class="design" href="dymak.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/dymak</span></span>
+      <img class="shot" src="assets/og/og-dymak.png" alt="Dymak HQ design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Dymak</span> <span class="display">HQ</span></span>
+      <span class="caps">polar roof-framing plan &middot; orbit 3D &middot; pyDymak hand-off</span></span>
+    </a>
+    <a class="design" href="topoforge.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/topoforge</span></span>
+      <img class="shot" src="assets/og/og-topoforge.png" alt="TopoForge design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Topo</span> <span class="display">FORGE</span></span>
+      <span class="caps">sculptable terrain &middot; spline boundary &middot; OBJ / USD / DXF / CSV out</span></span>
+    </a>
+    <a class="design" href="playground.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/playground</span></span>
+      <img class="shot" src="assets/og/og-playground.png" alt="Computational AI Playground design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Computational AI</span> <span class="display">PLAYGROUND</span></span>
+      <span class="caps">viewport widgets &middot; import geometry &middot; input tools &middot; tutorials</span></span>
+    </a>
+    <a class="design" href="cvbuilder.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/cvbuilder</span></span>
+      <img class="shot" src="assets/og/og-cvbuilder.png" alt="CV Builder design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">CV</span> <span class="display">BUILDER</span></span>
+      <span class="caps">live A4 preview &middot; spacing &amp; information editor &middot; print-ready</span></span>
+    </a>
+  </div>
+
+  <div class="sec-rule">Ledgers &amp; Rooms<span class="note">reading, records and the occasional field note</span></div>
+  <div class="designs">
+    <a class="design" href="index.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai</span></span>
+      <img class="shot" src="assets/og/og-home.png" alt="OttomanLabs.AI homepage design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">The</span> <span class="display">HOME</span></span>
+      <span class="caps">editorial mosaic &middot; drawn 3D project isles &middot; the front door</span></span>
+    </a>
+    <a class="design" href="pybuffet.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/pybuffet</span></span>
+      <img class="shot" src="assets/og/og-pybuffet.png" alt="pyBuffet EDGAR Ledger design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">pyBuffet</span> <span class="display">EDGAR LEDGER</span></span>
+      <span class="caps">print-ledger aesthetic &middot; SEC financials &middot; Buffett chapter notes</span></span>
+    </a>
+    <a class="design" href="reading.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/reading</span></span>
+      <img class="shot" src="assets/og/og-reading.png" alt="Reading Room design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">The Reading</span> <span class="display">ROOM</span></span>
+      <span class="caps">the library wall &middot; 48 volumes &middot; 2006 — present</span></span>
+    </a>
+    <a class="design" href="stocks.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/stocks</span></span>
+      <img class="shot" src="assets/og/og-stocks.png" alt="Stock Picks design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Fadil&rsquo;s</span> <span class="display">STOCK PICKS</span></span>
+      <span class="caps">conviction ledger &middot; hand-drawn charts &middot; the editor&rsquo;s picks</span></span>
+    </a>
+    <a class="design" href="strategy.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/strategy</span></span>
+      <img class="shot" src="assets/og/og-strategy.png" alt="AI Strategy design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">AI Strategy of</span> <span class="display">BIM &amp; CONSTRUCTION</span></span>
+      <span class="caps">the playbook &middot; RIBA 2–6 &middot; one ID-tracked model</span></span>
+    </a>
+    <a class="design" href="under-the-hood.html">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai/under-the-hood</span></span>
+      <img class="shot" src="assets/og/og-under-the-hood.png" alt="Under the Hood design" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Under the</span> <span class="display">HOOD</span></span>
+      <span class="caps">the machinery &middot; vanilla JS vs node graphs &middot; live self-timing demo</span></span>
+    </a>
+  </div>
+
+</main>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">OttomanLabs.AI</a>
+      <p class="foot-tag">Parametric studies of landmark structures — computational BIM, open-source tooling and the occasional field note.</p>
+    </div>
+    <nav class="foot-col" aria-label="Footer — site">
+      <h3>Site</h3>
+      <a href="index.html">Home</a>
+      <a href="gherkin.html">The Gherkin</a>
+      <a href="dymak.html">Dymak HQ</a>
+      <a href="topoforge.html">TopoForge</a>
+      <a href="reading.html">Reading Room</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — tools">
+      <h3>Tools</h3>
+      <a href="assets/pyGherkin.extension.zip">pyGherkin for pyRevit</a>
+      <a href="https://github.com/ottomanlabsai" target="_blank" rel="noopener">Open source on GitHub</a>
+      <a href="assets/Fadil-Karim-CV.pdf" target="_blank" rel="noopener">The Editor&rsquo;s CV</a>
+    </nav>
+    <nav class="foot-col" aria-label="Footer — follow">
+      <h3>Follow</h3>
+      <a href="https://www.youtube.com/@OttomanlabsAI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://t.me/ottomanlabs.ai" target="_blank" rel="noopener">Telegram</a>
+      <a href="mailto:fid_kk@proton.me">fid_kk@proton.me</a>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <span>&copy; 2026 OttomanLabs.AI &middot; Fadil Karim</span>
+    <span>Illustrations drawn in-house &middot; set in Flux, Newsreader &amp; Prata</span>
+  </div>
+</footer>
+
+<script src="assets/firebase-config.js"></script>
+<script src="assets/ol-cloud.js" defer></script>
+</body>
+</html>
