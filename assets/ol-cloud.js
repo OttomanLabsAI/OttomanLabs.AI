@@ -44,11 +44,13 @@
   /* ── styles (the page's own tokens, so light/dark/schemes just work) ── */
   var css = document.createElement('style');
   css.textContent =
+    '#olCloudMount{display:inline-flex;align-items:center;gap:.55rem;flex-wrap:wrap;justify-content:center;}' +
     '.olc-btn{font-family:var(--font-brand,sans-serif);font-weight:500;font-size:.62rem;' +
       'letter-spacing:.18em;text-transform:uppercase;cursor:pointer;line-height:1;' +
       'border:1px solid var(--hair,#e3e3e3);background:var(--paper,#fff);color:var(--ink,#111);' +
       'padding:.5rem .7rem .42rem;white-space:nowrap;max-width:14rem;overflow:hidden;text-overflow:ellipsis;}' +
     '.olc-btn:hover{background:var(--ink,#111);color:var(--paper,#fff);}' +
+    '@media (max-width:560px){.olc-btn{max-width:9.5rem;}}' +
     '.olc-btn .olc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;' +
       'background:#B01018;margin-right:.4rem;vertical-align:middle;}' +
     '.olc-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);' +

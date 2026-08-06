@@ -273,6 +273,7 @@
       <button id="bObj" title="Triangulated mesh · Z-up">OBJ</button>
       <button id="bUsd" title="USD mesh for Omniverse / Blender · Z-up">USD</button>
       <button id="bDxf" title="3DFACE mesh for CAD / Civil 3D">DXF</button>
+      <button id="bTin" title="LandXML TIN surface — the exact triangulation, for Civil 3D & site tools">TIN</button>
       <label class="sbctl" title="Units written into the exported files">as
         <select id="expUnits">
           <option value="m" selected>m</option>
@@ -1553,6 +1554,28 @@ el('bUsd').onclick = () => {
   s += `        point3f[] points = [${S.P.map((p, i) => `(${(p.x * sc).toFixed(d)}, ${(p.y * sc).toFixed(d)}, ${(S.h[i] * sc).toFixed(d)})`).join(', ')}]\n`;
   s += `        uniform token subdivisionScheme = "none"\n    }\n}\n`;
   dl(`topo_mesh_${u}.usda`, s, 'text/plain');
+};
+el('bTin').onclick = () => {
+  if(needTerrain()) return;
+  const sc = expScale(), u = expU(), d = expDec(4);
+  /* LandXML 1.2 TIN — the exact points and triangles, not a re-triangulation.
+     NOTE the schema's point order: Northing Easting Elevation (Y X Z). */
+  const units = u === 'ft'
+    ? '<Imperial areaUnit="squareFoot" linearUnit="foot" volumeUnit="cubicFeet" temperatureUnit="fahrenheit" pressureUnit="inchHG"/>'
+    : `<Metric areaUnit="squareMeter" linearUnit="${u === 'mm' ? 'millimeter' : 'meter'}" volumeUnit="cubicMeter" temperatureUnit="celsius" pressureUnit="pascal"/>`;
+  const now = new Date(), pad = n => String(n).padStart(2, '0');
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  x += `<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2" version="1.2" date="${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}" time="${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}">\n`;
+  x += `  <Units>${units}</Units>\n`;
+  x += `  <Application name="TopoForge" desc="ottomanlabs.ai/topoforge" manufacturer="OttomanLabs.AI" manufacturerURL="https://ottomanlabs.ai"/>\n`;
+  x += `  <Surfaces>\n    <Surface name="TopoForge terrain">\n      <Definition surfType="TIN">\n        <Pnts>\n`;
+  for(let i = 0; i < S.P.length; i++){
+    x += `          <P id="${i + 1}">${(S.P[i].y * sc).toFixed(d)} ${(S.P[i].x * sc).toFixed(d)} ${(S.h[i] * sc).toFixed(d)}</P>\n`;
+  }
+  x += `        </Pnts>\n        <Faces>\n`;
+  for(const t of S.tris) x += `          <F>${t[0] + 1} ${t[1] + 1} ${t[2] + 1}</F>\n`;
+  x += `        </Faces>\n      </Definition>\n    </Surface>\n  </Surfaces>\n</LandXML>\n`;
+  dl(`topo_tin_${u}.xml`, x, 'application/xml');
 };
 el('bDxf').onclick = () => {
   if(needTerrain()) return;
