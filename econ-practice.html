@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AQA Economics 7136 · Adaptive practice — OttomanLabs.AI</title>
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Adaptive multiple-choice practice for AQA A-level Economics (7136) — all 14 spec areas, weighted toward your weak topics, progress saved on your device.">
+<link rel="canonical" href="https://ottomanlabs.ai/econ-practice.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OttomanLabs.AI">
+<meta property="og:title" content="AQA Economics 7136 · Adaptive practice — OttomanLabs.AI">
+<meta property="og:description" content="Adaptive multiple-choice practice across all 14 AQA Economics spec areas — weighted toward your weak topics.">
+<meta property="og:url" content="https://ottomanlabs.ai/econ-practice.html">
+<meta property="og:image" content="https://ottomanlabs.ai/assets/og/og-econ-practice.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og/og-econ-practice.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F5F1; --card:#FFFFFF; --ink:#1C2733; --muted:#5D6875;
+  --line:#D9DED3; --grid:#E9ECE3;
+  --blue:#2A58A9; --blue-tint:#EBF1FB;
+  --red:#BF3A2B; --red-tint:#FAECE9;
+  --amber:#B07712; --amber-tint:#FBF3DF;
+  --serif:"STIX Two Text", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", "SF Mono", Menlo, monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.5;
+  padding-bottom:48px;}
+button{font:inherit; color:inherit; background:none; border:none; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+button:focus-visible, .opt:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px;}
+
+/* ---------- header ---------- */
+header{border-bottom:3px double var(--ink); background:var(--paper); position:sticky; top:0; z-index:10;}
+.head-in{display:flex; align-items:baseline; justify-content:space-between; padding:14px 0 10px;}
+.wordmark{font-family:var(--serif); font-weight:700; font-size:20px; letter-spacing:.01em;}
+.wordmark .amp{font-style:italic; font-weight:400;}
+.spec-chip{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--muted); display:block; margin-top:1px;}
+.session{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right;}
+.session b{color:var(--ink); font-weight:500; font-size:15px;}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex; gap:8px; padding:12px 0 14px;}
+.tab{flex:1; font-family:var(--mono); font-size:12px; letter-spacing:.12em; padding:9px 0;
+  border:1px solid var(--ink); border-radius:6px; background:var(--card); color:var(--ink); text-transform:uppercase;}
+.tab[aria-selected="true"]{background:var(--ink); color:var(--paper);}
+
+/* ---------- practice ---------- */
+.focus-line{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px;
+  letter-spacing:.06em; color:var(--muted); text-transform:uppercase; margin:2px 2px 10px; min-height:20px;}
+.focus-line .dot{width:7px; height:7px; border-radius:50%; background:var(--muted); flex:none;}
+.focus-line.f-red .dot{background:var(--red);} .focus-line.f-red{color:var(--red);}
+.focus-line.f-blue .dot{background:var(--blue);} .focus-line.f-blue{color:var(--blue);}
+.focus-line .clear-drill{margin-left:auto; font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+  color:var(--ink); border:1px solid var(--line); border-radius:5px; padding:3px 8px; background:var(--card);}
+
+.qcard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px 18px 18px;
+  box-shadow:0 1px 0 rgba(28,39,51,.05);}
+.eyebrow{display:flex; align-items:baseline; gap:8px; margin-bottom:12px;}
+.eyebrow .code{font-family:var(--mono); font-size:12px; font-weight:500; color:var(--blue);}
+.eyebrow .tname{font-size:12.5px; color:var(--muted);}
+.qtext{font-family:var(--serif); font-size:19px; line-height:1.45; font-weight:400; margin-bottom:16px;}
+.opts{display:flex; flex-direction:column; gap:8px;}
+.opt{display:flex; align-items:flex-start; gap:11px; width:100%; text-align:left;
+  border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:var(--card);
+  transition:background .12s, border-color .12s;}
+.opt .letter{font-family:var(--mono); font-size:12px; font-weight:500; flex:none;
+  width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--line); border-radius:5px; margin-top:1px;}
+.opt .otext{font-size:15px; line-height:1.4; padding-top:1px;}
+.opt:not(:disabled):active{background:var(--paper);}
+.opt:disabled{cursor:default;}
+.opt.is-correct{border-color:var(--blue); background:var(--blue-tint);}
+.opt.is-correct .letter{background:var(--blue); border-color:var(--blue); color:#fff;}
+.opt.is-wrong{border-color:var(--red); background:var(--red-tint);}
+.opt.is-wrong .letter{background:var(--red); border-color:var(--red); color:#fff;}
+.opt.is-faded{opacity:.5;}
+
+.feedback{margin-top:14px; border-top:1px solid var(--line); padding-top:13px;}
+.verdict{font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:500;}
+.verdict.v-right{color:var(--blue);} .verdict.v-wrong{color:var(--red);}
+.explain{font-size:14.5px; color:var(--ink); margin-top:6px; line-height:1.5;}
+.spec-ref{display:inline-block; margin-top:9px; font-family:var(--mono); font-size:11px; color:var(--muted);
+  border:1px solid var(--line); border-radius:5px; padding:2px 7px;}
+.next-btn{display:block; width:100%; margin-top:14px; background:var(--ink); color:var(--paper);
+  font-family:var(--mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase;
+  padding:13px 0; border-radius:8px;}
+.next-btn:active{opacity:.85;}
+
+/* ---------- progress ---------- */
+.stat-band{display:grid; grid-template-columns:1fr 1fr 1.2fr; border:1px solid var(--line);
+  border-radius:10px; background:var(--card); overflow:hidden; margin-bottom:14px;}
+.stat{padding:13px 12px 11px; border-right:1px solid var(--line);}
+.stat:last-child{border-right:none;}
+.stat .num{font-family:var(--mono); font-size:21px; font-weight:500; line-height:1.1;}
+.stat .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.09em; color:var(--muted);
+  text-transform:uppercase; margin-top:3px;}
+.stat .num .weak-code{color:var(--red);}
+
+.toggle-row{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line);
+  border-radius:10px; padding:13px 14px; margin-bottom:18px; width:100%; text-align:left;}
+.toggle-row .t-copy{flex:1;}
+.toggle-row .t-title{font-size:14.5px; font-weight:600;}
+.toggle-row .t-sub{font-size:12.5px; color:var(--muted); margin-top:1px;}
+.switch{flex:none; width:44px; height:26px; border-radius:13px; background:var(--line); position:relative; transition:background .15s;}
+.switch::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition:left .15s;}
+.toggle-row[aria-pressed="true"] .switch{background:var(--blue);}
+.toggle-row[aria-pressed="true"] .switch::after{left:21px;}
+
+.chart-head{display:flex; align-items:baseline; justify-content:space-between; margin:0 2px 4px;}
+.chart-title{font-family:var(--serif); font-size:17px; font-weight:600;}
+.axis-note{font-family:var(--mono); font-size:10px; letter-spacing:.07em; color:var(--muted); text-transform:uppercase;}
+.hint{font-size:12.5px; color:var(--muted); margin:0 2px 12px;}
+.group-lbl{font-family:var(--mono); font-size:11px; letter-spacing:.11em; color:var(--muted);
+  text-transform:uppercase; margin:16px 2px 8px; padding-bottom:4px; border-bottom:1px solid var(--line);}
+.trow{display:block; width:100%; text-align:left; padding:7px 2px 9px; border-radius:6px;}
+.trow:active{background:rgba(28,39,51,.04);}
+.trow-top{display:flex; align-items:baseline; gap:7px; margin-bottom:5px;}
+.trow-top .code{font-family:var(--mono); font-size:11.5px; font-weight:500; color:var(--ink); flex:none;}
+.trow-top .name{font-size:13px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.trow-top .val{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); flex:none;}
+.track{height:22px; border:1px solid var(--line); border-radius:4px; background:
+  repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), var(--grid) calc(10% - 1px), var(--grid) 10%);
+  background-color:var(--card); position:relative; overflow:hidden;}
+.bar{position:absolute; inset:0 auto 0 0; width:0%; border-radius:3px 0 0 3px; transition:width .35s ease;}
+.bar.b-red{background:var(--red);} .bar.b-amber{background:var(--amber);}
+.bar.b-blue{background:var(--blue);} .bar.b-none{background:var(--line);}
+.legend{display:flex; flex-wrap:wrap; gap:12px; margin:16px 2px 0; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.05em; color:var(--muted); text-transform:uppercase;}
+.legend span{display:flex; align-items:center; gap:5px;}
+.swatch{width:10px; height:10px; border-radius:3px;}
+.reset-zone{margin-top:26px; text-align:center;}
+.reset-btn{font-family:var(--mono); font-size:12px; letter-spacing:.07em; color:var(--muted);
+  border:1px solid var(--line); border-radius:7px; padding:9px 16px; background:var(--card);}
+.reset-btn.armed{color:#fff; background:var(--red); border-color:var(--red);}
+.storage-note{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-align:center; margin-top:10px;}
+
+.view{display:none; padding-top:2px;}
+.view.active{display:block;}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="head-in">
+      <a href="index.html" style="text-decoration:none;color:inherit" aria-label="Back to OttomanLabs.AI">
+        <div class="wordmark">Economics <span class="amp">practice</span></div>
+        <span class="spec-chip">AQA A-LEVEL · 7136 · OTTOMANLABS.AI</span>
+      </a>
+      <div class="session">session<br><b id="sessionScore">0/0</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabPractice" role="tab" aria-selected="true">Practice</button>
+    <button class="tab" id="tabProgress" role="tab" aria-selected="false">Progress</button>
+  </div>
+
+  <section class="view active" id="viewPractice">
+    <div class="focus-line" id="focusLine"><span class="dot"></span><span id="focusText"></span></div>
+    <div class="qcard" id="qcard"></div>
+  </section>
+
+  <section class="view" id="viewProgress">
+    <div class="stat-band">
+      <div class="stat"><div class="num" id="statAnswered">0</div><div class="lbl">answered</div></div>
+      <div class="stat"><div class="num" id="statAccuracy">–</div><div class="lbl">accuracy</div></div>
+      <div class="stat"><div class="num" id="statWeakest">–</div><div class="lbl">weakest topic</div></div>
+    </div>
+
+    <button class="toggle-row" id="adaptiveToggle" aria-pressed="true">
+      <span class="t-copy">
+        <span class="t-title">Focus on weak topics</span><br>
+        <span class="t-sub">Off = even coverage of all 14 areas</span>
+      </span>
+      <span class="switch" aria-hidden="true"></span>
+    </button>
+
+    <div class="chart-head">
+      <div class="chart-title">Mastery by topic</div>
+      <div class="axis-note">0 ——— 100%</div>
+    </div>
+    <p class="hint" id="chartHint">Tap any topic to drill it on its own.</p>
+    <div id="chart"></div>
+
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--red)"></span>needs work</span>
+      <span><span class="swatch" style="background:var(--amber)"></span>getting there</span>
+      <span><span class="swatch" style="background:var(--blue)"></span>secure</span>
+      <span><span class="swatch" style="background:var(--line)"></span>too few answers</span>
+    </div>
+
+    <div class="reset-zone">
+      <button class="reset-btn" id="resetBtn">Reset all progress</button>
+      <div class="storage-note" id="storageNote"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const QUESTIONS = [
+// T1 3.1.1 Economic methodology & the economic problem
+{t:1,q:"Which of the following is a normative statement?",o:["UK inflation was 3.2% last year","A rise in interest rates tends to reduce consumption","The government ought to cut income tax to help households","Unemployment fell after the policy was introduced"],a:2,x:"Normative statements contain value judgements (ought/should). The others are positive statements that can be tested against evidence."},
+{t:1,q:"The fundamental economic problem exists because:",o:["resources are limited while wants are unlimited","wants are limited but resources are unlimited","governments tax households too heavily","money loses value over time"],a:0,x:"Scarcity: finite resources cannot satisfy unlimited wants, so choices must be made about allocation."},
+{t:1,q:"As a factor of production, enterprise is best described as:",o:["funds used to buy machinery","organising the other factors and bearing the risk of production","the skills of the workforce","natural resources used in production"],a:1,x:"The entrepreneur combines land, labour and capital and takes on the risk, rewarded by profit."},
+{t:1,q:"The opportunity cost of a decision is:",o:["its total money cost","total benefit minus total cost","the cost of producing one extra unit","the value of the next best alternative forgone"],a:3,x:"Because resources are scarce, choosing one option means giving up the next best alternative."},
+{t:1,q:"A point lying inside a production possibility boundary shows:",o:["unattainable output","allocative efficiency","unemployed or inefficiently used resources","long-run economic growth"],a:2,x:"Inside the boundary the economy is not using all its resources productively; output of both goods could rise."},
+{t:1,q:"All points on a production possibility boundary are:",o:["allocatively efficient","productively efficient, but not all are allocatively efficient","both productively and allocatively efficient","points of economic growth"],a:1,x:"On the boundary no resources are wasted, but only some output combinations match society's preferences."},
+{t:1,q:"Economic methodology differs from that of the natural sciences mainly because economists:",o:["never use numerical data","cannot usually run controlled experiments on whole economies","cannot make any predictions","ignore human behaviour"],a:1,x:"Economics is a social science: it studies human behaviour, where laboratory-style controlled experiments are rarely possible."},
+
+// T2 3.1.2 Individual economic decision making
+{t:2,q:"The hypothesis of diminishing marginal utility helps to explain why:",o:["supply curves slope upward","the demand curve slopes downward","prices never change","firms maximise profit"],a:1,x:"Each extra unit gives less additional satisfaction, so consumers only purchase more at lower prices."},
+{t:2,q:"Asymmetric information exists when:",o:["information is freely available to everyone","neither party to a transaction has any information","one party has more or better information than the other","prices are fixed by regulators"],a:2,x:"E.g. a used-car seller knows more about the car than the buyer — a potential source of market failure."},
+{t:2,q:"Bounded rationality means economic decisions are limited by:",o:["information, time and the capacity to process it","the legal system","income alone","advertising restrictions"],a:0,x:"Behavioural economists argue people satisfice with limited information and computing power rather than perfectly maximise."},
+{t:2,q:"A shopper judges a £40 shirt to be cheap because it hangs next to a £120 shirt. This illustrates:",o:["availability bias","altruism","social norms","anchoring"],a:3,x:"The £120 price acts as an anchor or reference point that biases the judgement of value."},
+{t:2,q:"Automatic enrolment into workplace pensions, with the right to opt out, is an example of:",o:["a default choice nudge","a ban","a subsidy","mandated choice"],a:0,x:"Setting the default alters the choice architecture without removing options — a classic nudge."},
+{t:2,q:"Choice architecture refers to:",o:["building regulations for shops","the way options are presented to decision makers","the number of firms in a market","the structure of consumer income"],a:1,x:"How choices are framed and presented (order, defaults, framing) influences the decisions people make."},
+{t:2,q:"Traditional economic theory assumes that consumers act to:",o:["maximise their sales revenue","copy the behaviour of others","maximise their utility","minimise all spending regardless of benefit"],a:2,x:"Rational consumers are assumed to weigh costs and benefits at the margin to maximise satisfaction."},
+
+// T3 3.1.3 Price determination in a competitive market
+{t:3,q:"Other things equal, a fall in the price of a good causes:",o:["a rightward shift of the demand curve","a movement along the demand curve (an extension of demand)","a leftward shift of the demand curve","a shift of the supply curve"],a:1,x:"Price changes cause movements along a demand curve; only non-price factors shift it."},
+{t:3,q:"Price rises by 10% and quantity demanded falls by 5%. Price elasticity of demand is:",o:["−0.5, so demand is price inelastic","−2.0, so demand is price elastic","−0.5, so demand is price elastic","−2.0, so demand is price inelastic"],a:0,x:"PED = %ΔQd ÷ %ΔP = −5 ÷ 10 = −0.5. Values between 0 and −1 are inelastic."},
+{t:3,q:"A good has an income elasticity of demand of −0.4. It is:",o:["a luxury good","a necessity","an inferior good","a complement"],a:2,x:"Negative YED means demand falls as incomes rise — the definition of an inferior good."},
+{t:3,q:"Two goods have a cross elasticity of demand of +1.8. They are:",o:["substitutes","complements","unrelated goods","both inferior goods"],a:0,x:"Positive XED: a price rise for one increases demand for the other — they are substitutes."},
+{t:3,q:"Demand for a firm's product is price inelastic. If it raises price, total revenue will:",o:["fall","stay the same","fall to zero","rise"],a:3,x:"Quantity falls proportionately less than price rises, so total revenue increases."},
+{t:3,q:"Which factor tends to make price elasticity of supply higher?",o:["long production periods","high levels of stocks that can be released","no spare capacity","highly perishable output"],a:1,x:"Stocks and spare capacity let firms expand supply quickly when price rises."},
+{t:3,q:"At a price above the equilibrium price there is:",o:["excess demand","a shortage","excess supply, putting downward pressure on price","market equilibrium"],a:2,x:"Quantity supplied exceeds quantity demanded, so unsold output pushes the price down."},
+{t:3,q:"The demand for bricks is best described as:",o:["composite demand","joint supply","competitive demand","derived demand from the demand for buildings"],a:3,x:"Bricks are wanted not for themselves but for the construction they make possible."},
+
+// T4 3.1.4 Production, costs and revenue
+{t:4,q:"The law of diminishing returns applies:",o:["in the short run, when more of a variable factor is added to fixed factors","only in the long run","only when all factors of production change","only in agriculture"],a:0,x:"With at least one fixed factor, marginal returns to the variable factor eventually fall."},
+{t:4,q:"Which of the following is a fixed cost for a bakery in the short run?",o:["flour","rent on the premises","casual staff wages","electricity for each oven-hour"],a:1,x:"Fixed costs do not vary with output in the short run; rent must be paid whatever is produced."},
+{t:4,q:"While marginal cost is below average cost, average cost is:",o:["rising","at its minimum","falling","constant"],a:2,x:"A below-average marginal unit pulls the average down; MC cuts AC at AC's minimum point."},
+{t:4,q:"Purchasing economies of scale arise because larger firms can:",o:["borrow at higher interest rates","negotiate lower prices when bulk-buying inputs","reduce specialisation","raise output prices"],a:1,x:"An internal economy of scale: bigger orders give bargaining power over suppliers, lowering unit costs."},
+{t:4,q:"Diseconomies of scale are most commonly caused by:",o:["coordination and communication problems in very large firms","improved technology","bulk buying","division of labour"],a:0,x:"Beyond some size, management, communication and motivation problems raise long-run average costs."},
+{t:4,q:"Normal profit is best defined as:",o:["revenue minus fixed costs","any profit above zero","profit exceeding what keeps the firm in the industry","the minimum return needed to keep factors in their current use, treated as a cost"],a:3,x:"Economists count normal profit as a cost; anything above it is abnormal (supernormal) profit."},
+{t:4,q:"A firm's average revenue curve is also its:",o:["demand curve","marginal cost curve","supply curve","total cost curve"],a:0,x:"AR = TR ÷ Q = price, so the AR curve plots price against quantity — the firm's demand curve."},
+{t:4,q:"A minimum efficient scale that is large relative to market demand tends to:",o:["guarantee perfect competition","act as a barrier to entry and encourage a concentrated market","lower barriers to entry","have no effect on market structure"],a:1,x:"New entrants cannot reach the output needed for lowest average cost, so few large firms dominate."},
+
+// T5 3.1.5 Perfect competition, imperfect competition and monopoly
+{t:5,q:"Which is NOT a characteristic of perfect competition?",o:["many buyers and sellers","homogeneous products","perfect knowledge","significant barriers to entry"],a:3,x:"Perfect competition requires freedom of entry and exit; barriers belong to imperfect market structures."},
+{t:5,q:"In the long run, firms in a perfectly competitive market earn:",o:["abnormal profit","only normal profit","persistent losses","monopoly profit"],a:1,x:"Abnormal profit attracts entry, shifting market supply until only normal profit remains."},
+{t:5,q:"A firm maximises profit at the output where:",o:["MC = MR","AR = AC","total revenue is maximised","AC is at a minimum"],a:0,x:"Beyond MC = MR each extra unit adds more to cost than revenue; before it, profit is still rising."},
+{t:5,q:"The kinked demand curve model is mainly used to illustrate:",o:["perfect knowledge","contestability","interdependence and price rigidity in oligopoly","price leadership by a dominant firm"],a:2,x:"If rivals match price cuts but not rises, firms hold price stable — one illustration of oligopolist interdependence."},
+{t:5,q:"Market shares are 30%, 20%, 15%, 10%, with the rest held by small firms. The four-firm concentration ratio is:",o:["30%","55%","100%","75%"],a:3,x:"CR4 sums the four largest shares: 30 + 20 + 15 + 10 = 75%."},
+{t:5,q:"Which condition is NOT necessary for price discrimination?",o:["some market power over price","identical price elasticity of demand in each sub-market","the ability to prevent resale between groups","separable groups of consumers"],a:1,x:"Sub-markets must have different elasticities — that is precisely why charging them different prices raises profit."},
+{t:5,q:"Allocative efficiency is achieved where:",o:["price equals marginal cost","price equals average cost","MC equals MR","average cost is minimised"],a:0,x:"P = MC means the value consumers place on the last unit equals its resource cost. Monopoly's P > MC causes a deadweight loss."},
+{t:5,q:"A perfectly contestable market is characterised by:",o:["high sunk costs","collusive agreements","freedom of entry and exit with the threat of hit-and-run competition","a single legally protected supplier"],a:2,x:"With negligible sunk costs, the mere threat of entry disciplines incumbents to behave competitively."},
+
+// T6 3.1.6 The labour market
+{t:6,q:"The demand for labour is described as derived demand because it depends on:",o:["trade union membership","the demand for the product labour produces","the level of wages only","government employment policy"],a:1,x:"Firms want workers only because consumers demand the output those workers produce."},
+{t:6,q:"The marginal revenue product of labour equals:",o:["wage × hours worked","total output ÷ number of workers","price ÷ output","marginal physical product × marginal revenue"],a:3,x:"MRP measures how much an extra worker adds to a firm's revenue, and underpins the demand for labour."},
+{t:6,q:"Compared with a competitive labour market, a monopsonist employer will set:",o:["a lower wage and employ fewer workers","a higher wage and employ more workers","the same wage and employment","a higher wage but employ fewer workers"],a:0,x:"Facing an upward-sloping labour supply, the monopsonist's MC of labour exceeds the wage, so it restricts both wage and employment."},
+{t:6,q:"Introducing a trade union into a monopsony labour market can:",o:["only ever reduce employment","raise both the wage and the level of employment","never affect wages","turn the market perfectly competitive"],a:1,x:"A negotiated wage up to the competitive level flattens the labour supply curve, removing the monopsonist's incentive to restrict hiring."},
+{t:6,q:"In the competitive model, a national minimum wage set above the equilibrium wage causes:",o:["excess demand for labour","no change in the labour market","excess supply of labour","a fall in labour force participation"],a:2,x:"At the higher wage, more people want to work than firms wish to hire — potential unemployment in this model."},
+{t:6,q:"The demand for labour is more wage-elastic when:",o:["labour can easily be substituted by capital","labour is a small share of total costs","demand for the product is price inelastic","the time period is very short"],a:0,x:"If machines can replace workers cheaply, a wage rise causes a large fall in labour demanded."},
+{t:6,q:"Which is a non-monetary factor influencing the supply of labour to an occupation?",o:["basic pay","overtime rates","employer pension contributions","job satisfaction and working conditions"],a:3,x:"Workers weigh satisfaction, conditions, status and holidays alongside pay when choosing occupations."},
+
+// T7 3.1.7 Distribution of income and wealth
+{t:7,q:"Income and wealth differ in that:",o:["income is a flow and wealth is a stock","income is a stock and wealth is a flow","both are stocks","both are flows"],a:0,x:"Income is earned per period (wages, interest); wealth is the stock of assets owned at a point in time."},
+{t:7,q:"On a Lorenz curve diagram, greater income inequality is shown by the curve:",o:["lying closer to the 45° line","lying further from the 45° line of equality","becoming a straight diagonal","shifting vertically upwards"],a:1,x:"The 45° line represents perfect equality; the bigger the bow away from it, the more unequal the distribution."},
+{t:7,q:"A Gini coefficient of 0 indicates:",o:["complete inequality","a typical market economy","perfect equality","faulty data"],a:2,x:"The Gini ranges from 0 (everyone has the same income) to 1 (one person has everything)."},
+{t:7,q:"Relative poverty is best defined as having:",o:["an income too low for physical survival","zero measured wealth","no earned income","an income well below typical incomes in that society, e.g. below 60% of the median"],a:3,x:"Relative poverty is judged against the living standards of the society in question; absolute poverty is about basic survival needs."},
+{t:7,q:"Which tax most directly reduces income inequality?",o:["a progressive income tax","a flat-rate poll tax","VAT on essentials","a lump-sum licence fee"],a:0,x:"Progressive taxes take a rising percentage of income as income rises, narrowing post-tax differences."},
+{t:7,q:"Deciding whether a given distribution of income is equitable involves:",o:["a purely statistical calculation","a value judgement","reading the Gini coefficient alone","a positive economic statement"],a:1,x:"Equity means fairness; unlike measured equality, it cannot be settled without value judgements."},
+{t:7,q:"A major cause of wealth inequality in the UK is:",o:["universal benefit payments","progressive income taxation","ownership of assets such as property whose value rises","equal division of inheritances"],a:2,x:"Wealth concentrates through inheritance and rising asset prices, which benefit existing owners."}
+];
+QUESTIONS.push(
+// T8 3.1.8 Market failure and government intervention
+{t:8,q:"Pure public goods are:",o:["rival and excludable","non-rival and non-excludable","rival but non-excludable","non-rival but excludable"],a:1,x:"One person's use doesn't reduce another's, and non-payers can't be excluded — e.g. national defence."},
+{t:8,q:"The free-rider problem explains why:",o:["merit goods are overconsumed","monopolies emerge","markets may fail to supply public goods at all","indirect taxes distort prices"],a:2,x:"If non-payers can't be excluded, nobody pays voluntarily, so the market is missing entirely."},
+{t:8,q:"Where production generates negative externalities, the free market will:",o:["produce more than the socially optimal output","produce less than the socially optimal output","produce the efficient output","shut down production"],a:0,x:"Firms ignore external costs, so marginal social cost exceeds marginal private cost and output is too high."},
+{t:8,q:"Merit goods tend to be underconsumed partly because:",o:["they are non-rival","their prices are set too low","they generate no externalities","consumers underestimate the private benefits due to imperfect information"],a:3,x:"People undervalue long-term benefits (e.g. education, health care), and positive externalities are ignored too."},
+{t:8,q:"To correct a negative externality efficiently, an indirect tax should ideally be set equal to:",o:["the external cost at the socially optimal output","the firm's total revenue","average total cost","consumer surplus"],a:0,x:"The tax internalises the externality, making the polluter face the full social cost of production."},
+{t:8,q:"Tradable pollution permits reduce emissions by:",o:["banning all emissions outright","capping total emissions and letting firms trade allowances","subsidising the biggest polluters","fixing the market price of energy"],a:1,x:"The cap limits total pollution; trading means cuts happen where they are cheapest to make."},
+{t:8,q:"A maximum price set below the free market equilibrium causes:",o:["excess supply","no change in the market","excess demand and shortages","an improvement in product quality"],a:2,x:"At the capped price, quantity demanded exceeds quantity supplied — e.g. queues or waiting lists develop."},
+{t:8,q:"Government failure occurs when:",o:["markets misallocate resources","any tax is collected","regulators publish rules","intervention itself leads to a worse allocation of resources"],a:3,x:"Poor information, unintended consequences, administrative costs or regulatory capture can make intervention counterproductive."},
+
+// T9 3.2.1 Measurement of macroeconomic performance
+{t:9,q:"Which is NOT one of the four main objectives of UK macroeconomic policy?",o:["price stability","maximising the exchange rate","economic growth","minimising unemployment"],a:1,x:"The four main objectives are growth, price stability, minimising unemployment and a stable current account on the balance of payments."},
+{t:9,q:"Real GDP differs from nominal GDP because it is:",o:["adjusted for inflation","measured per person","converted into US dollars","always the larger figure"],a:0,x:"Real values strip out price changes, so they show changes in the volume of output."},
+{t:9,q:"A price index rises from 100 in the base year to 112. Prices have risen by:",o:["112%","1.12%","88%","12%"],a:3,x:"The base year is set at 100, so 112 means a 12% increase in the price level since then."},
+{t:9,q:"The Consumer Prices Index measures inflation using:",o:["only food prices","a weighted basket of goods and services bought by a typical household","house prices","every price in the economy equally"],a:1,x:"Weights reflect the relative importance of items in the average family's spending."},
+{t:9,q:"International comparisons of living standards are most meaningful using GDP per capita measured at:",o:["purchasing power parity exchange rates","current market exchange rates","base-year prices","nominal values"],a:0,x:"PPP adjusts for differences in price levels between countries, so figures reflect what incomes can actually buy."},
+{t:9,q:"Which is a limitation of national income data as a measure of living standards?",o:["it includes the service sector","it is published annually","unpaid work and the hidden economy are excluded","it uses index numbers"],a:2,x:"GDP misses home production, undeclared activity, leisure and says nothing about distribution."},
+{t:9,q:"Weights are used in constructing index numbers to reflect:",o:["the choice of base year","the government's inflation target","the relative importance of each item","seasonal variations"],a:2,x:"A doubling of the price of an item on which little is spent should move the index less than a rise in rent or food."},
+
+// T10 3.2.2 How the macroeconomy works
+{t:10,q:"Which of the following are injections into the circular flow of income?",o:["savings, taxation and imports","investment, government spending and exports","consumption and savings","wages, rent and profit"],a:1,x:"Injections add spending to the flow; savings, taxes and imports are the corresponding withdrawals."},
+{t:10,q:"Aggregate demand is defined as:",o:["C + S + T","C + I + G + (X + M)","C + I + G + (X − M)","GDP minus taxation"],a:2,x:"Total planned spending on a country's output: consumption, investment, government spending and net exports."},
+{t:10,q:"If the marginal propensity to consume is 0.8, the multiplier is:",o:["0.8","5","1.25","8"],a:1,x:"k = 1 ÷ (1 − MPC) = 1 ÷ 0.2 = 5."},
+{t:10,q:"The multiplier process means an initial rise in spending:",o:["leads to a larger final increase in national income","has no effect on income","only raises the price level","reduces national income"],a:0,x:"Spending becomes someone else's income, part of which is spent again, and so on round the circular flow."},
+{t:10,q:"Which would shift the short-run aggregate supply curve to the left?",o:["a fall in money wage rates","a cut in business taxation","a rise in the price of imported raw materials","an improvement in productivity"],a:2,x:"Higher input costs mean any level of output is only supplied at a higher price level."},
+{t:10,q:"The position of the vertical long-run AS curve is determined by:",o:["the price level","the economy's productive capacity","the level of aggregate demand","the exchange rate"],a:1,x:"LRAS sits at the normal capacity level of output, set by the quantity and productivity of resources."},
+{t:10,q:"On the Keynesian AS curve, a rise in AD when the economy has lots of spare capacity mainly increases:",o:["the price level","imports only","taxation","real output with little change in the price level"],a:3,x:"On the horizontal section, idle resources let output expand without significant inflationary pressure."},
+{t:10,q:"The basic accelerator process links the level of investment to:",o:["the rate of change of national income","the size of the budget deficit","the level of the money supply","the rate of interest alone"],a:0,x:"When output grows faster, firms need proportionally more capital, so investment rises sharply."},
+
+// T11 3.2.3 Economic performance
+{t:11,q:"Demand-deficient (cyclical) unemployment is associated with:",o:["a positive output gap","a negative output gap","full employment","seasonal changes in demand"],a:1,x:"When real GDP is below potential, weak aggregate demand leaves workers without jobs."},
+{t:11,q:"A miner loses his job as the coal industry declines and his skills do not match new industries. This is:",o:["frictional unemployment","cyclical unemployment","structural unemployment","seasonal unemployment"],a:2,x:"Structural unemployment arises from a mismatch between workers' skills or location and available jobs."},
+{t:11,q:"Cost-push inflation can be caused by:",o:["rising consumer confidence","income tax cuts","an increase in the money supply","a rise in the world price of imported raw materials"],a:3,x:"Higher production costs shift SRAS left, raising the price level independently of demand."},
+{t:11,q:"In Fisher's equation MV = PQ, monetarists assume V and Q are stable, so inflation results from growth of:",o:["the money supply","real output","government spending","exports"],a:0,x:"With velocity and output roughly fixed, sustained money supply growth feeds directly into the price level."},
+{t:11,q:"The short-run Phillips curve suggests a trade-off between:",o:["economic growth and the trade balance","inflation and unemployment","taxation and government spending","saving and investment"],a:1,x:"Lower unemployment tends to come with higher inflation in the short run as demand pressure builds."},
+{t:11,q:"The long-run Phillips curve is vertical at:",o:["zero unemployment","the inflation target","the natural rate of unemployment","the full-capacity level of GDP"],a:2,x:"In the long run, attempts to hold unemployment below its natural rate just generate accelerating inflation."},
+{t:11,q:"Disinflation means:",o:["the price level is falling","prices are completely constant","aggregate demand is being expanded","the rate of inflation is falling but still positive"],a:3,x:"Prices still rise, just more slowly. Deflation is when the price level itself falls."},
+{t:11,q:"Which combination best indicates the boom phase of the economic cycle?",o:["rapid growth of real GDP with rising inflationary pressure","rising unemployment and falling GDP","a widening negative output gap","falling inflation and falling investment"],a:0,x:"In a boom, demand outstrips capacity growth: output, employment and inflationary pressure all rise."},
+
+// T12 3.2.4 Financial markets and monetary policy
+{t:12,q:"Which of the following is a function of money?",o:["creating externalities","acting as a medium of exchange","setting tax rates","determining real wages"],a:1,x:"Money is a medium of exchange, store of value, unit of account and standard of deferred payment."},
+{t:12,q:"If market interest rates rise, the price of existing bonds will:",o:["rise","stay the same","fall","double"],a:2,x:"Bond prices and market interest rates are inversely related: fixed coupons look less attractive when new rates are higher."},
+{t:12,q:"A bond with £100 nominal value pays a £4 annual coupon and trades at £80. Its yield is approximately:",o:["4%","5%","8%","2.5%"],a:1,x:"Yield = coupon ÷ market price = 4 ÷ 80 × 100 = 5%."},
+{t:12,q:"The three potentially conflicting objectives of a commercial bank are:",o:["growth, exports and employment","inflation, unemployment and growth","saving, spending and lending","liquidity, profitability and security"],a:3,x:"The most profitable assets tend to be the least liquid and riskiest, so the objectives conflict."},
+{t:12,q:"Commercial banks create credit primarily by:",o:["making loans, which create new deposits","printing banknotes","selling shares to the public","holding all deposits in reserve"],a:0,x:"When a bank lends, it credits the borrower's account with a new deposit — expanding broad money."},
+{t:12,q:"The Bank of England's Monetary Policy Committee mainly uses which instrument to pursue the 2% CPI inflation target?",o:["the rate of VAT","import tariffs","Bank Rate","the national living wage"],a:2,x:"Changes in Bank Rate feed through interest rates, credit, asset prices and the exchange rate to aggregate demand."},
+{t:12,q:"Quantitative easing involves the central bank:",o:["raising Bank Rate sharply","creating money to buy financial assets, mainly government bonds","selling its gold reserves","cutting income tax"],a:1,x:"Asset purchases push up bond prices, lower yields and increase the money supply to stimulate demand."},
+{t:12,q:"A bank that funds long-term loans with short-term borrowing is chiefly exposed to:",o:["exchange rate risk only","no additional risk","rising share prices","liquidity risk — a classic cause of bank failure"],a:3,x:"If short-term funding dries up, the bank cannot quickly turn long-term assets into cash to repay lenders."},
+
+// T13 3.2.5 Fiscal policy and supply-side policies
+{t:13,q:"Which of the following is a direct tax?",o:["corporation tax","VAT","fuel duty","an import tariff"],a:0,x:"Direct taxes are levied on income and wealth; the others are indirect taxes on spending."},
+{t:13,q:"A tax that takes a larger percentage of income from low earners than high earners is:",o:["progressive","regressive","proportional","hypothecated"],a:1,x:"Flat-rate taxes on spending, like VAT or duties, typically fall more heavily on the poor as a share of income."},
+{t:13,q:"A structural budget deficit is one that:",o:["only appears during recessions","equals the national debt","persists even when the economy is operating at its potential level of output","disappears automatically in a boom"],a:2,x:"The structural deficit is the cyclically adjusted part; the cyclical part comes and goes with the economic cycle."},
+{t:13,q:"The national debt is best defined as:",o:["this year's budget deficit","the accumulated stock of past government borrowing","total household borrowing","the current account deficit"],a:1,x:"Each year's deficit adds to the debt; the deficit is a flow while the debt is a stock."},
+{t:13,q:"Expansionary fiscal policy involves:",o:["raising Bank Rate","higher taxes and lower government spending","selling government bonds to reduce spending","lower taxes and/or higher government spending to shift AD right"],a:3,x:"A larger budget deficit (or smaller surplus) injects demand into the circular flow."},
+{t:13,q:"Which is an interventionist supply-side policy?",o:["privatisation of state industries","government spending on education and training","deregulating product markets","cutting the top rate of income tax"],a:1,x:"Interventionist policies use government action to fix market failures; the others are free-market supply-side policies."},
+{t:13,q:"Successful supply-side policies should:",o:["shift LRAS right and may reduce the natural rate of unemployment","shift AD to the left","shift SRAS left","make the Phillips curve trade-off worse"],a:0,x:"Raising productive capacity allows faster growth with lower inflationary pressure and less structural unemployment."},
+{t:13,q:"The role of the Office for Budget Responsibility is to:",o:["set Bank Rate","collect taxation","provide independent forecasts and scrutiny of the public finances","allocate the NHS budget"],a:2,x:"The OBR is the UK's independent fiscal watchdog, producing the forecasts used at Budgets."},
+
+// T14 3.2.6 The international economy
+{t:14,q:"A country has a comparative advantage in a good when it can produce it:",o:["in greater total quantity than others","at a lower opportunity cost than other countries","with more workers","using only domestic resources"],a:1,x:"Comparative advantage is about opportunity cost, not absolute output — the basis for gains from specialisation and trade."},
+{t:14,q:"Imposing a tariff on imports typically:",o:["lowers the domestic price of the good","increases the volume of imports","has no effect on government revenue","raises the domestic price, cuts imports, raises government revenue and creates a welfare loss"],a:3,x:"Domestic producers gain and the government collects revenue, but consumers lose more — a net deadweight loss."},
+{t:14,q:"A customs union combines free trade between members with:",o:["a common external tariff on non-members","separate national tariffs against non-members","a single shared currency","free movement of labour only"],a:0,x:"E.g. the EU customs union: internal free trade plus one common tariff wall facing the rest of the world."},
+{t:14,q:"Which of the following is NOT part of the current account of the balance of payments?",o:["trade in goods","trade in services","portfolio investment flows","primary income"],a:2,x:"Investment flows appear in the financial account; the current account covers goods, services, primary and secondary income."},
+{t:14,q:"A depreciation of the currency is an example of:",o:["an expenditure-reducing policy","a supply-side policy","joining a currency union","an expenditure-switching policy"],a:3,x:"It switches spending toward domestic output by making exports cheaper and imports dearer."},
+{t:14,q:"The effect of a depreciation on the current account depends heavily on:",o:["the price elasticities of demand for exports and imports","the Gini coefficient","the weights in the CPI basket","the structure of income tax"],a:0,x:"If demand for exports and imports is price inelastic, a depreciation may do little to improve — or may even worsen — the balance."},
+{t:14,q:"The Human Development Index combines income per head with:",o:["inflation and the trade balance","life expectancy and education","the Gini coefficient and CPI","exports and savings ratios"],a:1,x:"HDI blends GNI per capita (PPP) with health (life expectancy) and education (years of schooling)."},
+{t:14,q:"The World Trade Organisation exists mainly to:",o:["set exchange rates between members","lend to developing countries","promote trade liberalisation and settle trade disputes","fix world commodity prices"],a:2,x:"The WTO oversees trade rules, pushes tariff reduction and provides a dispute-resolution system."}
+);
+
+
+/* ---------- topics ---------- */
+var TOPICS = [
+  {id:1, code:"3.1.1", name:"Economic methodology & the economic problem", half:"micro"},
+  {id:2, code:"3.1.2", name:"Individual economic decision making", half:"micro"},
+  {id:3, code:"3.1.3", name:"Price determination in a competitive market", half:"micro"},
+  {id:4, code:"3.1.4", name:"Production, costs and revenue", half:"micro"},
+  {id:5, code:"3.1.5", name:"Market structures & monopoly", half:"micro"},
+  {id:6, code:"3.1.6", name:"The labour market", half:"micro"},
+  {id:7, code:"3.1.7", name:"Income & wealth, poverty and inequality", half:"micro"},
+  {id:8, code:"3.1.8", name:"Market failure & government intervention", half:"micro"},
+  {id:9, code:"3.2.1", name:"Measuring macroeconomic performance", half:"macro"},
+  {id:10,code:"3.2.2", name:"Circular flow & AD/AS analysis", half:"macro"},
+  {id:11,code:"3.2.3", name:"Economic performance", half:"macro"},
+  {id:12,code:"3.2.4", name:"Financial markets & monetary policy", half:"macro"},
+  {id:13,code:"3.2.5", name:"Fiscal & supply-side policies", half:"macro"},
+  {id:14,code:"3.2.6", name:"The international economy", half:"macro"}
+];
+function topicById(id){ for (var i=0;i<TOPICS.length;i++){ if(TOPICS[i].id===id) return TOPICS[i]; } return null; }
+
+/* ---------- state & persistence ---------- */
+var STORE_KEY = "aqa-econ-7136-v1";
+var st = defaultState();
+var session = {answered:0, correct:0};
+var currentQ = null;
+var storageOK = false;
+
+function defaultState(){
+  return {topics:{}, asked:{}, recent:[], answered:0, correct:0, adaptive:true, drill:null, lastTopic:null};
+}
+function saveState(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(st)); storageOK = true; }
+  catch(e){ storageOK = false; }
+  noteStorage();
+}
+function loadState(cb){
+  try {
+    var r = localStorage.getItem(STORE_KEY);
+    if (r){
+      try {
+        var parsed = JSON.parse(r);
+        var d = defaultState();
+        for (var k in d){ if (parsed[k] !== undefined) d[k] = parsed[k]; }
+        st = d;
+      } catch(e){}
+    }
+    storageOK = true;
+  } catch(e){ storageOK = false; }
+  cb();
+}
+function noteStorage(){
+  var el = document.getElementById("storageNote");
+  el.textContent = storageOK ? "Progress saves automatically on this device." : "Progress lasts for this session only.";
+}
+
+/* ---------- adaptive engine ---------- */
+function tstat(t){ return st.topics[t] || {a:0, c:0}; }
+function mastery(t){ var s = tstat(t); return (s.c + 1) / (s.a + 2); } /* smoothed */
+function weightedPick(items){
+  var total = 0, i;
+  for (i=0;i<items.length;i++) total += items[i].w;
+  var r = Math.random() * total;
+  for (i=0;i<items.length;i++){ r -= items[i].w; if (r <= 0) return items[i].t; }
+  return items[items.length-1].t;
+}
+function pickQuestion(){
+  var pool = QUESTIONS, topic;
+  if (st.drill){
+    topic = st.drill;
+  } else {
+    var ids = TOPICS.map(function(x){ return x.id; });
+    var weights = ids.map(function(t){
+      var s = tstat(t), w;
+      if (st.adaptive){
+        w = Math.pow(1.08 - mastery(t), 2);
+        if (s.a === 0) w += 0.30;
+      } else {
+        w = 1 / (1 + s.a * 0.15);
+      }
+      if (t === st.lastTopic) w *= 0.45;
+      return {t:t, w:w};
+    });
+    topic = weightedPick(weights);
+  }
+  var qs = [];
+  for (var i=0;i<pool.length;i++){
+    if (pool[i].t === topic && st.recent.indexOf(i) === -1) qs.push(i);
+  }
+  if (!qs.length){ for (var j=0;j<pool.length;j++){ if (pool[j].t === topic) qs.push(j); } }
+  var minAsk = Infinity, k;
+  for (k=0;k<qs.length;k++){ var c = st.asked[qs[k]] || 0; if (c < minAsk) minAsk = c; }
+  var finalists = [];
+  for (k=0;k<qs.length;k++){ if ((st.asked[qs[k]] || 0) === minAsk) finalists.push(qs[k]); }
+  return finalists[Math.floor(Math.random() * finalists.length)];
+}
+function focusReason(topicId){
+  var t = topicById(topicId), s = tstat(topicId);
+  var line = document.getElementById("focusLine");
+  line.className = "focus-line";
+  if (st.drill){
+    line.classList.add("f-blue");
+    return 'Drilling ' + t.code + ' · ' + t.name;
+  }
+  if (!st.adaptive) return 'Even coverage · ' + t.code;
+  if (s.a === 0) return 'New ground · ' + t.code + ' not yet attempted';
+  var pct = Math.round((s.c / s.a) * 100);
+  if (pct < 60){ line.classList.add("f-red"); return 'Targeting weak spot · ' + t.code + ' at ' + pct + '%'; }
+  return 'Keeping ' + t.code + ' sharp · ' + pct + '% so far';
+}
+
+/* ---------- practice view ---------- */
+var LETTERS = ["A","B","C","D"];
+function newQuestion(){
+  var qi = pickQuestion();
+  currentQ = qi;
+  var q = QUESTIONS[qi], t = topicById(q.t);
+  var drillBtn = st.drill ? '<button class="clear-drill" id="clearDrill">exit drill ✕</button>' : "";
+  document.getElementById("focusLine").innerHTML =
+    '<span class="dot"></span><span id="focusText2">' + focusReason(q.t) + '</span>' + drillBtn;
+  if (st.drill){
+    var cd = document.getElementById("clearDrill");
+    if (cd) cd.addEventListener("click", function(){ st.drill = null; saveState(); newQuestion(); });
+  }
+  var html = '<div class="eyebrow"><span class="code">' + t.code + '</span><span class="tname">' + t.name + '</span></div>' +
+    '<div class="qtext">' + q.q + '</div><div class="opts">';
+  for (var i=0;i<4;i++){
+    html += '<button class="opt" data-i="' + i + '"><span class="letter">' + LETTERS[i] + '</span><span class="otext">' + q.o[i] + '</span></button>';
+  }
+  html += '</div><div id="fb"></div>';
+  document.getElementById("qcard").innerHTML = html;
+  var opts = document.querySelectorAll(".opt");
+  for (var j=0;j<opts.length;j++){
+    opts[j].addEventListener("click", function(){ answer(parseInt(this.getAttribute("data-i"),10)); });
+  }
+  window.scrollTo(0,0);
+}
+function answer(choice){
+  var q = QUESTIONS[currentQ], right = (choice === q.a);
+  var opts = document.querySelectorAll(".opt");
+  for (var i=0;i<opts.length;i++){
+    opts[i].disabled = true;
+    var idx = parseInt(opts[i].getAttribute("data-i"),10);
+    if (idx === q.a) opts[i].classList.add("is-correct");
+    else if (idx === choice) opts[i].classList.add("is-wrong");
+    else opts[i].classList.add("is-faded");
+  }
+  var s = tstat(q.t);
+  s.a += 1; if (right) s.c += 1;
+  st.topics[q.t] = s;
+  st.asked[currentQ] = (st.asked[currentQ] || 0) + 1;
+  st.recent.push(currentQ);
+  if (st.recent.length > 30) st.recent.shift();
+  st.answered += 1; if (right) st.correct += 1;
+  st.lastTopic = q.t;
+  session.answered += 1; if (right) session.correct += 1;
+  saveState();
+  updateSession();
+  document.getElementById("fb").innerHTML =
+    '<div class="feedback">' +
+      '<div class="verdict ' + (right ? 'v-right">Correct' : 'v-wrong">Not quite — the answer is ' + LETTERS[q.a]) + '</div>' +
+      '<p class="explain">' + q.x + '</p>' +
+      '<span class="spec-ref">spec ' + topicById(q.t).code + '</span>' +
+      '<button class="next-btn" id="nextBtn">Next question →</button>' +
+    '</div>';
+  document.getElementById("nextBtn").addEventListener("click", newQuestion);
+}
+function updateSession(){
+  document.getElementById("sessionScore").textContent = session.correct + "/" + session.answered;
+}
+
+/* ---------- progress view ---------- */
+function band(t){
+  var s = tstat(t);
+  if (s.a < 2) return {cls:"b-none", pct: s.a === 0 ? 0 : Math.round((s.c/s.a)*100), label:"–"};
+  var pct = Math.round((s.c / s.a) * 100);
+  if (pct < 50) return {cls:"b-red", pct:pct, label:pct + "%"};
+  if (pct < 75) return {cls:"b-amber", pct:pct, label:pct + "%"};
+  return {cls:"b-blue", pct:pct, label:pct + "%"};
+}
+function renderProgress(){
+  document.getElementById("statAnswered").textContent = st.answered;
+  document.getElementById("statAccuracy").textContent = st.answered ? Math.round((st.correct/st.answered)*100) + "%" : "–";
+  var weakest = null, weakestM = 2;
+  for (var i=0;i<TOPICS.length;i++){
+    var s = tstat(TOPICS[i].id);
+    if (s.a >= 2){
+      var m = s.c / s.a;
+      if (m < weakestM){ weakestM = m; weakest = TOPICS[i]; }
+    }
+  }
+  document.getElementById("statWeakest").innerHTML = weakest
+    ? '<span class="weak-code">' + weakest.code + '</span>' : "–";
+  var tog = document.getElementById("adaptiveToggle");
+  tog.setAttribute("aria-pressed", st.adaptive ? "true" : "false");
+
+  var html = "", lastHalf = "";
+  for (var j=0;j<TOPICS.length;j++){
+    var t = TOPICS[j];
+    if (t.half !== lastHalf){
+      html += '<div class="group-lbl">' + (t.half === "micro" ? "3.1 · Microeconomics" : "3.2 · Macroeconomics") + '</div>';
+      lastHalf = t.half;
+    }
+    var b = band(t.id), s2 = tstat(t.id);
+    html += '<button class="trow" data-t="' + t.id + '">' +
+      '<span class="trow-top"><span class="code">' + t.code + '</span>' +
+      '<span class="name">' + t.name + '</span>' +
+      '<span class="val">' + b.label + (s2.a ? ' · ' + s2.a + ' q' : '') + '</span></span>' +
+      '<span class="track"><span class="bar ' + b.cls + '" style="width:' + b.pct + '%"></span></span>' +
+      '</button>';
+  }
+  document.getElementById("chart").innerHTML = html;
+  var rows = document.querySelectorAll(".trow");
+  for (var k=0;k<rows.length;k++){
+    rows[k].addEventListener("click", function(){
+      st.drill = parseInt(this.getAttribute("data-t"),10);
+      saveState();
+      switchView("practice");
+      newQuestion();
+    });
+  }
+}
+
+/* ---------- tabs, toggle, reset ---------- */
+function switchView(which){
+  var p = which === "practice";
+  document.getElementById("viewPractice").classList.toggle("active", p);
+  document.getElementById("viewProgress").classList.toggle("active", !p);
+  document.getElementById("tabPractice").setAttribute("aria-selected", p ? "true" : "false");
+  document.getElementById("tabProgress").setAttribute("aria-selected", p ? "false" : "true");
+  if (!p) renderProgress();
+}
+document.getElementById("tabPractice").addEventListener("click", function(){ switchView("practice"); });
+document.getElementById("tabProgress").addEventListener("click", function(){ switchView("progress"); });
+document.getElementById("adaptiveToggle").addEventListener("click", function(){
+  st.adaptive = !st.adaptive; saveState(); renderProgress();
+});
+var resetArmed = false, resetTimer = null;
+document.getElementById("resetBtn").addEventListener("click", function(){
+  var btn = this;
+  if (!resetArmed){
+    resetArmed = true; btn.classList.add("armed");
+    btn.textContent = "Tap again to erase everything";
+    resetTimer = setTimeout(function(){ resetArmed=false; btn.classList.remove("armed"); btn.textContent="Reset all progress"; }, 3500);
+  } else {
+    clearTimeout(resetTimer); resetArmed = false;
+    st = defaultState(); session = {answered:0, correct:0};
+    saveState(); updateSession(); renderProgress();
+    btn.classList.remove("armed"); btn.textContent = "Reset all progress";
+    newQuestion();
+  }
+});
+
+/* ---------- boot ---------- */
+loadState(function(){
+  noteStorage();
+  updateSession();
+  newQuestion();
+});
+</script>
+</body>
+</html>
