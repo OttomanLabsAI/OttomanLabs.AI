@@ -356,7 +356,7 @@
         <div class="ropts"><span class="ropt off">AI generation tutorial &middot; coming soon</span></div>
       </div>
       <div class="rcard vcard">
-        <div class="plate"><svg viewBox="0 0 200 130" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><circle cx="100" cy="65" r="46"/><path d="M54 65 H82 M118 65 H146" stroke-width="2.6"/><circle cx="100" cy="65" r="16" stroke-width="2.6"/><circle cx="100" cy="65" r="7"/></svg></div>
+        <div class="plate vwrap"><video id="pokeVid" poster="assets/video/poke-poster.jpg" muted loop playsinline preload="metadata" aria-label="Pokemon AI-generated teaser"><source src="assets/video/poke-teaser.mp4" type="video/mp4"><source src="assets/video/poke-teaser.webm" type="video/webm"></video></div>
         <div class="sel-banner"><span class="sel-name">POK&Eacute;MON</span></div>
         <div class="ropts"><span class="ropt off">AI generation tutorial &middot; coming soon</span></div>
       </div>
@@ -2093,20 +2093,25 @@
 <script>
 /* card videos — hover to play on desktop, fully-in-view on touch */
 (function(){
-  var v = document.getElementById('lotrVid');
-  if(!v) return;
-  v.muted = true;
-  var card = v.closest('.rcard') || v;
-  function play(){ var p = v.play(); if(p && p.catch) p.catch(function(){}); }
-  if(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches){
-    card.addEventListener('mouseenter', play);
-    card.addEventListener('mouseleave', function(){ v.pause(); });
-  } else if('IntersectionObserver' in window){
-    new IntersectionObserver(function(es){
-      for(var i=0;i<es.length;i++){ es[i].intersectionRatio >= .98 ? play() : v.pause(); }
-    }, {threshold:[0, .98]}).observe(card);
-  } else {
-    play();
+  var vids = document.querySelectorAll('.vwrap video');
+  if(!vids.length) return;
+  var hoverFine = window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches;
+  for(var i = 0; i < vids.length; i++){
+    (function(v){
+      v.muted = true;
+      var card = v.closest('.rcard') || v;
+      function play(){ var p = v.play(); if(p && p.catch) p.catch(function(){}); }
+      if(hoverFine){
+        card.addEventListener('mouseenter', play);
+        card.addEventListener('mouseleave', function(){ v.pause(); });
+      } else if('IntersectionObserver' in window){
+        new IntersectionObserver(function(es){
+          for(var j = 0; j < es.length; j++){ es[j].intersectionRatio >= .98 ? play() : v.pause(); }
+        }, {threshold:[0, .98]}).observe(card);
+      } else {
+        play();
+      }
+    })(vids[i]);
   }
 })();
 </script>
