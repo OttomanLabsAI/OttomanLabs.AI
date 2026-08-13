@@ -116,12 +116,12 @@
     color:var(--ink-60); }
 
   /* ── price, in big numbers ── */
-  .wd-figures{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  .wd-figures{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
     border:1px solid var(--ink); margin-bottom:var(--gap); }
-  .wd-fig{ padding:1.6rem 1.3rem 1.7rem; display:flex; flex-direction:column;
+  .wd-fig{ padding:1.5rem 1rem 1.6rem; display:flex; flex-direction:column;
     align-items:center; text-align:center; gap:.3rem; border-right:1px solid var(--hair); }
   .wd-fig:last-child{ border-right:0; }
-  .wd-num{ font-family:var(--font-display); font-size:clamp(3rem, 7.5vw, 4.6rem);
+  .wd-num{ font-family:var(--font-display); font-size:clamp(2.7rem, 6vw, 4rem);
     line-height:.95; letter-spacing:.01em; }
   .wd-fig.acc .wd-num{ color:var(--acc); }
   .wd-cap{ font-family:var(--font-brand); font-weight:600; font-size:.63rem;
@@ -139,6 +139,12 @@
     border:1px solid var(--ink); padding:.75rem 1.6rem; text-decoration:none; color:var(--ink); }
   .wd-go:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
 
+  @media (max-width:1000px){
+    .wd-figures{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .wd-fig{ border-bottom:1px solid var(--hair); }
+    .wd-fig:nth-child(2n){ border-right:0; }
+    .wd-fig:nth-child(n+3){ border-bottom:0; }
+  }
   @media (max-width:900px){
     .wd-steps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
@@ -233,10 +239,15 @@
       <span class="wd-cap">The whole site</span>
       <span class="wd-sub">New build or rebuild &mdash; same price either way, fixed up front.</span>
     </div>
+    <div class="wd-fig acc">
+      <span class="wd-num">&pound;50</span>
+      <span class="wd-cap">A month of changes</span>
+      <span class="wd-sub">Unlimited edits for 30 days. Buy one only when you need one.</span>
+    </div>
     <div class="wd-fig">
       <span class="wd-num">&pound;0</span>
       <span class="wd-cap">Hosting, forever</span>
-      <span class="wd-sub">Free on Cloudflare, for as long as the site lives.</span>
+      <span class="wd-sub">Free on your own Cloudflare account &mdash; I&rsquo;ll set it up for you.</span>
     </div>
     <div class="wd-fig">
       <span class="wd-num">0</span>
@@ -244,6 +255,13 @@
       <span class="wd-sub">You own the code. Nothing to renew or cancel.</span>
     </div>
   </div>
+  <p class="lede">Every site needs a burst of changes now and then &mdash; a new price list, a
+    season&rsquo;s fixtures, photographs from last weekend. Most designers put you on a
+    <i>monthly retainer</i> you keep paying in the months you don&rsquo;t need them. I&rsquo;d
+    rather you didn&rsquo;t. <b>&pound;50 buys a whole month of unlimited changes</b>, bought only
+    when you actually want one: send as many as you like, most land the same day, and when the
+    month is up it simply stops. Nothing to cancel, and nothing leaving your account quietly in
+    the background.</p>
 
   <div class="sec-rule">The Sites<span class="note">designed, built and shipped end to end &mdash; live on its own domain</span></div>
   <div class="designs">
