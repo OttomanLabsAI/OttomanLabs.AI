@@ -7,12 +7,12 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
 <title>Website Design — OttomanLabs.AI</title>
-<meta name="description" content="Websites designed and built by Fadil Karim — client and personal sites, briefed in plain English, art-directed and shipped end to end with Claude Code.">
+<meta name="description" content="Websites designed and built by Fadil Karim — new builds from scratch, or your existing site rebuilt properly. Art-directed, hand-coded, live on your own domain in days. Fixed price, quoted up front.">
 <link rel="canonical" href="https://ottomanlabs.ai/website-design.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OttomanLabs.AI">
 <meta property="og:title" content="Website Design — OttomanLabs.AI">
-<meta property="og:description" content="Client and personal websites, designed and built end to end — live on their own domains.">
+<meta property="og:description" content="New builds from scratch, or your existing site rebuilt properly. Hand-coded, art-directed, live on your own domain in days.">
 <meta property="og:url" content="https://ottomanlabs.ai/website-design.html">
 <meta property="og:image" content="https://ottomanlabs.ai/assets/og/og-website-design.png">
 <meta property="og:image:width" content="2400">
@@ -41,6 +41,7 @@
   .lede i{ font-style:italic; }
 
   .designs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap); }
+  .designs:has(> :only-child){ grid-template-columns:minmax(0,540px); }
   .design{ border:1px solid var(--hair); text-decoration:none; color:var(--ink); display:flex;
     flex-direction:column; transition:border-color .15s; }
   .design:hover{ border-color:var(--ink); text-decoration:none; }
@@ -71,8 +72,76 @@
   .sec-rule .note{ font-family:var(--font-serif); font-style:italic; font-weight:400;
     text-transform:none; letter-spacing:0; color:var(--ink-60); font-size:.95rem; }
 
+  /* ── the two tracks ── */
+  .wd-tracks{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap);
+    margin-bottom:var(--gap); }
+  .wd-track{ border:1px solid var(--hair); padding:1.3rem 1.4rem 1.5rem; display:flex;
+    flex-direction:column; gap:.7rem; }
+  .wd-track .wd-kicker{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--acc); }
+  .wd-track h3{ font-family:var(--font-display); font-size:1.5rem; letter-spacing:.03em;
+    font-weight:400; line-height:1.2; }
+  .wd-track p{ font-family:var(--font-serif); font-size:.97rem; line-height:1.6; }
+  .wd-track .wd-for{ margin-top:auto; padding-top:.9rem; border-top:1px solid var(--hair);
+    font-family:var(--font-brand); font-size:.6rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); line-height:1.9; }
+
+  /* ── the kit list ── */
+  .wd-kit{ list-style:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.55rem 1.6rem; margin-bottom:var(--gap); }
+  .wd-kit li{ font-family:var(--font-serif); font-size:.97rem; line-height:1.55;
+    padding-left:1.5rem; position:relative; }
+  .wd-kit li::before{ content:""; position:absolute; left:0; top:.52em; width:.62rem;
+    height:.62rem; border:1px solid var(--acc); }
+  .wd-kit b{ font-weight:600; }
+
+  /* ── the method callout ── */
+  .wd-why{ border:1px solid var(--ink); padding:1.4rem 1.5rem; margin-bottom:var(--gap);
+    display:flex; flex-direction:column; gap:.75rem; }
+  .wd-why h3{ font-family:var(--font-display); font-size:1.35rem; letter-spacing:.03em;
+    font-weight:400; }
+  .wd-why p{ font-family:var(--font-serif); font-size:1rem; line-height:1.65; max-width:78ch; }
+  .wd-why i{ font-style:italic; }
+  .wd-why b{ font-weight:600; }
+
+  /* ── the process ── */
+  .wd-steps{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--gap);
+    margin-bottom:var(--gap); }
+  .wd-step{ display:flex; flex-direction:column; gap:.4rem; }
+  .wd-step .wd-no{ font-family:var(--font-display); font-size:1.6rem; color:var(--acc);
+    line-height:1; }
+  .wd-step h4{ font-family:var(--font-brand); font-weight:600; font-size:.63rem;
+    letter-spacing:.2em; text-transform:uppercase; }
+  .wd-step p{ font-family:var(--font-serif); font-size:.92rem; line-height:1.55;
+    color:var(--ink-60); }
+
+  /* ── price ── */
+  .wd-price{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap);
+    margin-bottom:var(--gap); }
+  .wd-quote{ border:1px solid var(--hair); padding:1.2rem 1.3rem 1.35rem; display:flex;
+    flex-direction:column; gap:.45rem; }
+  .wd-quote .wd-what{ font-family:var(--font-display); font-size:1.25rem; letter-spacing:.03em; }
+  .wd-quote .wd-note{ font-family:var(--font-serif); font-size:.94rem; line-height:1.55;
+    color:var(--ink-60); }
+  .wd-quote .wd-terms{ margin-top:.35rem; font-family:var(--font-brand); font-size:.58rem;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--acc); }
+
+  /* ── closing call ── */
+  .wd-cta{ border:1px solid var(--ink); padding:1.5rem; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:.6rem; }
+  .wd-cta .wd-big{ font-family:var(--font-display); font-size:1.7rem; letter-spacing:.03em; }
+  .wd-cta p{ font-family:var(--font-serif); font-size:1rem; line-height:1.6; max-width:60ch; }
+  .wd-go{ display:inline-block; margin-top:.5rem; font-family:var(--font-brand);
+    font-weight:600; font-size:.64rem; letter-spacing:.2em; text-transform:uppercase;
+    border:1px solid var(--ink); padding:.75rem 1.6rem; text-decoration:none; color:var(--ink); }
+  .wd-go:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
+
+  @media (max-width:900px){
+    .wd-steps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
   @media (max-width:760px){
     .designs{ grid-template-columns:1fr; }
+    .wd-tracks, .wd-kit, .wd-price{ grid-template-columns:1fr; }
   }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
@@ -93,12 +162,96 @@
 
   <div class="hero">
     <span><span class="ital">Website</span> <span class="display">DESIGN</span></span>
-    <span class="sub">websites designed &amp; built by Fadil Karim &middot; live on their own domains</span>
+    <span class="sub">new builds &amp; rebuilds &middot; art-directed, hand-coded &middot; live on your own domain</span>
   </div>
 
-  <p class="lede">The lab aside &mdash; these are the <b>websites I design and build</b> for clients
-    and friends: briefed in plain English, art-directed to the last hairline and
-    <i>shipped end to end with Claude Code</i>. Every design opens live, in a new window.</p>
+  <p class="lede">Most small businesses end up with one of two websites: a <b>template</b> that
+    looks like every other template, or a <b>four-figure agency build</b> that took months and
+    still needs a developer every time the phone number changes. I build the third kind &mdash;
+    <i>designed around your business, written by hand, and handed over in days</i>. Whether that
+    means starting from a blank page or taking the site you already have and rebuilding it
+    properly, the work is the same standard and the price is agreed before it starts.</p>
+
+  <div class="sec-rule">Two Ways In<span class="note">start from nothing, or start from what you&rsquo;ve got</span></div>
+  <div class="wd-tracks">
+    <div class="wd-track">
+      <span class="wd-kicker">Track One</span>
+      <h3>A NEW SITE, FROM SCRATCH</h3>
+      <p>You have a business and no website &mdash; or one you&rsquo;d rather not send people to.
+        We start with a conversation about what you do and who you do it for, and I design and
+        build the whole thing around that: structure, words, imagery, the lot. No template
+        underneath it, and nothing you have to grow into.</p>
+      <span class="wd-for">Built this way &middot; Tia Tandy Rugby &middot; Louis Horn</span>
+    </div>
+    <div class="wd-track">
+      <span class="wd-kicker">Track Two</span>
+      <h3>YOUR SITE, MADE BETTER</h3>
+      <p>You already have a site. It works, but it&rsquo;s slow, dated, hard to change, or it
+        simply doesn&rsquo;t sell what you do. I take what&rsquo;s there &mdash; the brand, the
+        content, the things customers already recognise &mdash; and rebuild it properly around
+        them. Same business, sharper, and quicker on a phone.</p>
+      <span class="wd-for">Rebuilt this way &middot; Rebels Boxing &middot; Churchils</span>
+    </div>
+  </div>
+
+  <div class="sec-rule">What Every Site Comes With<span class="note">the standard fit, not the upsell list</span></div>
+  <ul class="wd-kit">
+    <li><b>Designed for your business</b> &mdash; not picked off a menu of themes.</li>
+    <li><b>Phone first.</b> That is where your customers actually are.</li>
+    <li><b>Loads in under a second</b> &mdash; hand-written code, no page-builder weight.</li>
+    <li><b>Your own domain</b> and matching email addresses.</li>
+    <li><b>Whatever the business needs</b> &mdash; contact forms, bookings, maps, galleries, prices.</li>
+    <li><b>Proper share cards</b>, so your link looks right on WhatsApp and Instagram.</li>
+    <li><b>Findable</b> &mdash; clean markup, real page titles, and a sitemap search engines can read.</li>
+    <li><b>Hosting for pennies</b> a month, and you own the code outright.</li>
+  </ul>
+
+  <div class="wd-why">
+    <h3>Why it costs what it costs</h3>
+    <p>The price is not low because the work is small. It is low because <b>the method is
+      fast</b>. I build with AI as a working partner &mdash; the same approach behind the
+      engineering tools on the rest of this site &mdash; so the month of billable design and
+      front-end hours an agency would put on the invoice takes days here. <i>You get those
+      hours back as price and speed; I get to take on more of the work I enjoy.</i> What
+      doesn&rsquo;t change is the part that matters: every page is still art-directed by hand,
+      to the last hairline, by someone who cares whether the spacing is right.</p>
+  </div>
+
+  <div class="sec-rule">How It Works<span class="note">from first conversation to live site</span></div>
+  <div class="wd-steps">
+    <div class="wd-step"><span class="wd-no">01</span><h4>A conversation</h4>
+      <p>What the business does, who it&rsquo;s for, and what you want a visitor to actually do.
+        No brief template, no jargon.</p></div>
+    <div class="wd-step"><span class="wd-no">02</span><h4>A draft in days</h4>
+      <p>Not a wireframe or a mock-up &mdash; the real site, live on a link you can open on your
+        phone and send to whoever you trust.</p></div>
+    <div class="wd-step"><span class="wd-no">03</span><h4>We iterate</h4>
+      <p>You say what&rsquo;s wrong in plain English. It usually changes the same afternoon.
+        That loop runs until you&rsquo;re happy.</p></div>
+    <div class="wd-step"><span class="wd-no">04</span><h4>It goes live</h4>
+      <p>On your own domain, with the keys handed to you &mdash; code, hosting and all. No lock-in
+        and no retainer you can&rsquo;t leave.</p></div>
+  </div>
+
+  <div class="sec-rule">What It Costs<span class="note">a fixed number, agreed before a line is written</span></div>
+  <div class="wd-price">
+    <div class="wd-quote">
+      <span class="wd-what">A NEW SITE</span>
+      <span class="wd-note">Designed and built from scratch around your business, live on your
+        own domain.</span>
+      <span class="wd-terms">Fixed price &middot; quoted up front</span>
+    </div>
+    <div class="wd-quote">
+      <span class="wd-what">AN IMPROVEMENT</span>
+      <span class="wd-note">Your existing site rebuilt properly &mdash; faster, sharper, and
+        easier to keep current.</span>
+      <span class="wd-terms">Fixed price &middot; quoted up front</span>
+    </div>
+  </div>
+  <p class="lede">Both tracks are quoted as <b>one fixed price before any work starts</b> &mdash;
+    no hourly billing, no scope creep, and no invoice you weren&rsquo;t expecting. Tell me which
+    track you&rsquo;re on and what the business does, and you&rsquo;ll have a number back the
+    same day.</p>
 
   <div class="sec-rule">The Sites<span class="note">designed, built and shipped end to end &mdash; live on its own domain</span></div>
   <div class="designs">
@@ -110,8 +263,13 @@
     </a>
   </div>
 
-  <p class="lede" style="margin-top:var(--gap)">Want one? The same conversation that built these &mdash;
-    and everything on this site &mdash; starts on the <a href="contact.html">contact page</a>.</p>
+  <div class="wd-cta">
+    <span class="wd-big">Want one?</span>
+    <p>Tell me what the business does and whether you&rsquo;re starting from scratch or from a
+      site you already have. The same conversation that built these &mdash; and everything else
+      on this site &mdash; starts here.</p>
+    <a class="wd-go" href="contact.html">Start the conversation</a>
+  </div>
 
 </main>
 
