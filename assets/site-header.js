@@ -25,6 +25,12 @@
     { href: 'contact.html', label: 'Contact' }
   ];
 
+  var IG = '<svg class="ig-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+    '<rect x="2.5" y="2.5" width="19" height="19" rx="5.2"/>' +
+    '<circle cx="12" cy="12" r="4.6"/>' +
+    '<circle cx="17.6" cy="6.4" r="1.15" fill="currentColor" stroke="none"/></svg>';
+
   var SPARK = 'M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z';
   var SPARKS = '<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor">' +
     '<path transform="translate(52 0) scale(0.30)" d="' + SPARK + '"/>' +
@@ -38,6 +44,10 @@
         return '<a href="' + l.href + '"' +
                (l.href === here ? ' aria-current="page"' : '') + '>' + l.label + '</a>';
       }).join('') +
+      '<a class="ig-link" href="https://instagram.com/fid_900" target="_blank" rel="noopener" ' +
+        'aria-label="Instagram — fid_900">' + IG + 'fid_900</a>' +
+      '<a class="ig-link" href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener" ' +
+        'aria-label="Instagram — ottomanlabs.ai">' + IG + 'ottomanlabs.ai</a>' +
       '<span id="olCloudMount"></span>' +
       '<button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark">' +
         '<span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span>' +

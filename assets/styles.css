@@ -109,6 +109,11 @@ a:hover{ text-decoration:underline; text-underline-offset:3px; }
   letter-spacing:.3em; text-transform:uppercase;
 }
 .nav-row a[aria-current]{ border-bottom:2px solid var(--ink); padding-bottom:2px; }
+.nav-row .ig-link{
+  display:inline-flex; align-items:center; gap:.42em;
+  letter-spacing:.14em; text-transform:none;
+}
+.ig-glyph{ width:15px; height:15px; display:block; }
 
 /* ── boxes ── */
 .box{
