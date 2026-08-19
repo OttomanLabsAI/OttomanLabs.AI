@@ -189,8 +189,10 @@
   .rcard .plate{ color:var(--ink); aspect-ratio:5/4; display:flex; align-items:center; justify-content:center; }
   .rail > .vcard{ flex-basis:clamp(190px, 16vw, 230px); }
   .vcard .plate{ aspect-ratio:9/16; }
-  .vcard .plate.vwrap{ position:relative; overflow:hidden; }
-  .vcard .sel-banner{ min-height:4.32rem; text-align:center; }
+  .rail > .wcard{ flex-basis:calc(clamp(190px, 16vw, 230px) * 3.1605); }
+  .wcard .plate{ aspect-ratio:16/9; }
+  .vcard .plate.vwrap, .wcard .plate.vwrap{ position:relative; overflow:hidden; }
+  .vcard .sel-banner, .wcard .sel-banner{ min-height:4.32rem; text-align:center; }
   .vwrap video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .rcard .plate svg{ width:76%; height:auto; }
   .rcard .sel-banner{ margin-top:auto; padding:.5rem .8rem; }
@@ -201,6 +203,7 @@
     border:1px solid var(--ink); padding:.5rem .35rem; text-decoration:none; }
   .ropt:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
   .ropt.off{ color:var(--ink-35); border-color:var(--hair); cursor:default; }
+  button.ropt{ background:none; cursor:pointer; }
   .ropt.off:hover{ background:none; color:var(--ink-35); }
   .rarrow{ position:absolute; top:50%; transform:translateY(-50%); z-index:3;
     width:42px; height:42px; border-radius:50%; border:1px solid var(--ink);
@@ -209,6 +212,25 @@
   .rarrow:hover{ background:var(--ink); color:var(--paper); }
   .rarrow.prev{ left:-12px; } .rarrow.next{ right:-12px; }
   @media (hover:none) and (pointer:coarse){ .rarrow{ display:none; } }
+
+  /* ── the video popup ── */
+  .vmodal{ position:fixed; inset:0; z-index:70; display:flex; align-items:center;
+    justify-content:center; padding:3vh 4vw; }
+  .vmodal[hidden]{ display:none; }
+  .vmodal-back{ position:absolute; inset:0; background:rgba(0,0,0,.78); }
+  .vmodal-box{ position:relative; z-index:1; background:var(--paper);
+    border:1px solid var(--ink); display:flex; flex-direction:column;
+    max-width:min(94vw, 1100px); }
+  .vmodal-bar{ display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; background:var(--ink); color:var(--paper); padding:.45rem .5rem .45rem .9rem; }
+  .vmodal-title{ font-family:var(--font-display); font-size:1rem; letter-spacing:.06em; }
+  .vmodal-acts{ display:flex; gap:.4rem; }
+  .vmodal-btn{ font-family:var(--font-brand); font-weight:600; font-size:.58rem;
+    letter-spacing:.16em; text-transform:uppercase; background:none;
+    border:1px solid var(--paper); color:var(--paper); padding:.4rem .7rem; cursor:pointer; }
+  .vmodal-btn:hover{ background:var(--paper); color:var(--ink); }
+  #vmVideo{ display:block; max-width:100%; max-height:78vh; min-width:min(280px,80vw);
+    background:#000; }
 
   /* ── clients ── */
   .clients{ display:grid; grid-template-columns:repeat(auto-fit, minmax(168px, 1fr));
@@ -375,12 +397,17 @@
       <div class="rcard vcard">
         <div class="plate vwrap"><video id="lotrVid" poster="assets/video/lotr-poster.jpg" muted loop playsinline preload="metadata" aria-label="Lord of the Rings AI-generated teaser"><source src="assets/video/lotr-teaser.mp4" type="video/mp4"><source src="assets/video/lotr-teaser.webm" type="video/webm"></video></div>
         <div class="sel-banner"><span class="sel-name">LORD OF THE RINGS</span></div>
-        <div class="ropts"><span class="ropt off">AI generation tutorial &middot; coming soon</span></div>
+        <div class="ropts"><button class="ropt vopen" type="button" data-full="assets/video/lotr-full" data-vtitle="LORD OF THE RINGS">Watch the video</button></div>
       </div>
       <div class="rcard vcard">
         <div class="plate vwrap"><video id="pokeVid" poster="assets/video/poke-poster.jpg" muted loop playsinline preload="metadata" aria-label="Pokemon AI-generated teaser"><source src="assets/video/poke-teaser.mp4" type="video/mp4"><source src="assets/video/poke-teaser.webm" type="video/webm"></video></div>
         <div class="sel-banner"><span class="sel-name">POK&Eacute;MON</span></div>
-        <div class="ropts"><span class="ropt off">AI generation tutorial &middot; coming soon</span></div>
+        <div class="ropts"><button class="ropt vopen" type="button" data-full="assets/video/poke-full" data-vtitle="POK&Eacute;MON">Watch the video</button></div>
+      </div>
+      <div class="rcard wcard">
+        <div class="plate vwrap"><video id="charVid" poster="assets/video/char-poster.jpg" muted loop playsinline preload="metadata" aria-label="Charizard on the Thames AI-generated teaser"><source src="assets/video/char-teaser.mp4" type="video/mp4"><source src="assets/video/char-teaser.webm" type="video/webm"></video></div>
+        <div class="sel-banner"><span class="sel-name">CHARIZARD ON THE THAMES</span></div>
+        <div class="ropts"><button class="ropt vopen" type="button" data-full="assets/video/char-full" data-vtitle="CHARIZARD ON THE THAMES">Watch the video</button></div>
       </div>
       <div class="rcard vcard">
         <div class="plate"><svg viewBox="0 0 200 130" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2167,8 +2194,14 @@
         card.addEventListener('mouseleave', function(){ v.pause(); });
       } else if('IntersectionObserver' in window){
         new IntersectionObserver(function(es){
-          for(var j = 0; j < es.length; j++){ es[j].intersectionRatio >= .98 ? play() : v.pause(); }
-        }, {threshold:[0, .98]}).observe(card);
+          for(var j = 0; j < es.length; j++){
+            var e = es[j], need = .98;
+            if(e.rootBounds && e.boundingClientRect.width > e.rootBounds.width){
+              need = Math.max(.35, (e.rootBounds.width / e.boundingClientRect.width) * .92);
+            }
+            e.intersectionRatio >= need ? play() : v.pause();
+          }
+        }, {threshold:[0, .1, .2, .3, .4, .5, .6, .7, .8, .9, .98]}).observe(card);
       } else {
         play();
       }
@@ -2192,6 +2225,63 @@
       if(next) next.addEventListener('click', function(){ page(1); });
     })(wraps[i]);
   }
+})();
+</script>
+<div class="vmodal" id="vModal" hidden>
+  <div class="vmodal-back"></div>
+  <div class="vmodal-box" role="dialog" aria-modal="true" aria-label="Video player">
+    <div class="vmodal-bar">
+      <span class="vmodal-title" id="vmTitle"></span>
+      <span class="vmodal-acts">
+        <button class="vmodal-btn" id="vmFull" type="button">Fullscreen</button>
+        <button class="vmodal-btn" id="vmClose" type="button" aria-label="Close video">&#10005; Close</button>
+      </span>
+    </div>
+    <video id="vmVideo" controls playsinline preload="auto"></video>
+  </div>
+</div>
+<script>
+/* the popup player — Watch the video buttons */
+(function(){
+  "use strict";
+  var modal = document.getElementById('vModal');
+  if(!modal) return;
+  var vid = document.getElementById('vmVideo');
+  var title = document.getElementById('vmTitle');
+  function open(base, name){
+    title.textContent = name;
+    while(vid.firstChild) vid.removeChild(vid.firstChild);
+    var s1 = document.createElement('source'); s1.src = base + '.mp4'; s1.type = 'video/mp4';
+    var s2 = document.createElement('source'); s2.src = base + '.webm'; s2.type = 'video/webm';
+    vid.appendChild(s1); vid.appendChild(s2);
+    vid.load();
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    var p = vid.play(); if(p && p.catch) p.catch(function(){});
+  }
+  function close(){
+    vid.pause();
+    while(vid.firstChild) vid.removeChild(vid.firstChild);
+    vid.load();
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+  var opens = document.querySelectorAll('.vopen');
+  for(var i = 0; i < opens.length; i++)(function(b){
+    b.addEventListener('click', function(){
+      open(b.getAttribute('data-full'), b.getAttribute('data-vtitle'));
+    });
+  })(opens[i]);
+  document.getElementById('vmClose').addEventListener('click', close);
+  modal.querySelector('.vmodal-back').addEventListener('click', close);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !modal.hidden) close();
+  });
+  document.getElementById('vmFull').addEventListener('click', function(){
+    if(vid.requestFullscreen) vid.requestFullscreen();
+    else if(vid.webkitEnterFullscreen) vid.webkitEnterFullscreen();
+    else if(vid.webkitRequestFullscreen) vid.webkitRequestFullscreen();
+  });
 })();
 </script>
 <script src="assets/firebase-config.js"></script>
