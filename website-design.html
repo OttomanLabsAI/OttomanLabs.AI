@@ -72,62 +72,95 @@
   .sec-rule .note{ font-family:var(--font-serif); font-style:italic; font-weight:400;
     text-transform:none; letter-spacing:0; color:var(--ink-60); font-size:.95rem; }
 
-  /* ── the two tracks ── */
-  .wd-tracks{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--gap);
-    margin-bottom:var(--gap); }
-  .wd-track{ border:1px solid var(--hair); padding:1.3rem 1.4rem 1.5rem; display:flex;
-    flex-direction:column; gap:.7rem; }
-  .wd-track .wd-kicker{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
-    letter-spacing:.22em; text-transform:uppercase; color:var(--acc); }
-  .wd-track h3{ font-family:var(--font-display); font-size:1.5rem; letter-spacing:.03em;
-    font-weight:400; line-height:1.2; }
-  .wd-track p{ font-family:var(--font-serif); font-size:.97rem; line-height:1.6; }
-  .wd-track .wd-for{ margin-top:auto; padding-top:.9rem; border-top:1px solid var(--hair);
-    font-family:var(--font-brand); font-size:.6rem; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--ink-60); line-height:1.9; }
+  /* ── flyer palette — literal in both themes ── */
+  .wd-chip{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.22em; text-transform:uppercase; background:#F2C233; color:#141414;
+    padding:.45rem .8rem; margin-left:auto; }
 
-  /* ── the kit list ── */
-  .wd-kit{ list-style:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:.55rem 1.6rem; margin-bottom:var(--gap); }
-  .wd-kit li{ font-family:var(--font-serif); font-size:.97rem; line-height:1.55;
-    padding-left:1.5rem; position:relative; }
-  .wd-kit li::before{ content:""; position:absolute; left:0; top:.52em; width:.62rem;
-    height:.62rem; border:1px solid var(--acc); }
-  .wd-kit b{ font-weight:600; }
+  .wd-head{ font-family:var(--font-display); font-size:clamp(2rem, 5.2vw, 3.6rem);
+    line-height:1.08; letter-spacing:.02em; text-transform:uppercase; margin-bottom:var(--gap); }
+  .wd-head .yl{ color:#F2C233; -webkit-text-stroke:2px #141414; }
 
-  /* ── the method callout ── */
-  .wd-why{ border:1px solid var(--ink); padding:1.4rem 1.5rem; margin-bottom:var(--gap);
-    display:flex; flex-direction:column; gap:.75rem; }
-  .wd-why h3{ font-family:var(--font-display); font-size:1.35rem; letter-spacing:.03em;
-    font-weight:400; }
-  .wd-why p{ font-family:var(--font-serif); font-size:1rem; line-height:1.65; max-width:78ch; }
-  .wd-why i{ font-style:italic; }
-  .wd-why b{ font-weight:600; }
+  .wd-tab{ display:inline-block; font-family:var(--font-brand); font-weight:600;
+    font-size:.6rem; letter-spacing:.22em; text-transform:uppercase;
+    background:#141414; color:#FBF5E3; border:1px solid var(--hair); padding:.45rem .8rem; }
 
-  /* ── the process ── */
-  .wd-steps{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--gap);
-    margin-bottom:var(--gap); }
-  .wd-step{ display:flex; flex-direction:column; gap:.4rem; }
-  .wd-step .wd-no{ font-family:var(--font-display); font-size:1.6rem; color:var(--acc);
-    line-height:1; }
-  .wd-step h4{ font-family:var(--font-brand); font-weight:600; font-size:.63rem;
-    letter-spacing:.2em; text-transform:uppercase; }
-  .wd-step p{ font-family:var(--font-serif); font-size:.92rem; line-height:1.55;
+  /* ── how it works ── */
+  .wd-steps{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--gap);
+    margin:calc(var(--gap) * .9) 0 var(--gap); }
+  .wd-step{ border-top:2px solid var(--ink); padding-top:.65rem;
+    display:flex; flex-direction:column; gap:.3rem; }
+  .wd-step:last-child{ border-top-style:dashed; }
+  .wd-step .wd-no{ font-family:var(--font-display); font-size:1.7rem; line-height:1;
+    color:#F2C233; -webkit-text-stroke:1.2px #141414; }
+  .wd-step h4{ font-family:var(--font-brand); font-weight:600; font-size:.66rem;
+    letter-spacing:.18em; text-transform:uppercase; }
+  .wd-step h4 .arr{ color:#F2C233; -webkit-text-stroke:0; }
+  .wd-step p{ font-family:var(--font-serif); font-size:.92rem; line-height:1.5;
     color:var(--ink-60); }
 
-  /* ── price, in big numbers ── */
-  .wd-figures{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
-    border:1px solid var(--ink); margin-bottom:var(--gap); }
-  .wd-fig{ padding:1.5rem 1rem 1.6rem; display:flex; flex-direction:column;
-    align-items:center; text-align:center; gap:.3rem; border-right:1px solid var(--hair); }
-  .wd-fig:last-child{ border-right:0; }
-  .wd-num{ font-family:var(--font-display); font-size:clamp(2.7rem, 6vw, 4rem);
-    line-height:.95; letter-spacing:.01em; }
-  .wd-fig.acc .wd-num{ color:var(--acc); }
-  .wd-cap{ font-family:var(--font-brand); font-weight:600; font-size:.63rem;
-    letter-spacing:.2em; text-transform:uppercase; margin-top:.55rem; }
-  .wd-sub{ font-family:var(--font-serif); font-size:.9rem; line-height:1.5;
-    color:var(--ink-60); max-width:30ch; text-wrap:balance; }
+  /* ── the build — the yellow panel ── */
+  .wd-build-wrap{ position:relative; margin-bottom:var(--gap); }
+  .wd-build-wrap > .wd-tab{ position:absolute; top:-0.9rem; right:1.2rem; z-index:1; }
+  .wd-build{ background:#F2C233; color:#141414; padding:1.6rem 1.6rem 1.5rem; }
+  .wd-build *{ color:#141414; }
+  .wd-bhead{ display:flex; align-items:flex-start; justify-content:space-between;
+    gap:1.2rem; flex-wrap:wrap; margin-bottom:.9rem; }
+  .wd-bhead .wd-btitle{ font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.3rem);
+    text-transform:uppercase; line-height:1; }
+  .wd-day{ display:flex; align-items:center; gap:.7rem 1.2rem; flex-wrap:wrap; }
+  .wd-day .big{ font-family:var(--font-display); font-size:clamp(1.6rem,2.6vw,2.1rem); line-height:1; }
+  .wd-day .cap{ font-family:var(--font-brand); font-weight:600; font-size:.56rem;
+    letter-spacing:.18em; text-transform:uppercase; max-width:11rem; line-height:1.7; }
+  .wd-feats{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.95rem 2rem; }
+  .wd-feat{ border-top:2px solid #141414; padding-top:.6rem; }
+  .wd-feat:last-child{ grid-column:1 / -1; }
+  .wd-feat h4{ font-family:var(--font-brand); font-weight:600; font-size:.7rem;
+    letter-spacing:.2em; text-transform:uppercase; margin-bottom:.3rem; }
+  .wd-feat .lead{ font-family:var(--font-serif); font-weight:600; font-size:.98rem; line-height:1.5; }
+  .wd-feat .det{ font-family:var(--font-serif); font-size:.93rem; line-height:1.5; opacity:.78; }
+  .wd-say{ display:block; margin-top:1.2rem; background:#141414; text-align:center;
+    font-family:var(--font-brand); font-weight:600; font-size:.66rem; letter-spacing:.24em;
+    text-transform:uppercase; padding:.95rem 1rem; text-decoration:none; }
+  .wd-build .wd-say, .wd-build .wd-say *{ color:#F2C233; }
+  .wd-say:hover{ text-decoration:none; opacity:.92; }
+
+  /* ── the bands — prices, ownership, referrals ── */
+  .wd-band-wrap{ position:relative; margin-bottom:var(--gap); }
+  .wd-band-wrap > .wd-tab{ position:absolute; top:-0.9rem; right:1.2rem; z-index:1; }
+  .wd-band{ border:1px solid var(--ink); background:var(--paper); padding:1.2rem 1.4rem;
+    display:flex; align-items:center; gap:1rem 2.2rem; flex-wrap:wrap; }
+  .wd-band .lede-cap{ font-family:var(--font-display); font-size:1.35rem; line-height:1.15;
+    text-transform:uppercase; flex:0 0 auto; }
+  .wd-band .was{ font-family:var(--font-serif); font-size:1.05rem; color:var(--ink-35);
+    text-decoration:line-through; text-decoration-thickness:2px; }
+  .wd-band .fig{ display:flex; align-items:center; gap:.6rem; }
+  .wd-band .fig .n{ font-family:var(--font-display); font-size:clamp(1.7rem,2.6vw,2.2rem);
+    line-height:1; }
+  .wd-band .fig .n.yl{ color:#F2C233; -webkit-text-stroke:1.6px #141414; }
+  .wd-band .cap{ font-family:var(--font-brand); font-weight:600; font-size:.56rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60); line-height:1.7;
+    max-width:11rem; }
+  .wd-band .col{ flex:1 1 12rem; border-top:2px solid var(--ink); padding-top:.5rem; }
+  .wd-band .col h4{ font-family:var(--font-brand); font-weight:600; font-size:.58rem;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); margin-bottom:.25rem; }
+  .wd-band .col p{ font-family:var(--font-serif); font-weight:600; font-size:.95rem; line-height:1.5; }
+  .wd-band .stepline{ display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+  .wd-band .stepline .st{ font-family:var(--font-brand); font-weight:600; font-size:.6rem;
+    letter-spacing:.16em; text-transform:uppercase; line-height:1.7; }
+  .wd-band .stepline .st small{ display:block; font-size:.52rem; color:var(--ink-60);
+    letter-spacing:.16em; }
+  .wd-band .stepline .arr{ color:#F2C233; -webkit-text-stroke:1px #141414;
+    font-size:1.2rem; line-height:1; }
+  [data-theme="dark"] .wd-head .yl,
+  [data-theme="dark"] .wd-step .wd-no,
+  [data-theme="dark"] .wd-band .fig .n.yl,
+  [data-theme="dark"] .wd-band .stepline .arr{ -webkit-text-stroke:0; }
+
+  .wd-strip{ background:#141414; color:#F2C233; display:flex; justify-content:space-between;
+    gap:.6rem 2rem; flex-wrap:wrap; padding:.85rem 1.4rem; margin-bottom:var(--gap);
+    font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.22em;
+    text-transform:uppercase; border:1px solid var(--hair); }
 
   /* ── closing call ── */
   .wd-cta{ border:1px solid var(--ink); padding:1.5rem; text-align:center;
@@ -139,21 +172,14 @@
     border:1px solid var(--ink); padding:.75rem 1.6rem; text-decoration:none; color:var(--ink); }
   .wd-go:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
 
-  @media (max-width:1000px){
-    .wd-figures{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .wd-fig{ border-bottom:1px solid var(--hair); }
-    .wd-fig:nth-child(2n){ border-right:0; }
-    .wd-fig:nth-child(n+3){ border-bottom:0; }
-  }
   @media (max-width:900px){
     .wd-steps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .wd-step:last-child{ grid-column:1 / -1; }
   }
   @media (max-width:760px){
     .designs{ grid-template-columns:1fr; }
-    .wd-tracks, .wd-kit{ grid-template-columns:1fr; }
-    .wd-figures{ grid-template-columns:1fr; }
-    .wd-fig{ border-right:0; border-bottom:1px solid var(--hair); }
-    .wd-fig:last-child{ border-bottom:0; }
+    .wd-feats{ grid-template-columns:1fr; }
+    .wd-band .lede-cap{ flex-basis:100%; }
   }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
@@ -175,95 +201,92 @@
   <div class="hero">
     <span><span class="ital">Website</span> <span class="display">DESIGN</span></span>
     <span class="sub">new builds &amp; rebuilds &middot; art-directed, hand-coded &middot; live on your own domain</span>
+    <span class="wd-chip">Built to order</span>
   </div>
 
-  <p class="lede">Most small businesses end up with one of two websites: a <b>template</b> that
-    looks like every other template, or a <b>four-figure agency build</b> that took months and
-    still needs a developer to change a phone number. I build the third kind &mdash;
-    <i>designed around your business, written by hand, live in days</i>.</p>
+  <h2 class="wd-head">A better website,<br>on your screen <span class="yl">today.</span></h2>
 
-  <div class="sec-rule">Two Ways In<span class="note">start from nothing, or start from what you&rsquo;ve got</span></div>
-  <div class="wd-tracks">
-    <div class="wd-track">
-      <span class="wd-kicker">Track One</span>
-      <h3>A NEW SITE, FROM SCRATCH</h3>
-      <p>No website yet, or one you&rsquo;d rather not send people to. I design and build the
-        whole thing around what you actually do &mdash; no template underneath.</p>
-      <span class="wd-for">Built this way &middot; Tia Tandy Rugby</span>
-    </div>
-    <div class="wd-track">
-      <span class="wd-kicker">Track Two</span>
-      <h3>YOUR SITE, MADE BETTER</h3>
-      <p>Slow, dated, or simply not selling what you do. I keep what customers already
-        recognise and rebuild the rest properly. Same business, sharper.</p>
-      <span class="wd-for">Rebuilt this way &middot; Rebels Boxing &middot; Churchils</span>
-    </div>
-  </div>
-
-  <div class="sec-rule">What Every Site Comes With<span class="note">the standard fit, not the upsell list</span></div>
-  <ul class="wd-kit">
-    <li><b>Designed for your business</b> &mdash; not picked off a menu.</li>
-    <li><b>Built phone-first</b>, where your customers are.</li>
-    <li><b>Loads in under a second.</b> No page-builder weight.</li>
-    <li><b>Your own domain</b> and matching email.</li>
-    <li><b>Forms, bookings, maps, galleries</b> &mdash; whatever it needs.</li>
-    <li><b>Share cards</b> that look right on WhatsApp.</li>
-    <li><b>Findable</b> &mdash; clean markup and a real sitemap.</li>
-    <li><b>You own the code</b> outright.</li>
-  </ul>
-
-  <div class="wd-why">
-    <h3>Why it costs what it costs</h3>
-    <p>The price isn&rsquo;t low because the work is small. It is low because <b>the method is
-      fast</b> &mdash; I build with AI as a working partner, so the month of billable hours an
-      agency would invoice takes days here. <i>The art direction doesn&rsquo;t get cheaper:
-      every page is still drawn by hand.</i></p>
-  </div>
-
-  <div class="sec-rule">How It Works<span class="note">from first conversation to live site</span></div>
+  <span class="wd-tab">How it works</span>
   <div class="wd-steps">
-    <div class="wd-step"><span class="wd-no">01</span><h4>A conversation</h4>
-      <p>What you do, who for, and what a visitor should do next.</p></div>
-    <div class="wd-step"><span class="wd-no">02</span><h4>A draft in days</h4>
-      <p>Not a mock-up &mdash; the real site, on a link you can open on your phone.</p></div>
-    <div class="wd-step"><span class="wd-no">03</span><h4>We iterate</h4>
-      <p>You say what&rsquo;s wrong. It changes the same afternoon.</p></div>
-    <div class="wd-step"><span class="wd-no">04</span><h4>It goes live</h4>
-      <p>Your domain, your code, keys handed over.</p></div>
+    <div class="wd-step"><span class="wd-no">01</span><h4>Brief me <span class="arr">&rarr;</span></h4>
+      <p>A line about your business or your current site.</p></div>
+    <div class="wd-step"><span class="wd-no">02</span><h4>Live same day <span class="arr">&rarr;</span></h4>
+      <p>Working, online, on a temporary link.</p></div>
+    <div class="wd-step"><span class="wd-no">03</span><h4>Changes <span class="arr">&rarr;</span></h4>
+      <p>Turned around in hours, not weeks.</p></div>
+    <div class="wd-step"><span class="wd-no">04</span><h4>Pay on transfer <span class="arr">&rarr;</span></h4>
+      <p>To your domain &mdash; only if you want it.</p></div>
+    <div class="wd-step"><span class="wd-no">05</span><h4>Ongoing changes</h4>
+      <p>Optional &mdash; &pound;50 for 2 weeks of unlimited changes.</p></div>
   </div>
 
-  <div class="sec-rule">What It Costs<span class="note">one price, either way</span></div>
-  <div class="wd-figures">
-    <div class="wd-fig acc">
-      <span class="wd-num">&pound;500</span>
-      <span class="wd-cap">The whole site</span>
-      <span class="wd-sub">New build or rebuild &mdash; same price either way, fixed up front.</span>
-    </div>
-    <div class="wd-fig acc">
-      <span class="wd-num">&pound;50</span>
-      <span class="wd-cap">A month of changes</span>
-      <span class="wd-sub">Unlimited edits for 30 days. No subscription &mdash; buy one only when you need one.</span>
-    </div>
-    <div class="wd-fig">
-      <span class="wd-num">&pound;0</span>
-      <span class="wd-cap">Hosting, forever</span>
-      <span class="wd-sub">Free forever on your own Cloudflare and GitHub accounts &mdash; I&rsquo;ll set both up for you.</span>
-    </div>
-    <div class="wd-fig">
-      <span class="wd-num">0</span>
-      <span class="wd-cap">Retainers &amp; licences</span>
-      <span class="wd-sub">You own the code. Nothing to renew or cancel.</span>
+  <div class="wd-build-wrap">
+    <span class="wd-tab">Start here</span>
+    <div class="wd-build">
+      <div class="wd-bhead">
+        <span class="wd-btitle">The Build</span>
+        <span class="wd-day">
+          <span class="big">Day 1</span><span class="cap">Live on a temporary link</span>
+          <span class="big">&pound;0</span><span class="cap">Until transfer of ownership</span>
+        </span>
+      </div>
+      <div class="wd-feats">
+        <div class="wd-feat"><h4>Quality</h4>
+          <p class="lead">Professional design for modern times.</p>
+          <p class="det">Custom type, strong layouts &mdash; looks ten times the price.</p></div>
+        <div class="wd-feat"><h4>Speed</h4>
+          <p class="lead">Same-day service on the first design.</p>
+          <p class="det">Brief me in the morning &mdash; changes turn around in hours.</p></div>
+        <div class="wd-feat"><h4>Versatility</h4>
+          <p class="lead">Any design, styling or feature.</p>
+          <p class="det">Apple-store scrolling, 3D models, dynamic lighting.</p></div>
+        <div class="wd-feat"><h4>Modern connectivity</h4>
+          <p class="lead">Bookings, contact and online sales.</p>
+          <p class="det">Calendars, inbox forms, payment-ready shop pages.</p></div>
+        <div class="wd-feat"><h4>Low cost</h4>
+          <p class="lead">Built by my network of AI agents.</p>
+          <p class="det">Heavy lifting in parallel, finished by hand &mdash; agency output without the agency invoice.</p></div>
+      </div>
+      <a class="wd-say" href="contact.html">Say the word &mdash; start the conversation</a>
     </div>
   </div>
-  <ul class="wd-kit">
-    <li><b>&pound;50 buys a whole month of unlimited changes</b> &mdash; a new price list, a
-      season&rsquo;s fixtures, last weekend&rsquo;s photographs.</li>
-    <li><b>Send as many as you like.</b> Most land the same day.</li>
-    <li><b>No subscription.</b> Buy a month only when you actually want one &mdash; not every
-      month whether you need it or not.</li>
-    <li><b>When the month is up, it stops.</b> Nothing to cancel, and nothing leaving your
-      account quietly in the background.</li>
-  </ul>
+
+  <div class="wd-band-wrap">
+    <span class="wd-tab">Prices</span>
+    <div class="wd-band">
+      <span class="lede-cap">Two numbers,<br>nothing monthly</span>
+      <span class="fig"><span class="was">&pound;1,500 to &pound;8,000</span>
+        <span class="cap">What others charge &middot; freelance to agency</span></span>
+      <span class="fig"><span class="n yl">&pound;500</span><span class="cap">The site &middot; one-off, yours</span></span>
+      <span class="fig"><span class="n yl">&pound;50</span><span class="cap">Two weeks of unlimited changes</span></span>
+    </div>
+  </div>
+
+  <div class="wd-band-wrap">
+    <span class="wd-tab">Ownership</span>
+    <div class="wd-band">
+      <span class="lede-cap">You own<br>everything</span>
+      <span class="col"><h4>The code</h4><p>Every file &mdash; yours outright.</p></span>
+      <span class="col"><h4>The host</h4><p>Free web hosting for life &mdash; on Cloudflare.</p></span>
+      <span class="col"><h4>The setup</h4><p>I set it up and transfer to you &mdash; nothing to learn.</p></span>
+    </div>
+  </div>
+
+  <div class="wd-band-wrap">
+    <span class="wd-tab">Referrals</span>
+    <div class="wd-band">
+      <span class="lede-cap">Send a friend</span>
+      <span class="fig"><span class="n yl">&pound;50</span><span class="cap">Per referred purchase</span></span>
+      <span class="fig"><span class="n yl">&pound;75</span><span class="cap">Once you&rsquo;re a customer</span></span>
+      <span class="stepline">
+        <span class="st"><small>Step 1</small>Pass this page on</span><span class="arr">&rarr;</span>
+        <span class="st"><small>Step 2</small>They buy a site</span><span class="arr">&rarr;</span>
+        <span class="st"><small>Step 3</small>You get paid</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="wd-strip"><span>Flat fee &middot; Try before you buy</span><span>No retainers &middot; No lock-in</span></div>
 
   <div class="sec-rule">The Sites<span class="note">designed, built and shipped end to end &mdash; live on its own domain</span></div>
   <div class="designs">
