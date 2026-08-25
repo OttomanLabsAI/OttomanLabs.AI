@@ -58,7 +58,20 @@
   .design .shot{ display:block; width:100%; height:auto; border-bottom:1px solid var(--hair);
     aspect-ratio:40/21; object-fit:cover; object-position:top; background:var(--paper); }
 
-  .design .meta{ padding:.8rem 1rem .95rem; display:flex; flex-direction:column; gap:.25rem; }
+  .design .meta{ padding:.8rem 1rem .3rem; display:flex; flex-direction:column; gap:.25rem; }
+  .design .feats{ list-style:none; padding:.6rem 1rem .2rem; display:flex;
+    flex-direction:column; gap:.42rem; }
+  .design .feats li{ font-family:var(--font-serif); font-size:.93rem; line-height:1.5;
+    padding-left:1.25rem; position:relative; }
+  .design .feats li::before{ content:""; position:absolute; left:0; top:.48em;
+    width:.55rem; height:.55rem; border:1px solid var(--acc); }
+  .design .feats b{ font-weight:600; }
+  .design .visit{ margin:auto 1rem 1.05rem; padding:.68rem .9rem;
+    text-align:center; border:1px solid var(--ink); font-family:var(--font-brand);
+    font-weight:600; font-size:.62rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none; }
+  .design .feats{ padding-bottom:.95rem; }
+  .design .visit:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
   .design .name{ display:flex; align-items:baseline; gap:.55rem; flex-wrap:wrap; }
   .design .name .ital{ font-family:var(--font-serif); font-style:italic; font-size:1.05rem; }
   .design .name .display{ font-family:var(--font-display); font-size:1.2rem; letter-spacing:.03em; }
@@ -290,18 +303,57 @@
 
   <div class="sec-rule">The Sites<span class="note">designed, built and shipped end to end &mdash; live on its own domain</span></div>
   <div class="designs">
-    <a class="design" target="_blank" rel="noopener" href="https://tiatandyrugby.com">
+    <div class="design">
       <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">tiatandyrugby.com</span></span>
       <img class="shot" src="assets/og/site-tiatandyrugby.jpg" alt="The Tia Tandy Rugby homepage" loading="lazy">
       <span class="meta"><span class="name"><span class="ital">Tia Tandy</span> <span class="display">RUGBY</span></span>
-      <span class="caps">commission &middot; athlete site &middot; fixtures, bio &amp; sponsors</span></span>
-    </a>
-    <a class="design" target="_blank" rel="noopener" href="https://visualneuroscience.ai">
+      <span class="caps">commission &middot; athlete site &middot; built from scratch</span></span>
+      <ul class="feats">
+        <li><b>Made the whole site from scratch</b> &mdash; the design, the words, the code.</li>
+        <li>Her story, achievements and match photos, laid out like a matchday programme.</li>
+        <li>A next-match bar her supporters can check from their phone.</li>
+        <li>Sponsor pages ready to sell &mdash; each partner gets its own shop window.</li>
+      </ul>
+      <a class="visit" href="https://tiatandyrugby.com" target="_blank" rel="noopener">Visit the site &rarr;</a>
+    </div>
+    <div class="design">
       <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">visualneuroscience.ai</span></span>
-      <img class="shot" src="assets/og/site-visualneuroscience.jpg" alt="The Visual Neuroscience website" loading="lazy">
+      <img class="shot" src="assets/og/site-visualneuroscience.jpg" alt="The Visual Neuroscience atlas" loading="lazy">
       <span class="meta"><span class="name"><span class="ital">Visual</span> <span class="display">NEUROSCIENCE.AI</span></span>
-      <span class="caps">commission &middot; education platform &middot; live at visualneuroscience.ai</span></span>
-    </a>
+      <span class="caps">commission &middot; education platform &middot; built from scratch</span></span>
+      <ul class="feats">
+        <li><b>Made the whole site from scratch</b> &mdash; design, code and hosting.</li>
+        <li>A real 3D brain you can spin, slice and explore &mdash; right in the browser.</li>
+        <li>Nothing to install and nothing to pay &mdash; it works on any laptop.</li>
+        <li>Built for students: every brain region explained as you click it.</li>
+      </ul>
+      <a class="visit" href="https://visualneuroscience.ai" target="_blank" rel="noopener">Visit the site &rarr;</a>
+    </div>
+    <div class="design">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">jadedrose.co.uk</span></span>
+      <img class="shot" src="assets/og/site-jadedrose.jpg" alt="Jaded Rose" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">Jaded</span> <span class="display">ROSE</span></span>
+      <span class="caps">commission &middot; e-commerce fashion &middot; custom theme</span></span>
+      <ul class="feats">
+        <li><b>Made their custom theme</b> &mdash; the shop&rsquo;s look and feel, designed to the brand.</li>
+        <li>Their products, checkout and orders carried on untouched underneath.</li>
+        <li>Proof the &pound;500 build isn&rsquo;t the only door &mdash; existing shops get dressed too.</li>
+      </ul>
+      <a class="visit" href="https://jadedrose.co.uk" target="_blank" rel="noopener">Visit the site &rarr;</a>
+    </div>
+    <div class="design">
+      <span class="chrome"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">ottomanlabs.ai</span></span>
+      <img class="shot" src="assets/og/site-ottomanlabs.jpg" alt="The OttomanLabs.AI homepage" loading="lazy">
+      <span class="meta"><span class="name"><span class="ital">OttomanLabs</span> <span class="display">.AI</span></span>
+      <span class="caps">the studio&rsquo;s own site &middot; built from scratch &middot; you are here</span></span>
+      <ul class="feats">
+        <li><b>Made the whole site from scratch</b> &mdash; every page, drawing and tool on it.</li>
+        <li>Live 3D building models you can spin and export, in the browser.</li>
+        <li>Sign-in accounts, a newsletter, video players and a stock-research tool.</li>
+        <li>The shop floor and the shop window &mdash; the same craft your site gets.</li>
+      </ul>
+      <a class="visit" href="index.html" target="_blank" rel="noopener">Visit the site &rarr;</a>
+    </div>
   </div>
 
   <div class="wd-cta">

@@ -252,6 +252,13 @@
     margin-top:.55rem; padding-top:.5rem; position:relative; max-width:16ch; }
   .client .c-cat::before{ content:""; position:absolute; top:0; left:50%;
     transform:translateX(-50%); width:22px; height:1px; background:var(--hair); }
+  .client .cbtns{ margin-top:auto; padding-top:.8rem; width:100%; display:flex;
+    flex-direction:column; gap:.4rem; }
+  .cbtn{ display:block; text-align:center; border:1px solid var(--ink); padding:.5rem .4rem;
+    font-family:var(--font-brand); font-weight:600; font-size:.54rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink); text-decoration:none; }
+  a.cbtn:hover{ background:var(--ink); color:var(--paper); text-decoration:none; }
+  .cbtn.off{ color:var(--ink-35); border-color:var(--hair); cursor:default; }
 
   @media (max-width:900px){
     .mosaic-rest{
@@ -595,39 +602,59 @@
   <!-- ════════ CLIENTS ════════ -->
   <h2 class="section-head">Clients<span class="sh-sub">the order book &middot; commissions built end to end</span></h2>
   <div class="clients">
-    <a class="client" href="https://tiatandyrugby.com" target="_blank" rel="noopener">
+    <div class="client">
       <img class="c-logo" src="assets/clients/tandy-crest.png" alt="" aria-hidden="true">
       <span class="c-ital">Tia Tandy</span>
       <span class="c-name">RUGBY</span>
       <span class="c-cat">Athlete</span>
-    </a>
+      <span class="cbtns">
+        <a class="cbtn" href="https://tiatandyrugby.com" target="_blank" rel="noopener">Visit website</a>
+        <span class="cbtn off">What we built &middot; coming soon</span>
+      </span>
+    </div>
     <div class="client">
-      <svg viewBox="0 0 135 99" width="74" height="54" fill="#FF4E00" aria-hidden="true" style="width:74px; height:54px">
-        <path d="M67 3.2 A49.5 49.5 0 1 0 67 95.8 Z"/>
-        <circle cx="111" cy="27" r="23"/>
-        <path d="M88 99 V83 Q88 60 111 60 H135 V99 Z"/>
+      <svg viewBox="0 0 420 420" width="60" height="60" fill="#FF4E00" aria-hidden="true" style="width:60px; height:60px">
+        <path d="M200 5 A205 205 0 0 0 200 415 Z"/>
+        <circle cx="345" cy="76" r="74"/>
+        <path d="M268 420 V292 Q268 216 344 216 H420 V420 Z"/>
       </svg>
       <span class="c-ital">Glent</span>
       <span class="c-name">GROUP</span>
       <span class="c-cat">Data Centre Engineers</span>
+      <span class="cbtns">
+        <span class="cbtn off">Visit website &middot; coming soon</span>
+        <span class="cbtn off">What we built &middot; coming soon</span>
+      </span>
     </div>
     <div class="client">
       <span class="c-oval"><span class="c-mono">JR</span></span>
       <span class="c-ital">Jaded</span>
       <span class="c-name">ROSE</span>
       <span class="c-cat">E-Commerce Fashion</span>
+      <span class="cbtns">
+        <a class="cbtn" href="https://jadedrose.co.uk" target="_blank" rel="noopener">Visit website</a>
+        <span class="cbtn off">What we built &middot; coming soon</span>
+      </span>
     </div>
     <div class="client">
       <img class="c-logo" src="assets/clients/visualneuroscience-logo.svg" alt="" aria-hidden="true">
-      <span class="c-ital">Midnight</span>
+      <span class="c-ital">Visual</span>
       <span class="c-name" style="font-size:.88rem">NEUROSCIENCE.AI</span>
       <span class="c-cat">Education Platform</span>
+      <span class="cbtns">
+        <a class="cbtn" href="https://visualneuroscience.ai" target="_blank" rel="noopener">Visit website</a>
+        <span class="cbtn off">What we built &middot; coming soon</span>
+      </span>
     </div>
     <div class="client">
       <span class="c-oval"><span class="c-mono">MB</span></span>
       <span class="c-ital">MB Design</span>
       <span class="c-name">SOLUTIONS</span>
       <span class="c-cat">Consulting Engineers</span>
+      <span class="cbtns">
+        <span class="cbtn off">Visit website &middot; coming soon</span>
+        <span class="cbtn off">What we built &middot; coming soon</span>
+      </span>
     </div>
   </div>
 
