@@ -38,6 +38,16 @@
   }
   .shelf{ display:flex; flex-direction:column; gap:var(--gap); }
   .bk{ position:relative; padding:1.7rem 1.3rem 1.6rem; gap:.35rem; }
+  .bk.has-cover{ flex-direction:row; align-items:center; justify-content:flex-start;
+    text-align:left; gap:1.4rem; padding:1.4rem 1.4rem 1.4rem 1.5rem; }
+  .bk .cover{ flex:0 0 auto; width:clamp(84px, 11vw, 116px); height:auto;
+    display:block; border:1px solid var(--hair); }
+  .bk .cnt{ display:flex; flex-direction:column; align-items:flex-start; gap:.35rem;
+    min-width:0; }
+  @media (max-width:520px){
+    .bk.has-cover{ gap:1rem; padding-left:1.1rem; }
+    .bk .cover{ width:76px; }
+  }
   .bk::before{ content:""; position:absolute; inset:7px; border:1px dashed var(--ink); pointer-events:none; }
   .bk .t{ font-family:var(--font-display); font-size:clamp(1.15rem,2.4vw,1.55rem); line-height:1.28; }
   .bk .a{ font-style:italic; color:var(--ink-60); font-size:1.02rem; }
@@ -98,7 +108,7 @@
   <div class="year-plate caps">· 2023 ·</div>
   <div class="shelf">
     <div class="box bk"><span class="t">Three Strategies of Huang Shigong</span><span class="a">Huang Shigong</span><span class="c">Strategy</span></div>
-    <div class="box bk"><span class="t">Only the Paranoid Survive</span><span class="a">Andrew S. Grove</span><span class="c">Business</span></div>
+    <div class="box bk has-cover"><img class="cover" src="assets/books/paranoid.jpg" alt="Only the Paranoid Survive by Andrew S. Grove" loading="lazy" width="345" height="520"><span class="cnt"><span class="t">Only the Paranoid Survive</span><span class="a">Andrew S. Grove</span><span class="c">Business</span></span></div>
     <div class="box bk"><span class="t">Can banks individually create money out of nothing?</span><span class="a">Richard A. Werner</span><span class="c">Finance · Research paper</span></div>
     <div class="box bk"><span class="t">Your Next Five Moves</span><span class="a">Patrick Bet-David</span><span class="c">Business</span></div>
     <div class="box bk"><span class="t">Bitcoin: A Peer-to-Peer Electronic Cash System</span><span class="a">Satoshi Nakamoto</span><span class="c">Finance · Whitepaper</span></div>
@@ -106,7 +116,7 @@
 
   <div class="year-plate caps">· 2022 ·</div>
   <div class="shelf">
-    <div class="box bk"><span class="t">Zero to One</span><span class="a">Peter Thiel</span><span class="c">Business</span></div>
+    <div class="box bk has-cover"><img class="cover" src="assets/books/zero-to-one.jpg" alt="Zero to One by Peter Thiel with Blake Masters" loading="lazy" width="345" height="520"><span class="cnt"><span class="t">Zero to One</span><span class="a">Peter Thiel</span><span class="c">Business</span></span></div>
     <div class="box bk"><span class="t">Memories, Dreams, Reflections</span><span class="a">Carl Gustav Jung</span><span class="c">Autobiography · Psychoanalysis</span></div>
     <div class="box bk"><span class="t">LSD: The Divine Scientist</span><span class="a">Albert Hofmann</span><span class="c">Psychology · Neuroscience</span></div>
     <div class="box bk"><span class="t">DMT: The Spirit Molecule</span><span class="a">Rick Strassman M.D.</span><span class="c">Psychology · Neuroscience</span></div>
@@ -122,7 +132,7 @@
     <div class="box bk"><span class="t">The Communist Manifesto</span><span class="a">Karl Marx &amp; Friedrich Engels</span><span class="c">Economics</span></div>
     <div class="box bk"><span class="t">REBUS and the Anarchic Brain: Toward a Unified Model of the Brain Action of Psychedelics</span><span class="a">Robin L. Carhart-Harris &amp; Karl Friston</span><span class="c">Neuroscience · Research paper</span></div>
     <div class="box bk"><span class="t">The entropic brain: a theory of conscious states informed by neuroimaging research with psychedelic drugs</span><span class="a">Robin L. Carhart-Harris et al.</span><span class="c">Neuroscience · Research paper</span></div>
-    <div class="box bk"><span class="t">Prisoners of Geography</span><span class="a">Tim Marshall</span><span class="c">Geopolitics</span></div>
+    <div class="box bk has-cover"><img class="cover" src="assets/books/prisoners.jpg" alt="Prisoners of Geography by Tim Marshall" loading="lazy" width="345" height="520"><span class="cnt"><span class="t">Prisoners of Geography</span><span class="a">Tim Marshall</span><span class="c">Geopolitics</span></span></div>
     <div class="box bk"><span class="t">The Secret</span><span class="a">Rhonda Byrne</span><span class="c">Psychology</span></div>
     <div class="box bk"><span class="t">The Psychedelic Experience</span><span class="a">Timothy Leary</span><span class="c">Psychology · Neuroscience</span></div>
     <div class="box bk"><span class="t">Trump: The Art of the Deal</span><span class="a">Donald Trump &amp; Tony Schwartz</span><span class="c">Business</span></div>
@@ -140,7 +150,7 @@
     <div class="box bk"><span class="t">Dark Psychology</span><span class="a">Richard Campbell</span><span class="c">Psychology</span></div>
     <div class="box bk"><span class="t">Evolutionary Psychology I &amp; II</span><span class="a">Allen D. MacNeill</span><span class="c">Psychology</span></div>
     <div class="box bk"><span class="t">Propaganda</span><span class="a">Edward Bernays</span><span class="c">Psychoanalysis</span></div>
-    <div class="box bk"><span class="t">The Prince</span><span class="a">Niccolò Machiavelli</span><span class="c">Psychology</span></div>
+    <div class="box bk has-cover"><img class="cover" src="assets/books/prince.jpg" alt="The Prince by Niccolo Machiavelli, Penguin Great Ideas" loading="lazy" width="345" height="520"><span class="cnt"><span class="t">The Prince</span><span class="a">Niccolò Machiavelli</span><span class="c">Psychology</span></span></div>
     <div class="box bk"><span class="t">Hustle Harder Hustle Smarter</span><span class="a">Curtis Jackson</span><span class="c">Business</span></div>
   </div>
 
@@ -151,7 +161,7 @@
 
   <div class="year-plate caps">· 2016 ·</div>
   <div class="shelf">
-    <div class="box bk"><span class="t">The Art of War</span><span class="a">Sun Tzu</span><span class="c">Strategy</span></div>
+    <div class="box bk has-cover"><img class="cover" src="assets/books/art-of-war.jpg" alt="The Art of War by Sun Tzu" loading="lazy" width="345" height="520"><span class="cnt"><span class="t">The Art of War</span><span class="a">Sun Tzu</span><span class="c">Strategy</span></span></div>
   </div>
 
   <div class="year-plate caps">· 2015 ·</div>
