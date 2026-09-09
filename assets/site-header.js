@@ -46,7 +46,7 @@
       }).join('') +
       '<a class="ig-link" href="https://instagram.com/fid_900" target="_blank" rel="noopener" ' +
         'aria-label="Instagram — fid_900">' + IG + 'fid_900</a>' +
-      '<a class="ig-link" href="https://instagram.com/basilicalabs.ai" target="_blank" rel="noopener" ' +
+      '<a class="ig-link" href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener" ' +
         'aria-label="Instagram — basilicalabs.ai">' + IG + 'basilicalabs.ai</a>' +
       '<span id="olCloudMount"></span>' +
       '<button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark">' +
