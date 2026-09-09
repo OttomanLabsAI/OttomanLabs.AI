@@ -60,4 +60,4 @@ Disallow: /
 
 
 # Sitemap
-Sitemap: https://ottomanlabs.ai/sitemap.xml
+Sitemap: https://basilicalabs.ai/sitemap.xml

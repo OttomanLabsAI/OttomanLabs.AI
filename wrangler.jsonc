@@ -1,5 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Keeps the pre-rebrand name: this is the deployed Worker's identity, and
+  // renaming it creates a second Worker while the live one keeps serving.
   "name": "ottoman-labs-ai",
   "compatibility_date": "2026-07-28",
   "observability": {

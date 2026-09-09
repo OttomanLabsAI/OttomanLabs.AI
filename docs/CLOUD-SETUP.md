@@ -13,11 +13,11 @@ Everything is free on Firebase's Spark (no-card) plan for this kind of use.
 
 ## 1. Create a Firebase project
 1. Go to <https://console.firebase.google.com> → **Add project**.
-2. Name it (e.g. `ottomanlabs`), accept defaults. Google Analytics is optional.
+2. Name it (e.g. `basilicalabs`), accept defaults. Google Analytics is optional.
 
 ## 2. Add a Web app and copy the config
 1. In the project, click the **`</>`** (Web) icon → register an app
-   (nickname `ottomanlabs-web`). You do **not** need Firebase Hosting.
+   (nickname `basilicalabs-web`). You do **not** need Firebase Hosting.
 2. Firebase shows a `firebaseConfig = { apiKey: …, authDomain: …, projectId: … }`
    object. Copy it — you'll paste it in step 6.
    > This web config is **public by design** and safe to commit. Access is
@@ -31,7 +31,7 @@ Everything is free on Firebase's Spark (no-card) plan for this kind of use.
 
 ## 4. Authorise your domain
 1. **Authentication → Settings → Authorized domains**.
-2. Add `ottomanlabs.ai` (and `www.ottomanlabs.ai` if you use it).
+2. Add `basilicalabs.ai` (and `www.basilicalabs.ai` if you use it).
    `localhost` is there by default for local testing.
    > Miss this and sign-in fails with "unauthorised domain".
 
@@ -49,9 +49,9 @@ Edit [`assets/firebase-config.js`](../assets/firebase-config.js) and replace
 ```js
 window.OL_FIREBASE = {
   apiKey: "AIzaSy…",
-  authDomain: "ottomanlabs.firebaseapp.com",
-  projectId: "ottomanlabs",
-  storageBucket: "ottomanlabs.appspot.com",
+  authDomain: "basilicalabs.firebaseapp.com",
+  projectId: "basilicalabs",
+  storageBucket: "basilicalabs.appspot.com",
   messagingSenderId: "000000000000",
   appId: "1:000000000000:web:abcdef123456"
 };

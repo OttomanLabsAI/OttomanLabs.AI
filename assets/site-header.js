@@ -1,4 +1,4 @@
-/* OttomanLabs.AI — the one site header.
+/* BasilicaLabs.AI — the one site header.
  *
  * Renders the masthead into every page's <header class="masthead"> and owns
  * the light/dark toggle in a single place. Pages keep a static masthead in
@@ -38,7 +38,7 @@
     '<path transform="translate(60 56) scale(0.40)" d="' + SPARK + '"/></svg>';
 
   hd.innerHTML =
-    '<a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI' + SPARKS + '</a>' +
+    '<a class="brand" href="index.html" aria-label="BasilicaLabs.AI home">BasilicaLabs.AI' + SPARKS + '</a>' +
     '<nav class="nav-row" aria-label="Sections">' +
       LINKS.map(function(l){
         return '<a href="' + l.href + '"' +
@@ -46,8 +46,8 @@
       }).join('') +
       '<a class="ig-link" href="https://instagram.com/fid_900" target="_blank" rel="noopener" ' +
         'aria-label="Instagram — fid_900">' + IG + 'fid_900</a>' +
-      '<a class="ig-link" href="https://instagram.com/ottomanlabs.ai" target="_blank" rel="noopener" ' +
-        'aria-label="Instagram — ottomanlabs.ai">' + IG + 'ottomanlabs.ai</a>' +
+      '<a class="ig-link" href="https://instagram.com/basilicalabs.ai" target="_blank" rel="noopener" ' +
+        'aria-label="Instagram — basilicalabs.ai">' + IG + 'basilicalabs.ai</a>' +
       '<span id="olCloudMount"></span>' +
       '<button class="theme-toggle" id="themeToggle" aria-pressed="false" title="Toggle light / dark">' +
         '<span class="th-dot" aria-hidden="true"></span><span id="themeLabel">Dark</span>' +

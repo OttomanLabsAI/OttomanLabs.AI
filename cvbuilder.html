@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OttomanLabs.AI — CV Builder</title>
+<title>BasilicaLabs.AI — CV Builder</title>
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="OttomanLabs.AI">
-<meta property="og:title" content="CV Builder — OttomanLabs.AI">
-<meta property="og:description" content="Build a CV in the OttomanLabs.AI style — live preview, print-ready A4.">
-<meta property="og:url" content="https://ottomanlabs.ai/cvbuilder.html">
-<meta property="og:image" content="https://ottomanlabs.ai/assets/og/og-cvbuilder.png">
+<meta property="og:site_name" content="BasilicaLabs.AI">
+<meta property="og:title" content="CV Builder — BasilicaLabs.AI">
+<meta property="og:description" content="Build a CV in the BasilicaLabs.AI style — live preview, print-ready A4.">
+<meta property="og:url" content="https://basilicalabs.ai/cvbuilder.html">
+<meta property="og:image" content="https://basilicalabs.ai/assets/og/og-cvbuilder.png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://ottomanlabs.ai/assets/og/og-cvbuilder.png">
+<meta name="twitter:image" content="https://basilicalabs.ai/assets/og/og-cvbuilder.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Afacad+Flux:wght@400;500;600&family=Prata&display=swap" rel="stylesheet">
@@ -171,7 +171,7 @@ ul.bullets li::before{content:'\2022';position:absolute;left:2pt}
 }
 </style>
 <style>
-/* ── OttomanLabs.AI skin: paper-and-ink chrome; the CV keeps its own style ── */
+/* ── BasilicaLabs.AI skin: paper-and-ink chrome; the CV keeps its own style ── */
 body{background:#FFFFFF;font-family:'Afacad Flux',"Segoe UI",sans-serif}
 .toolbar{background:#FFFFFF;color:#111;border-bottom:1px solid #111;box-shadow:none;padding:9px 16px}
 .toolbar .brand{font-family:'Prata',Georgia,serif;font-weight:400;font-size:15px;color:#111}
@@ -261,7 +261,7 @@ body.show-cut .page::after{content:'A4 cut-off';position:absolute;pointer-events
 <body>
 
 <header class="masthead wrap">
-  <a class="brand" href="index.html" aria-label="OttomanLabs.AI home">OttomanLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
+  <a class="brand" href="index.html" aria-label="BasilicaLabs.AI home">BasilicaLabs.AI<svg class="sparks" viewBox="0 0 100 100" aria-hidden="true" fill="currentColor"><path transform="translate(52 0) scale(0.30)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(0 22) scale(0.60)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/><path transform="translate(60 56) scale(0.40)" d="M50 0C54 32 68 46 100 50 68 54 54 68 50 100 46 68 32 54 0 50 32 46 46 32 50 0Z"/></svg></a>
   <nav class="nav-row" aria-label="Sections">
     <a href="index.html">Home</a>
     <a href="contact.html">Contact</a>
@@ -269,7 +269,7 @@ body.show-cut .page::after{content:'A4 cut-off';position:absolute;pointer-events
 </header>
 
 <div class="toolbar">
-  <span class="brand"><a href="index.html">OttomanLabs.AI</a> &middot; CV Builder</span>
+  <span class="brand"><a href="index.html">BasilicaLabs.AI</a> &middot; CV Builder</span>
   <span class="sub">Build a CV in my style</span>
   <button class="primary" id="btnPrint">Save PDF / Print</button>
   <button id="btnSave">Save</button>
@@ -319,10 +319,10 @@ const DEFAULT = {
   summary:{ heading:'Summary', align:'left',
     text:'Expert in Revit, AutoCAD, and Bentley Suites. Specialist in Computational Design with Grasshopper, Dynamo, and Python. Experienced in building AI agents for Revit. Proficient Python coder with a deep understanding of data management & structures. Skilled in implementing AI into BIM workflows, using AI to make live changes to and analyse Revit models. Creator of a YouTube channel with 7k+ subscribers where I teach BIM modelling with Revit.' },
   channels:{ heading:'Channels', align:'left', logo:ASSETS.yt, logoW:34, lines:[
-    {text:'Ottoman AI YouTube Channel', link:false},
+    {text:'Basilica AI YouTube Channel', link:false},
     {text:'Revit, Grasshopper & AI Tutorials', link:false},
     {text:'7k+ Subscribers', link:false},
-    {text:'YouTube.com/@OttomanAI', link:true} ]},
+    {text:'YouTube.com/@BasilicaAI', link:true} ]},
   skills:{ heading:'Software Skills', icon:33.5, cats:[
     { label:'3D BIM', items:[
       {name:'Revit', level:'Expert', logo:ASSETS.revit},
@@ -385,7 +385,7 @@ const DEFAULT = {
 /* ============ state ============ */
 const clone = o => JSON.parse(JSON.stringify(o));
 let state = clone(DEFAULT);
-const STORE_KEY = 'ottoman-cv:v2';
+const STORE_KEY = 'ottoman-cv:v2';  // pre-rebrand key, kept so saved CVs survive
 let activeTab = 'profile';
 let pendingImgPath = null;
 

@@ -1,4 +1,4 @@
-/* OttomanLabs.AI — cloud save configuration.
+/* BasilicaLabs.AI — cloud save configuration.
  *
  * IMPORTANT: a Firebase *web* config (apiKey, projectId, …) is PUBLIC by
  * design — it is safe to commit to the repo. Access is enforced by the
@@ -10,6 +10,10 @@
  *
  * Setup steps are in docs/CLOUD-SETUP.md.
  */
+/* The ottomanlabsai-auth ids below are the live Firebase project. A Firebase
+ * project id cannot be renamed, so these stay on the old name even after the
+ * rebrand — changing them signs every existing account out permanently. To
+ * move, create a new project and migrate the users. */
 window.OL_FIREBASE = {
   apiKey: "AIzaSyDf5XAwmjwjnowe6N8JeRSuyHQaWGOriFE",
   authDomain: "ottomanlabsai-auth.firebaseapp.com",

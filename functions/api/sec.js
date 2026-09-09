@@ -5,7 +5,7 @@
    identity declared. Locked to SEC hosts only. */
 
 const ALLOWED_HOSTS = new Set(['www.sec.gov', 'data.sec.gov']);
-const IDENTITY = 'web@ottomanlabs.ai';
+const IDENTITY = 'web@basilicalabs.ai';
 
 export async function onRequestGet({ request }) {
   const raw = new URL(request.url).searchParams.get('url') || '';

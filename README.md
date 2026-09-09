@@ -1,2 +1,2 @@
-# OttomanLabs.AI
-OttomanLabs.AI Website
+# BasilicaLabs.AI
+BasilicaLabs.AI Website

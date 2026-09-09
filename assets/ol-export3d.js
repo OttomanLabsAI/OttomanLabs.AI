@@ -1,4 +1,4 @@
-/* OttomanLabs.AI — shared 3D model exporter.
+/* BasilicaLabs.AI — shared 3D model exporter.
    Turns a small scene description into OBJ (+MTL), USD (.usda) or DXF text
    files. Every dashboard builds its scene from its own live model and calls
    OLX3D.save(scene, fmt) — the files land through the page's saveCSVBatch
@@ -138,8 +138,8 @@
   }
 
   function writeOBJ(scene, base){
-    var obj = ['# OttomanLabs.AI — ' + scene.name, '# units: metres · Z up', 'mtllib ' + base + '.mtl'];
-    var mtl = ['# OttomanLabs.AI — ' + scene.name];
+    var obj = ['# BasilicaLabs.AI — ' + scene.name, '# units: metres · Z up', 'mtllib ' + base + '.mtl'];
+    var mtl = ['# BasilicaLabs.AI — ' + scene.name];
     var off = 1;
     scene.groups.forEach(function(g){
       var m = meshOf(g), id = ident(g.id), i;
