@@ -1,3 +1,6 @@
 # Old URLs live on: the Gherkin dashboard moved to /gherkin
 /dashboard /gherkin 301
 /dashboard.html /gherkin 301
+# Website design moved to its own site
+/website-design https://webdesign.basilicalabs.ai/ 301
+/website-design.html https://webdesign.basilicalabs.ai/ 301
