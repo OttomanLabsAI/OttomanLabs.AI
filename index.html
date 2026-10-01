@@ -293,6 +293,28 @@
     display:flex; align-items:center; justify-content:center; }
   .iv-panel[hidden]{ display:none; }
   .iv-empty{ font-family:var(--font-serif); font-style:italic; color:var(--ink-35); }
+
+  /* ── a job description, set as reading text ── */
+  .jd{ width:100%; max-width:74ch; margin:0 auto; text-align:left; padding:.4rem 0 .6rem; }
+  .jd-title{ font-family:var(--font-display); font-weight:400; font-size:clamp(1.35rem,2.6vw,1.8rem);
+    letter-spacing:.02em; line-height:1.15; margin-bottom:.9rem; }
+  .jd-facts{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem 1.6rem;
+    padding-bottom:1.1rem; border-bottom:1px solid var(--hair); margin:0; }
+  .jd-facts dt{ font-family:var(--font-brand); font-weight:600; font-size:.58rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); margin-bottom:.15rem; }
+  .jd-facts dd{ margin:0; font-family:var(--font-serif); font-size:1rem; }
+  .jd-sec{ padding-top:1.2rem; }
+  .jd-sec h4{ font-family:var(--font-brand); font-weight:600; font-size:.66rem; letter-spacing:.22em;
+    text-transform:uppercase; margin-bottom:.6rem; }
+  .jd-sec h5{ font-family:var(--font-serif); font-style:italic; font-weight:400; font-size:1.05rem;
+    margin:1rem 0 .45rem; }
+  .jd p{ font-family:var(--font-serif); font-size:1rem; line-height:1.62; margin-bottom:.6rem; }
+  .jd .jd-lead{ margin:.2rem 0 .45rem; }
+  .jd-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+  .jd-list li{ position:relative; padding-left:1.25rem; font-family:var(--font-serif); font-size:.98rem; line-height:1.55; }
+  .jd-list li::before{ content:""; position:absolute; left:0; top:.52em; width:.42rem; height:.42rem;
+    border:1px solid var(--ink); }
+  @media (max-width:560px){ .jd-facts{ grid-template-columns:1fr; } }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
@@ -687,7 +709,76 @@
         <button class="tab" role="tab" id="iv-tpb-cv-tab" aria-selected="false" aria-controls="iv-tpb-cv" tabindex="-1">CV</button>
         <button class="tab" role="tab" id="iv-tpb-pf-tab" aria-selected="false" aria-controls="iv-tpb-pf" tabindex="-1">Portfolio</button>
       </div>
-      <div class="iv-panel" role="tabpanel" id="iv-tpb-jd" aria-labelledby="iv-tpb-jd-tab"><span class="iv-empty">Job description to come.</span></div>
+      <div class="iv-panel" role="tabpanel" id="iv-tpb-jd" aria-labelledby="iv-tpb-jd-tab">
+        <article class="jd" aria-label="Job description: Computational Design Developer">
+          <header class="jd-head">
+            <h3 class="jd-title">Computational Design Developer</h3>
+            <dl class="jd-facts">
+              <div><dt>Department</dt><dd>Design Computation &ndash; Digital Design</dd></div>
+              <div><dt>Location</dt><dd>London (hybrid)</dd></div>
+              <div><dt>Reporting to</dt><dd>Head of Digital Design</dd></div>
+              <div><dt>To apply</dt><dd><a href="mailto:careers@tpbennett.com">careers@tpbennett.com</a></dd></div>
+            </dl>
+          </header>
+          <section class="jd-sec" id="jd-purpose">
+            <h4>Job purpose</h4>
+            <p>We are looking for a developer to build and maintain the design tools used across our architecture and interior design projects. The role sits in Design Computation team, which forms part of the Digital Design Team alongside BIM and Document Control, and covers desktop tools inside Rhino and Revit, web applications, and automation across our Autodesk cloud environment. You will work where software engineering meets design practice, turning the problems, our project teams face every day into applications they use and rely on.</p>
+            <p class="jd-lead">Examples of current and planned work:</p>
+          <ul class="jd-list">
+            <li id="ex-1" data-req="ex-1">Rhino and Grasshopper tools that generate, test and rationalise design options at concept and technical stages.</li>
+            <li id="ex-2" data-req="ex-2">Automation of document and drawing issue workflows in Forma Data Management using Autodesk Platform Services.</li>
+            <li id="ex-3" data-req="ex-3">Web applications that make design and project data usable by teams who do not open modelling software.</li>
+            <li id="ex-4" data-req="ex-4">Revit and Dynamo tools supporting the BIM team on live projects.</li>
+            <li id="ex-5" data-req="ex-5">Retrieval augmented generation (RAG) applications that let project teams query the practice knowledge base, standards and project data in natural language, with answers traced back to their source documents.</li>
+          </ul>
+          </section>
+          <section class="jd-sec" id="jd-responsibilities">
+            <h4>Key responsibilities and accountabilities</h4>
+          <ul class="jd-list">
+            <li id="resp-1" data-req="resp-1">Develop and maintain design applications across desktop and web.</li>
+            <li id="resp-2" data-req="resp-2">Gather requirements from project teams, prioritise them against the department roadmap, and agree scope with the Head of Digital Design.</li>
+            <li id="resp-3" data-req="resp-3">Keep internal code organised, documented, tested and managed using version control best practises.</li>
+            <li id="resp-4" data-req="resp-4">Support, fix and improve tools once they are in use, including during live project deadlines.</li>
+            <li id="resp-5" data-req="resp-5">Train users, write guidance and drive adoption.</li>
+            <li id="resp-6" data-req="resp-6">Work with IT to deploy tools across the practice, covering installer packaging, code signing, licence management, and deployment to studio workstations through the practice device management system.</li>
+            <li id="resp-7" data-req="resp-7">Ensure development work complies with practice standards and relevant regulation, including ISO 19650, our BIM Execution Plans, document control procedures and UK GDPR.</li>
+            <li id="resp-8" data-req="resp-8">Ensure the technical feasibility of proposed work and optimise applications for speed, reliability and scale.</li>
+            <li id="resp-9" data-req="resp-9">Handle client and project data securely, including any data passed to third party or AI services.</li>
+            <li id="resp-10" data-req="resp-10">Contribute to the technical direction of the department with the Head of Digital Design.</li>
+            <li id="resp-11" data-req="resp-11">Support other members of the team with project work where needed.</li>
+            <li id="resp-12" data-req="resp-12">Monitor developments in design technology, evaluate their relevance to practice workflows through structured testing, and make evidence-based recommendations on adoption.</li>
+          </ul>
+          </section>
+          <section class="jd-sec" id="jd-skills">
+            <h4>Qualifications, experience and skills</h4>
+            <h5>Essential</h5>
+          <ul class="jd-list">
+            <li id="ess-1" data-req="ess-1">Strong programming ability in Python, Javascript and C#.</li>
+            <li id="ess-2" data-req="ess-2">Familiarity with IDEs such as Visual Studio and Visual Studio Code.</li>
+            <li id="ess-3" data-req="ess-3">Strong knowledge of Rhino and Grasshopper and the development of custom Grasshopper components.</li>
+            <li id="ess-4" data-req="ess-4">Demonstrable experience writing, packaging and deploying plugins into a host modelling application.</li>
+            <li id="ess-5" data-req="ess-5">Demonstrable experience developing with Autodesk Platform Services (APS), including the Data Management API for folders, items and versions, the reading and writing of custom attributes, and the use of Webhooks to trigger event driven processes. Experience gained against Autodesk Construction Cloud or BIM 360, now Autodesk Forma and Forma Data Management, is directly relevant.</li>
+            <li id="ess-6" data-req="ess-6">Full stack web development, with responsive front-end interfaces in React and robust back-end services.</li>
+            <li id="ess-7" data-req="ess-7">Version control with Git, and experience working with Agile working structure.</li>
+            <li id="ess-8" data-req="ess-8">Evidence of tools which you have built and its adoption and retention patterns.</li>
+            <li id="ess-9" data-req="ess-9">A degree in architecture, engineering, computer science or a related field, or equivalent demonstrable experience.</li>
+            <li id="ess-10" data-req="ess-10">Minimum 3 years of professional experience in application development, computational design or a comparable software role. Experience in the AEC industry is an advantage.</li>
+            <li id="ess-11" data-req="ess-11">Strong analytical and problem-solving skills, and the ability to explain technical decisions to people who are not developers.</li>
+            <li id="ess-12" data-req="ess-12">Excellent communication and collaboration skills.</li>
+          </ul>
+            <h5>Desirable</h5>
+          <ul class="jd-list">
+            <li id="des-1" data-req="des-1">Revit API and Dynamo development.</li>
+            <li id="des-2" data-req="des-2">Experience building retrieval augmented generation systems over internal document sets, including document chunking, embedding and vector search.</li>
+            <li id="des-3" data-req="des-3">Experience integrating commercial APIs into production applications, including prompt design, structured outputs, and management of cost and latency.</li>
+            <li id="des-4" data-req="des-4">Experience evaluating model output quality using test sets, benchmarking and human review.</li>
+            <li id="des-5" data-req="des-5">Designing and consuming RESTful APIs and managing both SQL and NoSQL databases.</li>
+            <li id="des-6" data-req="des-6">Desktop application development in .NET, including Windows Presentation Foundation (WPF) and the MVVM pattern.</li>
+            <li id="des-7" data-req="des-7">Containerisation with Docker, CI/CD pipelines, and working knowledge of cloud infrastructure, preferably Azure or Google Cloud.</li>
+          </ul>
+          </section>
+        </article>
+      </div>
       <div class="iv-panel" role="tabpanel" id="iv-tpb-cv" aria-labelledby="iv-tpb-cv-tab" hidden><span class="iv-empty">CV to come.</span></div>
       <div class="iv-panel" role="tabpanel" id="iv-tpb-pf" aria-labelledby="iv-tpb-pf-tab" hidden><span class="iv-empty">Portfolio to come.</span></div>
     </div>
