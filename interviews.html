@@ -68,6 +68,30 @@
   .jd-list li::before{ content:""; position:absolute; left:0; top:.52em; width:.42rem; height:.42rem;
     border:1px solid var(--ink); }
   @media (max-width:560px){ .jd-facts{ grid-template-columns:1fr; } }
+  /* each point opens downward to show the evidence */
+  .jd{ --acc:#8A6A53; interpolate-size:allow-keywords; }
+  :root[data-theme="dark"] .jd{ --acc:#CDAA90; }
+  .jd-tools{ display:flex; align-items:center; flex-wrap:wrap; gap:.5rem 1rem; padding:1rem 0 .1rem; }
+  .btn.jd-all{ font-size:.62rem; letter-spacing:.2em; padding:.55rem .95rem .5rem; }
+  .jd-hint{ font-style:italic; color:var(--ink-60); font-size:.95rem; }
+  .jd-list details > summary{ display:flex; justify-content:space-between; align-items:flex-start; gap:.9rem;
+    list-style:none; cursor:pointer; }
+  .jd-list summary::-webkit-details-marker{ display:none; }
+  .jd-list summary::after{ content:""; flex:none; width:.46rem; height:.46rem; margin:.42em .2rem 0 0;
+    border-right:1.5px solid var(--ink-60); border-bottom:1.5px solid var(--ink-60); transform:rotate(45deg); transition:transform .2s ease; }
+  .jd-list details[open] > summary::after{ transform:translateY(.22em) rotate(225deg); }
+  .jd-list summary:hover::after{ border-color:var(--acc); }
+  .jd-list summary:focus-visible{ outline:1px solid var(--ink); outline-offset:3px; }
+  .jd-list li:has(> details[open])::before{ background:var(--ink); }
+  .jd-ev{ margin:.5rem 0 .35rem; padding:.05rem 0 .05rem .9rem; border-left:1px dashed var(--acc); }
+  .jd .jd-ev p{ font-size:.95rem; line-height:1.58; margin-bottom:.45rem; }
+  .jd .jd-ev p:last-child{ margin-bottom:0; }
+  .jd-ev b{ font-weight:600; }
+  .jd-ev a{ color:inherit; text-decoration-color:var(--acc); text-underline-offset:.15em; }
+  .jd-list details::details-content{ block-size:0; overflow:hidden;
+    transition:block-size .28s ease, content-visibility .28s allow-discrete; }
+  .jd-list details[open]::details-content{ block-size:auto; }
+  @media (prefers-reduced-motion:reduce){ .jd-list details::details-content{ transition:none; } }
 
   /* ── CV & portfolio, set as documents (bronze accent from the PDFs) ── */
   .doc{ --acc:#8A6A53; --acc-fill:#8A6A53; --soft:rgba(17,17,17,.16);
@@ -290,62 +314,360 @@
               <div><dt>Reporting to</dt><dd>Head of Digital Design</dd></div>
               <div><dt>To apply</dt><dd><a href="mailto:careers@tpbennett.com">careers@tpbennett.com</a></dd></div>
             </dl>
+            <div class="jd-tools">
+              <button type="button" class="btn jd-all" aria-controls="iv-tpb-jd">Expand all</button>
+              <span class="jd-hint">Open any point to see the work that meets it.</span>
+            </div>
           </header>
           <section class="jd-sec" id="jd-purpose">
             <h4>Job purpose</h4>
             <p>We are looking for a developer to build and maintain the design tools used across our architecture and interior design projects. The role sits in Design Computation team, which forms part of the Digital Design Team alongside BIM and Document Control, and covers desktop tools inside Rhino and Revit, web applications, and automation across our Autodesk cloud environment. You will work where software engineering meets design practice, turning the problems, our project teams face every day into applications they use and rely on.</p>
             <p class="jd-lead">Examples of current and planned work:</p>
           <ul class="jd-list">
-            <li id="ex-1" data-req="ex-1">Rhino and Grasshopper tools that generate, test and rationalise design options at concept and technical stages.</li>
-            <li id="ex-2" data-req="ex-2">Automation of document and drawing issue workflows in Forma Data Management using Autodesk Platform Services.</li>
-            <li id="ex-3" data-req="ex-3">Web applications that make design and project data usable by teams who do not open modelling software.</li>
-            <li id="ex-4" data-req="ex-4">Revit and Dynamo tools supporting the BIM team on live projects.</li>
-            <li id="ex-5" data-req="ex-5">Retrieval augmented generation (RAG) applications that let project teams query the practice knowledge base, standards and project data in natural language, with answers traced back to their source documents.</li>
+            <li id="ex-1" data-req="ex-1">
+              <details>
+                <summary>Rhino and Grasshopper tools that generate, test and rationalise design options at concept and technical stages.</summary>
+                <div class="jd-ev">
+                  <p><b>The Gherkin.</b> First authored in Grasshopper for Revit, then rebuilt as a browser <a href="gherkin-studio.html" target="_blank" rel="noopener">Gherkin studio</a>: one profile curve drives levels, rings, diagrid, plates and connections. Options are explored live in the meeting at concept stage, then go to Revit with stable IDs for technical design.</p>
+                  <p><b>EGIS.</b> Automated optimised warehouse design in Grasshopper and Dynamo — generative layouts driven straight from project parameters instead of manual drafting.</p>
+                  <p><b>Rationalising.</b> <a href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener">DataCentreForge</a> only draws buildable runs — permitted fittings first, minimum straights, and one custom bend where no standard set fits. pyMEP's fence solver never exceeds the design spacing and clears foundation clashes.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ex-2" data-req="ex-2">
+              <details>
+                <summary>Automation of document and drawing issue workflows in Forma Data Management using Autodesk Platform Services.</summary>
+                <div class="jd-ev">
+                  <p><b>Sheets and issue sets from the model.</b> At EGIS my Python pipelines generated hundreds of named, numbered sheets in seconds. pyMEP generates chamber plans, sections and sheet sets, and the Gherkin studio draws its own A4 sheets.</p>
+                  <p><b>Document control.</b> As BIM Manager I set up CDE workflows and owned ISO 19650 information management, so I know the issue process this automation has to respect.</p>
+                  <p><b>Event-driven plumbing.</b> The Jaded Rose platform runs on HMAC-verified webhooks and a Pub/Sub task queue — the same pattern APS webhooks use to start work when a new version lands. APS itself would be new to me; the workflow and the plumbing are not.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ex-3" data-req="ex-3">
+              <details>
+                <summary>Web applications that make design and project data usable by teams who do not open modelling software.</summary>
+                <div class="jd-ev">
+                  <p><b><a href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener">DataCentreForge</a></b> — 2D CAD in the browser for conduit routing. It reads Revit exports and IFC 2x3 (one site model brought in 105 manholes and 87 conduit banks) and keys everything on Revit element IDs.</p>
+                  <p><b>The <a href="gherkin-studio.html" target="_blank" rel="noopener">Gherkin studio</a></b> — sliders and presets instead of scripts, so engineers and architects drive a parametric model without opening Revit or Rhino.</p>
+                  <p><b>Amazon</b> — turned unstructured 2D CAD drawings into structured data for Amazon's global warehouse database, mapped onto one canonical, queryable schema.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ex-4" data-req="ex-4">
+              <details>
+                <summary>Revit and Dynamo tools supporting the BIM team on live projects.</summary>
+                <div class="jd-ev">
+                  <p><b><a href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener">pyMEP</a></b> — 44 Revit commands across 14 panels, in daily use on a live hyperscale data-centre programme since March 2026 and used across several offices.</p>
+                  <p><b>Before that</b> — Dynamo and Grasshopper automation and custom pyRevit scripts adopted by entire teams: thousands of MEP elements placed from clients' DWG data, tens of thousands of COBie parameters populated, and one-click pipe-slope annotation.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ex-5" data-req="ex-5">
+              <details>
+                <summary>Retrieval augmented generation (RAG) applications that let project teams query the practice knowledge base, standards and project data in natural language, with answers traced back to their source documents.</summary>
+                <div class="jd-ev">
+                  <p><b>Jaded Rose AI customer service</b> — grounded RAG over Pinecone. Answers come only from context retrieved from the store's real policies; when nothing relevant comes back, the agent offers a human handoff instead of guessing.</p>
+                  <p>The knowledge base is built by an idempotent, versioned pipeline, so the source set behind every answer is known.</p>
+                </div>
+              </details>
+            </li>
           </ul>
           </section>
           <section class="jd-sec" id="jd-responsibilities">
             <h4>Key responsibilities and accountabilities</h4>
           <ul class="jd-list">
-            <li id="resp-1" data-req="resp-1">Develop and maintain design applications across desktop and web.</li>
-            <li id="resp-2" data-req="resp-2">Gather requirements from project teams, prioritise them against the department roadmap, and agree scope with the Head of Digital Design.</li>
-            <li id="resp-3" data-req="resp-3">Keep internal code organised, documented, tested and managed using version control best practises.</li>
-            <li id="resp-4" data-req="resp-4">Support, fix and improve tools once they are in use, including during live project deadlines.</li>
-            <li id="resp-5" data-req="resp-5">Train users, write guidance and drive adoption.</li>
-            <li id="resp-6" data-req="resp-6">Work with IT to deploy tools across the practice, covering installer packaging, code signing, licence management, and deployment to studio workstations through the practice device management system.</li>
-            <li id="resp-7" data-req="resp-7">Ensure development work complies with practice standards and relevant regulation, including ISO 19650, our BIM Execution Plans, document control procedures and UK GDPR.</li>
-            <li id="resp-8" data-req="resp-8">Ensure the technical feasibility of proposed work and optimise applications for speed, reliability and scale.</li>
-            <li id="resp-9" data-req="resp-9">Handle client and project data securely, including any data passed to third party or AI services.</li>
-            <li id="resp-10" data-req="resp-10">Contribute to the technical direction of the department with the Head of Digital Design.</li>
-            <li id="resp-11" data-req="resp-11">Support other members of the team with project work where needed.</li>
-            <li id="resp-12" data-req="resp-12">Monitor developments in design technology, evaluate their relevance to practice workflows through structured testing, and make evidence-based recommendations on adoption.</li>
+            <li id="resp-1" data-req="resp-1">
+              <details>
+                <summary>Develop and maintain design applications across desktop and web.</summary>
+                <div class="jd-ev">
+                  <p><b>Desktop:</b> <a href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener">pyMEP</a>, plus the pyGherkin, pyDymak and pyTopography add-ins that rebuild browser models as native Revit elements.</p>
+                  <p><b>Web:</b> BasilicaLabs.AI (15 production pages, ~25,000 lines), <a href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener">DataCentreForge</a>, and <a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">VisualNeuroscience.AI</a>, shipped from one codebase to web, iOS / iPadOS, Mac, Android and Apple Vision Pro.</p>
+                  <p>I maintain all of them myself — pyMEP alone has 220+ tagged releases.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-2" data-req="resp-2">
+              <details>
+                <summary>Gather requirements from project teams, prioritise them against the department roadmap, and agree scope with the Head of Digital Design.</summary>
+                <div class="jd-ev">
+                  <p>On pyMEP, requirements arrive from working engineers as screenshots, IFC / LandXML files and one-line messages. I turn them into a spec, decide the trade-offs and give the acceptance judgement.</p>
+                  <p>Every studio build starts the same way — pick the win, agree the inputs — and client commissions start from a plain-English brief agreed before anything is built.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-3" data-req="resp-3">
+              <details>
+                <summary>Keep internal code organised, documented, tested and managed using version control best practises.</summary>
+                <div class="jd-ev">
+                  <p><b>pyMEP:</b> a pure-core / Revit-shell split with 431 automated tests that run without Revit, a repo-level agent contract (CLAUDE.md plus reusable skills), and every push to main auto-tagged as a release.</p>
+                  <p><b>Elsewhere:</b> Jaded Rose has 34 pytest tests and is documented for Cloud Run; DataCentreForge keeps Playwright regression suites and a per-version audit trail in the repo.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-4" data-req="resp-4">
+              <details>
+                <summary>Support, fix and improve tools once they are in use, including during live project deadlines.</summary>
+                <div class="jd-ev">
+                  <p>pyMEP supports a live hyperscale data-centre programme. Most changes reach site the same day through the self-updater, which updates atomically and can roll back.</p>
+                  <p>Runs are stage-logged with first-error capture, so an “it does nothing” report becomes a one-round fix.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-5" data-req="resp-5">
+              <details>
+                <summary>Train users, write guidance and drive adoption.</summary>
+                <div class="jd-ev">
+                  <p>As BIM Manager at Whitfield Consulting I mentored junior staff and championed automation adoption.</p>
+                  <p>I write builds up as prompt-by-prompt tutorials (a 17-step tutorial and the <a href="dymak-tutorial.html" target="_blank" rel="noopener">Dymak HQ tutorial</a>), run the <a href="playground.html" target="_blank" rel="noopener">Computational AI Playground</a>, and cover Revit, Grasshopper and AI on YouTube (<a href="https://www.youtube.com/@OttomanLabsAI" target="_blank" rel="noopener">@OttomanLabsAI</a>).</p>
+                  <p>pyMEP updates from a button on the ribbon, so staying current costs the user nothing.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-6" data-req="resp-6">
+              <details>
+                <summary>Work with IT to deploy tools across the practice, covering installer packaging, code signing, licence management, and deployment to studio workstations through the practice device management system.</summary>
+                <div class="jd-ev">
+                  <p><b>pyMEP distribution.</b> I built an in-app self-updater with atomic update and rollback, and release resolution that works behind corporate proxies (GitHub API, with git smart-HTTP and codeload fallbacks). It reaches engineers in other cities on Revit 2022–2026.</p>
+                  <p><b>Store releases.</b> <a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">VisualNeuroscience.AI</a> is packaged for and live on the Apple App Store, with a documented privacy and store-compliance package.</p>
+                  <p>Installer packaging and device-management roll-out would be done with IT; the distribution, versioning and update side is work I already own.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-7" data-req="resp-7">
+              <details>
+                <summary>Ensure development work complies with practice standards and relevant regulation, including ISO 19650, our BIM Execution Plans, document control procedures and UK GDPR.</summary>
+                <div class="jd-ev">
+                  <p>As BIM Manager (EGIS, Whitfield Consulting) I owned BEPs and ISO 19650 information management, set up CDE workflows and ran cross-discipline coordination across the portfolio.</p>
+                  <p>On the software side, <a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">VisualNeuroscience.AI</a> has in-app account deletion and a documented privacy package, and its offline PWA makes zero third-party requests — the data-protection habits UK GDPR asks for.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-8" data-req="resp-8">
+              <details>
+                <summary>Ensure the technical feasibility of proposed work and optimise applications for speed, reliability and scale.</summary>
+                <div class="jd-ev">
+                  <p><b>Feasibility first:</b> DataCentreForge returns an honest “no route” rather than unbuildable geometry, and scores ~30k candidates so routes detail like a human would draw them.</p>
+                  <p><b>Reliability:</b> pyMEP falls back to barycentric draping when Revit's ray-caster returns nothing, and self-calibrates where API behaviour differs between Revit builds.</p>
+                  <p><b>Scale:</b> VisualNeuroscience.AI renders ~1M tractography streamlines in the browser.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-9" data-req="resp-9">
+              <details>
+                <summary>Handle client and project data securely, including any data passed to third party or AI services.</summary>
+                <div class="jd-ev">
+                  <p>At Amazon and Glent I built production software on their data, under their constraints.</p>
+                  <p>Jaded Rose verifies every incoming webhook with HMAC and answers only from retrieved context. VisualNeuroscience.AI runs with zero third-party requests.</p>
+                  <p>Where an AI agent writes the code, it works under a repo-level contract (CLAUDE.md plus skills), so its behaviour stays the same from one session to the next.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-10" data-req="resp-10">
+              <details>
+                <summary>Contribute to the technical direction of the department with the Head of Digital Design.</summary>
+                <div class="jd-ev">
+                  <p>I wrote the <a href="strategy.html" target="_blank" rel="noopener">AI Strategy for Construction</a> paper: purpose-built parametric tools in hours, carried from concept to as-built on one set of IDs, and compared with Grasshopper and Dynamo on build time, training, licences and output.</p>
+                  <p>At EGIS I prototyped the first AI agents for the Revit API — the work that set the direction for the Amazon and Glent roles.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-11" data-req="resp-11">
+              <details>
+                <summary>Support other members of the team with project work where needed.</summary>
+                <div class="jd-ev">
+                  <p>Nine years of production modelling across structures, MEP and architecture — buildings, rail and water — then BIM Manager running coordination and clash resolution across a multi-project portfolio.</p>
+                  <p>On pyMEP I work embedded with the engineers who use it, not apart from them.</p>
+                </div>
+              </details>
+            </li>
+            <li id="resp-12" data-req="resp-12">
+              <details>
+                <summary>Monitor developments in design technology, evaluate their relevance to practice workflows through structured testing, and make evidence-based recommendations on adoption.</summary>
+                <div class="jd-ev">
+                  <p>I compared Claude Code-built studios with Grasshopper and Dynamo on build time, training, licences, users and output, and published the result in the <a href="strategy.html" target="_blank" rel="noopener">AI Strategy for Construction</a> paper.</p>
+                  <p>For an anatomical figure I chose deterministic Catmull-Rom upscaling over model-based upscaling, to avoid hallucinated digits.</p>
+                  <p>Every DataCentreForge release commits the prompt, the reply and the model that produced it, so tools and models can be compared version by version.</p>
+                </div>
+              </details>
+            </li>
           </ul>
           </section>
           <section class="jd-sec" id="jd-skills">
             <h4>Qualifications, experience and skills</h4>
             <h5>Essential</h5>
           <ul class="jd-list">
-            <li id="ess-1" data-req="ess-1">Strong programming ability in Python, Javascript and C#.</li>
-            <li id="ess-2" data-req="ess-2">Familiarity with IDEs such as Visual Studio and Visual Studio Code.</li>
-            <li id="ess-3" data-req="ess-3">Strong knowledge of Rhino and Grasshopper and the development of custom Grasshopper components.</li>
-            <li id="ess-4" data-req="ess-4">Demonstrable experience writing, packaging and deploying plugins into a host modelling application.</li>
-            <li id="ess-5" data-req="ess-5">Demonstrable experience developing with Autodesk Platform Services (APS), including the Data Management API for folders, items and versions, the reading and writing of custom attributes, and the use of Webhooks to trigger event driven processes. Experience gained against Autodesk Construction Cloud or BIM 360, now Autodesk Forma and Forma Data Management, is directly relevant.</li>
-            <li id="ess-6" data-req="ess-6">Full stack web development, with responsive front-end interfaces in React and robust back-end services.</li>
-            <li id="ess-7" data-req="ess-7">Version control with Git, and experience working with Agile working structure.</li>
-            <li id="ess-8" data-req="ess-8">Evidence of tools which you have built and its adoption and retention patterns.</li>
-            <li id="ess-9" data-req="ess-9">A degree in architecture, engineering, computer science or a related field, or equivalent demonstrable experience.</li>
-            <li id="ess-10" data-req="ess-10">Minimum 3 years of professional experience in application development, computational design or a comparable software role. Experience in the AEC industry is an advantage.</li>
-            <li id="ess-11" data-req="ess-11">Strong analytical and problem-solving skills, and the ability to explain technical decisions to people who are not developers.</li>
-            <li id="ess-12" data-req="ess-12">Excellent communication and collaboration skills.</li>
+            <li id="ess-1" data-req="ess-1">
+              <details>
+                <summary>Strong programming ability in Python, Javascript and C#.</summary>
+                <div class="jd-ev">
+                  <p><b>Python</b> — six years. pyMEP is ~40,000 lines, alongside FastAPI services and numpy image pipelines.</p>
+                  <p><b>JavaScript</b> — BasilicaLabs.AI (~25,000 lines, framework-free), DataCentreForge's ~2,000-line geometry core and VisualNeuroscience.AI's WebGL2 front end.</p>
+                  <p><b>C#</b> — my Revit work calls the same .NET Revit API that C# add-ins use, from IronPython 2.7, so moving to C# means new syntax on an API I already know.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-2" data-req="ess-2">
+              <details>
+                <summary>Familiarity with IDEs such as Visual Studio and Visual Studio Code.</summary>
+                <div class="jd-ev">
+                  <p>My development runs on Linux (Debian, five years) with Git and Claude Code. pyMEP is set up to be developed and tested without Revit on the machine: 431 tests run under CPython 3 against code that executes in IronPython 2.7.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-3" data-req="ess-3">
+              <details>
+                <summary>Strong knowledge of Rhino and Grasshopper and the development of custom Grasshopper components.</summary>
+                <div class="jd-ev">
+                  <p>Grasshopper expert, four years. At EGIS I built generative warehouse layouts in Grasshopper and Dynamo, driven straight from project parameters.</p>
+                  <p>The Gherkin study was first authored in Grasshopper for Revit before it became a browser studio.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-4" data-req="ess-4">
+              <details>
+                <summary>Demonstrable experience writing, packaging and deploying plugins into a host modelling application.</summary>
+                <div class="jd-ev">
+                  <p><b><a href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener">pyMEP</a></b> is a pyRevit extension I wrote, packaged and shipped: 44 commands, Revit 2022–2026 through version shims, distributed to engineers in other cities by an in-app self-updater — 220+ tagged releases in 4.5 months.</p>
+                  <p>pyGherkin, pyDymak and pyTopography are further add-ins that rebuild browser models as native Revit elements.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-5" data-req="ess-5">
+              <details>
+                <summary>Demonstrable experience developing with Autodesk Platform Services (APS), including the Data Management API for folders, items and versions, the reading and writing of custom attributes, and the use of Webhooks to trigger event driven processes. Experience gained against Autodesk Construction Cloud or BIM 360, now Autodesk Forma and Forma Data Management, is directly relevant.</summary>
+                <div class="jd-ev">
+                  <p>APS itself would be new to me. The closest work so far:</p>
+                  <p><b>Document control</b> — ISO 19650 CDE workflows as BIM Manager. <b>IDs as the key</b> — DataCentreForge keys on Revit element IDs, and pyGherkin updates elements in place by stable tracking ID. <b>Attributes at scale</b> — tens of thousands of COBie parameters populated. <b>Webhooks</b> — HMAC-verified webhooks and a Pub/Sub queue on the Jaded Rose platform.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-6" data-req="ess-6">
+              <details>
+                <summary>Full stack web development, with responsive front-end interfaces in React and robust back-end services.</summary>
+                <div class="jd-ev">
+                  <p><b>Full stack, shipped:</b> Jaded Rose (FastAPI, SQLAlchemy 2.0 / Cloud SQL, Redis, Pub/Sub and an embeddable web widget); <a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">VisualNeuroscience.AI</a> (responsive web and PWA, Firebase auth, a Cloudflare Worker minting RS256 tokens); BasilicaLabs.AI (Cloudflare Workers, Firebase Auth / Firestore cloud saves).</p>
+                  <p>The front ends are framework-free (no build step) rather than React.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-7" data-req="ess-7">
+              <details>
+                <summary>Version control with Git, and experience working with Agile working structure.</summary>
+                <div class="jd-ev">
+                  <p>Git and GitHub for four years. pyMEP had 285 commits and 220+ tagged releases in 4.5 months, with every push to main auto-tagged.</p>
+                  <p>The work runs in short loops — request, build, review, release — usually inside a day.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-8" data-req="ess-8">
+              <details>
+                <summary>Evidence of tools which you have built and its adoption and retention patterns.</summary>
+                <div class="jd-ev">
+                  <p><b><a href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener">pyMEP</a></b> — in daily use on a live hyperscale data-centre programme since March 2026, across several offices, kept current through the self-updater.</p>
+                  <p><b>Earlier tools</b> — Dynamo, Grasshopper and pyRevit tooling adopted by entire teams.</p>
+                  <p><b><a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">VisualNeuroscience.AI</a></b> — live on the Apple App Store since September 2026, after 20+ releases.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-9" data-req="ess-9">
+              <details>
+                <summary>A degree in architecture, engineering, computer science or a related field, or equivalent demonstrable experience.</summary>
+                <div class="jd-ev">
+                  <p>BEng Civil Engineering, University of Birmingham (2010–2014). PGCert Applied Neuroscience, King's College London (2021–2023).</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-10" data-req="ess-10">
+              <details>
+                <summary>Minimum 3 years of professional experience in application development, computational design or a comparable software role. Experience in the AEC industry is an advantage.</summary>
+                <div class="jd-ev">
+                  <p>Over a decade in AEC: computational design and BIM from 2015 (AECOM, Arcadis, Buro Happold, GHD and others), then BIM Manager at EGIS. Since late 2024, AI engineering at Amazon and Glent, building production software on their data.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-11" data-req="ess-11">
+              <details>
+                <summary>Strong analytical and problem-solving skills, and the ability to explain technical decisions to people who are not developers.</summary>
+                <div class="jd-ev">
+                  <p><b>Engineering problems turned into software:</b> survey-grid rotation measured with a probe point rather than trusted from the API; union-find detection of parallel pipe, conduit and duct banks; cycle detection and longest path to number fence marks.</p>
+                  <p><b>Explained to non-developers:</b> client commissions briefed and handed over in plain English, and the client pages on basilicalabs.ai written for owners with no technical background.</p>
+                </div>
+              </details>
+            </li>
+            <li id="ess-12" data-req="ess-12">
+              <details>
+                <summary>Excellent communication and collaboration skills.</summary>
+                <div class="jd-ev">
+                  <p>I work embedded with the engineers who use my tools. As BIM Manager I coordinated across disciplines and offices, and I've worked inside 17 enterprise engineering organisations, AECOM to Amazon. I also teach the method in public through tutorials and YouTube.</p>
+                </div>
+              </details>
+            </li>
           </ul>
             <h5>Desirable</h5>
           <ul class="jd-list">
-            <li id="des-1" data-req="des-1">Revit API and Dynamo development.</li>
-            <li id="des-2" data-req="des-2">Experience building retrieval augmented generation systems over internal document sets, including document chunking, embedding and vector search.</li>
-            <li id="des-3" data-req="des-3">Experience integrating commercial APIs into production applications, including prompt design, structured outputs, and management of cost and latency.</li>
-            <li id="des-4" data-req="des-4">Experience evaluating model output quality using test sets, benchmarking and human review.</li>
-            <li id="des-5" data-req="des-5">Designing and consuming RESTful APIs and managing both SQL and NoSQL databases.</li>
-            <li id="des-6" data-req="des-6">Desktop application development in .NET, including Windows Presentation Foundation (WPF) and the MVVM pattern.</li>
-            <li id="des-7" data-req="des-7">Containerisation with Docker, CI/CD pipelines, and working knowledge of cloud infrastructure, preferably Azure or Google Cloud.</li>
+            <li id="des-1" data-req="des-1">
+              <details>
+                <summary>Revit API and Dynamo development.</summary>
+                <div class="jd-ev">
+                  <p>pyMEP is Revit API work end to end, across Revit 2022–2026: LandXML networks into placed pipes and manholes, fencing and floors draped to the Toposolid, conduit size standards extended programmatically.</p>
+                  <p>Dynamo for four years, including automation adopted across teams and warehouse design at EGIS, where I also prototyped the first AI agents for the Revit API.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-2" data-req="des-2">
+              <details>
+                <summary>Experience building retrieval augmented generation systems over internal document sets, including document chunking, embedding and vector search.</summary>
+                <div class="jd-ev">
+                  <p><b>Jaded Rose:</b> an idempotent, versioned knowledge-base pipeline built from the store's real policies, embedded into Pinecone and searched by vector at question time. Answers are grounded in what was retrieved, with a handoff when nothing fits.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-3" data-req="des-3">
+              <details>
+                <summary>Experience integrating commercial APIs into production applications, including prompt design, structured outputs, and management of cost and latency.</summary>
+                <div class="jd-ev">
+                  <p>Jaded Rose runs GPT-4o in production. A supervisor classifies each message into one of eight intents with a confidence score; the code gates on 0.7 and routes to specialist FAQ, order, returns and product agents, or hands off to a person.</p>
+                  <p>Commercial APIs alongside it: Shopify Admin (order lookups with carrier detection), SEC EDGAR XBRL for pyBuffet, GitHub, and Firebase.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-4" data-req="des-4">
+              <details>
+                <summary>Experience evaluating model output quality using test sets, benchmarking and human review.</summary>
+                <div class="jd-ev">
+                  <p>Model output is checked, not trusted. The Jaded Rose classifier sits behind a 0.7 confidence gate with human handoff below it, and has 34 pytest tests.</p>
+                  <p>Every AI-written DataCentreForge release passes Playwright regression suites and is recorded with its prompt, reply and model.</p>
+                  <p>On pyMEP I triage what the agent gets wrong through diagnostics I had it build, and sign off each change before release.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-5" data-req="des-5">
+              <details>
+                <summary>Designing and consuming RESTful APIs and managing both SQL and NoSQL databases.</summary>
+                <div class="jd-ev">
+                  <p><b>Designed:</b> FastAPI services for Jaded Rose. <b>Consumed:</b> the Shopify Admin, SEC EDGAR XBRL, GitHub and Firebase APIs.</p>
+                  <p><b>SQL:</b> PostgreSQL / Cloud SQL through SQLAlchemy 2.0. <b>NoSQL:</b> Firestore cloud saves, Redis conversation memory and Pinecone vectors.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-6" data-req="des-6">
+              <details>
+                <summary>Desktop application development in .NET, including Windows Presentation Foundation (WPF) and the MVVM pattern.</summary>
+                <div class="jd-ev">
+                  <p>My closest work is pyMEP, built on the Revit .NET API from IronPython 2.7, with version shims across Revit 2022–2026. WPF and MVVM in C# aren't in my portfolio yet.</p>
+                </div>
+              </details>
+            </li>
+            <li id="des-7" data-req="des-7">
+              <details>
+                <summary>Containerisation with Docker, CI/CD pipelines, and working knowledge of cloud infrastructure, preferably Azure or Google Cloud.</summary>
+                <div class="jd-ev">
+                  <p><b>Google Cloud — the Jaded Rose Telegram bot.</b> The support platform customers reach over Telegram (and WhatsApp, Gmail and a web widget) is GCP-native: Dockerised for Cloud Run, with Cloud SQL and a Pub/Sub task queue.</p>
+                  <p><b>CI/CD:</b> pyMEP's CI tags every push to main as a release; BasilicaLabs.AI deploys from Git to Cloudflare Workers.</p>
+                </div>
+              </details>
+            </li>
           </ul>
           </section>
         </article>
@@ -979,6 +1301,28 @@
       });
     })(tabs[i], i);
   })(boxes[b]);
+})();
+/* job description — each point opens to its evidence */
+(function(){
+  "use strict";
+  var btn = document.querySelector('.jd-all');
+  var ds = Array.prototype.slice.call(document.querySelectorAll('.jd-list details'));
+  if (!btn || !ds.length) return;
+  function allOpen(){ return ds.every(function(d){ return d.open; }); }
+  function sync(){ btn.textContent = allOpen() ? 'Collapse all' : 'Expand all'; }
+  btn.addEventListener('click', function(){
+    var open = !allOpen();
+    ds.forEach(function(d){ d.open = open; });
+    sync();
+  });
+  ds.forEach(function(d){ d.addEventListener('toggle', sync); });
+  function openHash(){
+    var li = location.hash && document.getElementById(location.hash.slice(1));
+    var d = li && li.querySelector(':scope > details');
+    if (d){ d.open = true; li.scrollIntoView({ block:'center' }); }
+  }
+  openHash();
+  window.addEventListener('hashchange', openHash);
 })();
 </script>
 <script src="assets/firebase-config.js"></script>
