@@ -376,10 +376,15 @@
     <button class="rarrow next" aria-label="Scroll right">&#8250;</button>
   </div>
 
-  <h2 class="section-head">Data Centre Automation<span class="sh-sub">site, terrain &amp; utilities tooling &middot; coming soon</span></h2>
+  <h2 class="section-head">Data Centre Automation<span class="sh-sub">site, terrain &amp; utilities tooling &middot; Data Centre Forge is live</span></h2>
   <div class="rail-wrap">
     <button class="rarrow prev" aria-label="Scroll left">&#8249;</button>
     <div class="rail">
+      <div class="rcard">
+        <canvas class="tisle" id="tcDc0" aria-hidden="true"></canvas>
+        <div class="sel-banner"><span class="sel-name">DATA CENTRE FORGE</span></div>
+        <div class="ropts"><a class="ropt" href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener">Open the forge</a></div>
+      </div>
       <div class="rcard">
         <canvas class="tisle" id="tcTopo1" aria-hidden="true"></canvas>
         <div class="sel-banner"><span class="sel-name">ALIGN TO TOPOGRAPHY</span></div>
@@ -1610,6 +1615,25 @@
     paintFaces(ctx, faces, prj, yaw, 'rgba(30,34,40,.3)');
   }
 
+  // Data Centre Forge — a data hall, chillers on the roof, gensets alongside
+  function drawDataCentre(ctx, x0, gy, s, yaw){
+    var k = s / CB, prj = mkProj(x0, gy, k, yaw), faces = [];
+    // the hall: a long low clad box under a darker roof slab
+    slabFaces(faces, rectPlan(0, -0.06, 1, 0, 0.46, 0.25), 0, 0.30, '#D5D9DE');
+    slabFaces(faces, rectPlan(0, -0.06, 1, 0, 0.475, 0.265), 0.30, 0.33, '#8E959E');
+    // a row of chillers along the roof, fans on top
+    [-0.33, -0.11, 0.11, 0.33].forEach(function(px){
+      slabFaces(faces, rectPlan(px, -0.06, 1, 0, 0.078, 0.15), 0.33, 0.43, '#6E7681');
+      slabFaces(faces, discPlan(px, -0.06, 0.052, 10), 0.43, 0.436, '#2F363E');
+    });
+    // backup generators in front of the hall
+    [-0.22, 0.22].forEach(function(px){
+      slabFaces(faces, rectPlan(px, 0.39, 1, 0, 0.17, 0.07), 0, 0.15, '#3E5C86');
+      slabFaces(faces, discPlan(px + 0.12, 0.39, 0.022, 8), 0.15, 0.24, '#2F363E');
+    });
+    paintFaces(ctx, faces, prj, yaw, 'rgba(26,30,36,.32)');
+  }
+
   /* ---- the island factory ---- */
   function makeToolIsland(cfg){
     var stage = cfg.stage ? document.getElementById(cfg.stage) : null;
@@ -1829,6 +1853,9 @@
     { chip: 'Align to Topography', draw: drawFencePost, shadow: 0.30 },
     { chip: 'Line to Fence',       draw: drawFenceLine, shadow: 0.52 }
   ];
+  var DC_TOOLS = [
+    { chip: 'Data Centre Forge', draw: drawDataCentre, shadow: 0.58, dash: 'https://dcforge.basilicalabs.ai/' }
+  ];
   var MEP_TOOLS = [
     { chip: 'Bulk Placement',  draw: drawManholes,  shadow: 0.50 },
     { chip: 'Place Downpipes', draw: drawDownpipes, shadow: 0.42 }
@@ -1838,6 +1865,9 @@
   });
   MEP_TOOLS.forEach(function(t, i){
     makeToolIsland({ canvas: 'tcMep' + i, tools: [t], plaque: null, cyf: 0.5, ratio: 0.82, minH: 180, maxH: 320 });
+  });
+  DC_TOOLS.forEach(function(t, i){
+    makeToolIsland({ canvas: 'tcDc' + i, tools: [t], plaque: null, cyf: 0.5, ratio: 0.82, minH: 180, maxH: 320 });
   });
 })();
 </script>
