@@ -68,6 +68,191 @@
   .jd-list li::before{ content:""; position:absolute; left:0; top:.52em; width:.42rem; height:.42rem;
     border:1px solid var(--ink); }
   @media (max-width:560px){ .jd-facts{ grid-template-columns:1fr; } }
+
+  /* ── CV & portfolio, set as documents (bronze accent from the PDFs) ── */
+  .doc{ --acc:#8A6A53; --acc-fill:#8A6A53; --soft:rgba(17,17,17,.16);
+    width:100%; min-width:0; max-width:960px; margin:0 auto; overflow-wrap:break-word; text-align:left; padding:.4rem 0 .8rem; }
+  :root[data-theme="dark"] .doc{ --acc:#CDAA90; --soft:rgba(255,255,255,.22); }
+  .doc p{ font-family:var(--font-serif); font-size:1rem; line-height:1.6; margin-bottom:.6rem; }
+  .doc b{ font-weight:600; }
+  .doc .acc{ color:var(--acc); }
+  .doc a{ color:inherit; text-decoration-color:var(--acc); text-underline-offset:.15em; }
+  .d-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:.8rem 2rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .d-name{ font-family:var(--font-display); font-weight:400; font-size:clamp(1.7rem,3.4vw,2.5rem); letter-spacing:.05em; line-height:1.1; }
+  .d-role{ font-style:italic; color:var(--acc); margin:.35rem 0 0 !important; }
+  .d-contacts{ list-style:none; display:flex; flex-direction:column; align-items:flex-end; gap:.05rem;
+    font-family:var(--font-brand); font-size:.8rem; letter-spacing:.03em; color:var(--ink-60); }
+  .d-contacts a{ text-decoration:none; } .d-contacts a:hover{ color:var(--ink); text-decoration:underline; }
+  .d-sum{ font-size:1.04rem !important; }
+  .d-sec{ padding-top:1.9rem; }
+  .d-h2{ font-family:var(--font-brand); font-weight:600; font-size:.78rem; letter-spacing:.22em; text-transform:uppercase;
+    padding-bottom:.55rem; margin-bottom:1rem; border-bottom:1px solid var(--acc); }
+  .d-h3{ display:flex; justify-content:space-between; align-items:baseline; gap:.2rem 1rem; flex-wrap:wrap;
+    font-family:var(--font-brand); font-weight:600; font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; margin:1.7rem 0 .8rem; }
+  .d-h3 > span:first-child{ position:relative; padding-bottom:.4rem; }
+  .d-h3 > span:first-child::after{ content:""; position:absolute; left:0; bottom:0; width:2.2rem; height:2px; background:var(--acc); }
+  .d-note{ font-family:var(--font-serif); font-style:italic; font-weight:400; font-size:.95rem; letter-spacing:0;
+    text-transform:none; color:var(--acc); }
+  .doc .d-note{ color:var(--acc); }
+  a.d-note{ text-decoration:none; } a.d-note:hover{ text-decoration:underline; }
+  .d-sk{ font-family:var(--font-brand); font-weight:600; font-size:.64rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--acc); margin:.2rem 0 .55rem; }
+  .d-cap{ font-style:italic; color:var(--ink-60); font-size:.95rem !important; }
+  .d-close{ margin-top:1rem; }
+
+  /* timeline — work and education */
+  .tl{ list-style:none; display:flex; flex-direction:column; gap:1.5rem; }
+  .tl-item{ position:relative; padding-left:1.7rem; }
+  .tl-item::before{ content:""; position:absolute; left:0; top:.42em; width:.8rem; height:.8rem; border-radius:50%;
+    border:1px solid var(--ink-60); background:var(--paper); }
+  .tl-item::after{ content:""; position:absolute; left:calc(.4rem - .5px); top:calc(.42em + .9rem); bottom:-1.1rem;
+    border-left:1px dotted var(--ink-35); }
+  .tl-item:last-child::after{ bottom:0; }
+  .tl-head{ font-size:1.12rem; line-height:1.35; }
+  .tl-kind{ font-style:italic; color:var(--acc); font-size:.95rem; }
+  .tl-org{ font-size:.98rem; line-height:1.45; margin-top:.15rem; }
+  .tl-sub{ font-style:italic; color:var(--ink-60); font-size:.92rem; }
+  .tl-meta{ display:flex; justify-content:space-between; gap:1rem; font-style:italic; color:var(--acc); font-size:.94rem; margin:.1rem 0 .55rem; }
+  .tl-body p{ font-size:.98rem; }
+
+  /* software skills */
+  .d-skills{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.3rem 2.4rem; }
+  .d-sktbl{ width:100%; table-layout:fixed; border-collapse:collapse; font-size:.97rem; }
+  .d-sktbl th{ width:56%; } .d-sktbl td{ width:26%; } .d-sktbl td:last-child{ width:18%; }
+  .d-sktbl th{ text-align:left; font-weight:400; padding:.22rem 0; }
+  .d-sktbl td{ color:var(--ink-60); padding:.22rem 0 .22rem 1rem; white-space:nowrap; }
+  .d-sktbl td:last-child{ color:var(--ink); font-weight:600; text-align:right; }
+  .d-sktbl tr + tr > *{ border-top:1px solid var(--soft); }
+
+  /* chips */
+  .d-chips{ list-style:none; display:flex; flex-wrap:wrap; gap:.4rem; margin:.3rem 0 1rem; }
+  .d-chips li{ background:var(--acc-fill); color:#fff; border-radius:5px; padding:.3rem .65rem;
+    font-family:var(--font-brand); font-size:.82rem; letter-spacing:.02em; line-height:1.3; }
+  .d-chips.d-up li{ text-transform:uppercase; font-weight:600; font-size:.66rem; letter-spacing:.14em; padding:.42rem .7rem; }
+  .d-chips.d-stat li{ font-weight:400; font-size:.78rem; letter-spacing:.08em; padding:.5rem .85rem; }
+  .d-chips b{ font-weight:700; }
+
+  /* steps — a numbered process, one highlighted */
+  .d-loop{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); margin:.4rem 0 -.35rem; }
+  .d-loop span{ grid-column:3 / 5; text-align:center; font-style:italic; color:var(--acc); font-size:.9rem; line-height:1.2; }
+  .d-loop span::after{ content:""; display:block; height:.65rem; margin:.15rem 25% 0; border:1px solid var(--acc);
+    border-bottom:0; border-radius:50% 50% 0 0 / 100% 100% 0 0; }
+  .d-steps{ list-style:none; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:1rem .4rem; margin:.6rem 0 1.2rem; }
+  .d-steps li{ position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .d-steps li + li::before{ content:""; position:absolute; top:.95rem; right:50%; width:calc(100% + .4rem); height:1px; background:var(--ink); }
+  .d-n{ position:relative; z-index:1; display:grid; place-items:center; width:1.9rem; height:1.9rem; border-radius:50%;
+    border:1.5px solid var(--ink); background:var(--paper); font-family:var(--font-brand); font-weight:600; font-size:.8rem; }
+  .d-steps li.on .d-n{ background:var(--acc-fill); border-color:var(--acc-fill); color:#fff; }
+  .d-riba{ font-size:.82rem; color:var(--acc); margin-top:.15rem; }
+  .d-steps b{ font-family:var(--font-brand); font-weight:600; font-size:.62rem; letter-spacing:.16em; text-transform:uppercase;
+    margin:.4rem 0 .2rem; line-height:1.35; }
+  .d-steps i{ font-size:.86rem; line-height:1.35; color:var(--ink-60); }
+
+  /* figures — a justified row: every image in a row shares one height */
+  .d-figs{ display:flex; justify-content:center; gap:var(--gap); margin:.4rem 0 1rem; }
+  .d-fig{ flex:var(--ar) 1 0; min-width:0; max-width:calc(var(--ar) * var(--rowh, 9999px)); }
+  .d-fig img{ display:block; width:100%; height:auto; border:1px solid var(--soft); background:#fff; }
+  .d-fig a{ display:block; }
+  .d-fig a:hover img{ border-color:var(--acc); }
+  .d-fig figcaption{ font-style:italic; color:var(--ink-60); font-size:.86rem; line-height:1.4; margin-top:.35rem; }
+  .d-split{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:1rem 1.6rem; align-items:start; margin:.4rem 0 1rem; }
+  .d-split.d-wide{ grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); }
+  .d-split.d-flowside{ grid-template-columns:minmax(0,1fr) minmax(130px,170px); align-items:center; }
+  .d-split > div > .d-figs, .d-split > div > .d-notes{ margin:0; }
+
+  /* notes — short blocks, dotted rule on the left */
+  .d-notes{ display:grid; grid-template-columns:repeat(var(--cols),minmax(0,1fr)); gap:1rem 1.8rem; margin:.4rem 0 1rem; }
+  .d-nb{ border-left:1px dashed var(--acc); padding:.1rem 0 .1rem .9rem; }
+  .d-nb p{ font-size:.97rem; margin-bottom:.15rem; }
+
+  /* flow — boxes and arrows */
+  .d-flow{ display:flex; align-items:center; margin:.6rem 0 1rem; }
+  .d-step{ border:1px solid var(--ink); padding:.45rem .7rem; font-family:var(--font-brand); font-weight:600; font-size:.64rem;
+    letter-spacing:.14em; text-transform:uppercase; line-height:1.3; text-align:center; background:var(--paper); }
+  .d-step.on{ background:var(--acc-fill); border-color:var(--acc-fill); color:#fff; }
+  .d-arrow{ flex:1 1 1.5rem; min-width:1.5rem; position:relative; height:1px; background:var(--acc); margin:0 .35rem 0 .3rem; }
+  .d-arrow::after{ content:""; position:absolute; right:-1px; top:-4px; border:4.5px solid transparent; border-left:7px solid var(--acc); border-right:0; }
+  .d-flow.v{ flex-direction:column; align-items:stretch; margin:0; }
+  .d-flow.v .d-arrow, .d-flow.down .d-arrow{ flex:none; width:auto; min-width:0; height:auto; min-height:1.6rem; margin:.2rem 0 .55rem;
+    display:flex; align-items:center; justify-content:center; background:linear-gradient(var(--acc),var(--acc)) center / 1px 100% no-repeat; }
+  .d-flow.v .d-arrow::after, .d-flow.down .d-arrow::after{ right:auto; left:50%; margin-left:-4.5px; top:100%;
+    border:4.5px solid transparent; border-top:7px solid var(--acc); border-bottom:0; }
+  .d-flow.v .d-arrow{ min-height:4.4rem; }
+  .d-arrow em{ background:var(--paper); padding:.15rem 0; color:var(--acc); font-size:.88rem; line-height:1.25; text-align:center; }
+
+  /* comparison table */
+  .d-tblwrap{ overflow-x:auto; width:0; min-width:100%; margin:.3rem 0 .6rem; }  /* width:0 keeps the table out of the min-content size */
+  .d-cmp{ width:100%; min-width:560px; border-collapse:collapse; font-size:.97rem; }
+  .d-cmp thead th{ font-family:var(--font-brand); font-weight:600; font-size:.64rem; letter-spacing:.16em; text-transform:uppercase;
+    text-align:left; padding:.4rem .6rem .5rem 0; border-bottom:1px solid var(--acc); }
+  .d-cmp tbody th{ text-align:left; font-weight:600; padding:.38rem .8rem .38rem 0; white-space:nowrap; }
+  .d-cmp td{ padding:.38rem .6rem .38rem 0; color:var(--ink-60); }
+  .d-cmp td.acc{ color:var(--acc); font-weight:600; }
+  .d-cmp tbody tr + tr > *{ border-top:1px solid var(--soft); }
+
+  /* status bar + legend */
+  .d-status{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; margin:.4rem 0 .7rem; }
+  .d-status span{ height:1.3rem; }
+  .s-p{ background:var(--acc-fill); }
+  .s-m{ border:1px solid var(--acc); background:repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--acc) 55%, transparent) 5px 6px); }
+  .s-x{ border:1px solid var(--ink); }
+  .s-n{ border:1px dashed var(--ink); }
+  .d-legend{ list-style:none; display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin-bottom:.6rem; font-family:var(--font-brand);
+    font-weight:600; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; }
+  .d-legend li{ display:flex; align-items:center; gap:.45rem; }
+  .d-legend i{ display:inline-block; width:.85rem; height:.85rem; }
+
+  /* spine — one model, one set of IDs */
+  .d-spine{ position:relative; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto 2.2rem auto; margin:.8rem 0 .9rem; }
+  .d-spine > *{ grid-column:1; justify-self:start; align-self:center; position:relative; font-family:var(--font-brand); font-weight:600;
+    font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; line-height:1.3; white-space:nowrap; }
+  .sp-line{ grid-row:2; justify-self:stretch !important; height:1px; background:var(--ink); margin:0 3%; }
+  .d-spine > span{ border:1px solid var(--ink); background:var(--paper); padding:.4rem .55rem; transform:translateX(-50%); }
+  .d-spine > b{ grid-row:2; background:var(--acc-fill); color:#fff; border-radius:5px; padding:.45rem .85rem; letter-spacing:.16em; }
+  .sp-z{ justify-self:end !important; }
+  .sp-t1, .sp-t2, .sp-t3{ grid-row:1; margin-bottom:1.1rem; }
+  .sp-b1, .sp-b2, .sp-b3{ grid-row:3; margin-top:1.1rem; }
+  .sp-t1{ margin-left:22%; } .sp-t2{ margin-left:44%; } .sp-t3{ margin-left:66%; }
+  .sp-b1{ margin-left:33%; } .sp-b2{ margin-left:55%; } .sp-b3{ margin-left:77%; }
+  .d-spine > [class^="sp-t"]::after, .d-spine > [class^="sp-b"]::before{ content:""; position:absolute; left:50%; width:1px;
+    height:2.2rem; background:var(--ink); }
+  .d-spine > [class^="sp-t"]::after{ top:100%; }
+  .d-spine > [class^="sp-b"]::before{ bottom:100%; }
+
+  @media (max-width:760px){
+    .d-skills{ grid-template-columns:1fr; }
+    .d-split, .d-split.d-wide{ grid-template-columns:1fr; }
+    .d-notes{ grid-template-columns:1fr; }
+    .d-steps{ grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:1.3rem; }
+    .d-steps li:nth-child(3n+1)::before{ display:none; }
+    .d-loop{ display:block; margin:.4rem 0 0; }
+    .d-loop span::before{ content:"3 \21C4  4 \00B7  "; font-style:normal; }
+    .d-loop span::after{ display:none; }
+    .d-spine{ display:flex; flex-direction:column; align-items:flex-start; gap:.55rem; }
+    .d-spine > *{ align-self:flex-start; margin:0 !important; transform:none !important; }
+    .sp-line{ position:absolute !important; align-self:stretch !important; left:1.1rem; top:1rem; bottom:1rem; width:1px; height:auto; margin:0 !important; }
+    .d-spine > span{ margin-left:2.4rem !important; }
+    .d-spine > [class^="sp-t"]::after, .d-spine > [class^="sp-b"]::before{ top:50%; bottom:auto; left:auto; right:100%; width:1.3rem; height:1px; }
+  }
+  @media (max-width:640px){
+    .d-contacts{ align-items:flex-start; }
+    .d-fig{ max-width:none; }
+    .d-fig img{ max-height:360px; object-fit:contain; }
+    .d-figs.mwrap{ flex-wrap:wrap; }
+    .d-figs.mwrap .d-fig{ flex:0 0 calc(var(--mf) * 100% - var(--mg) * var(--gap)); }
+    .d-flow:not(.v){ flex-direction:column; align-items:stretch; }
+    .d-flow:not(.v) .d-arrow{ flex:none; width:auto; min-width:0; height:auto; min-height:1.4rem; margin:.2rem 0 .55rem;
+      background:linear-gradient(var(--acc),var(--acc)) center / 1px 100% no-repeat; }
+    .d-flow:not(.v) .d-arrow::after{ right:auto; left:50%; margin-left:-4.5px; top:100%; border:4.5px solid transparent; border-top:7px solid var(--acc); border-bottom:0; }
+    .d-split.d-flowside{ grid-template-columns:1fr; }
+    .d-split.d-flowside .d-flow.v{ max-width:220px; margin:0 auto; }
+  }
+  @media (max-width:420px){
+    .d-steps{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .d-steps li:nth-child(3n+1)::before{ display:block; }
+    .d-steps li:nth-child(2n+1)::before{ display:none; }
+    .d-loop span::before{ content:"3 \21C4  4 \00B7  "; }
+  }
 </style>
 <script>(function(){try{var t=localStorage.getItem('ol-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/9a95e7b3013f3d844b00eb3f0/178e6c15891664e8297346159.js");</script>
@@ -165,8 +350,565 @@
           </section>
         </article>
       </div>
-      <div class="iv-panel" role="tabpanel" id="iv-tpb-cv" aria-labelledby="iv-tpb-cv-tab" hidden><span class="iv-empty">CV to come.</span></div>
-      <div class="iv-panel" role="tabpanel" id="iv-tpb-pf" aria-labelledby="iv-tpb-pf-tab" hidden><span class="iv-empty">Portfolio to come.</span></div>
+      <div class="iv-panel" role="tabpanel" id="iv-tpb-cv" aria-labelledby="iv-tpb-cv-tab" hidden>
+        <article class="doc" aria-label="CV: Fadil Karim">
+          <header class="d-head">
+            <div>
+              <h3 class="d-name">FADIL KARIM</h3>
+            </div>
+            <ul class="d-contacts">
+              <li><a href="mailto:fadilkarim@live.co.uk">fadilkarim@live.co.uk</a></li>
+              <li>London</li>
+              <li><a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">uk.linkedin.com/in/fadil-karim</a></li>
+              <li><a href="https://github.com/OttomanLabsAI" target="_blank" rel="noopener">github.com/OttomanLabsAI</a></li>
+              <li><a href="https://www.youtube.com/@OttomanLabsAI" target="_blank" rel="noopener">youtube.com/@OttomanLabsAI</a></li>
+              <li><a href="/">basilicalabs.ai</a></li>
+              <li><a href="https://visualneuroscience.ai/" target="_blank" rel="noopener">visualneuroscience.ai</a></li>
+            </ul>
+          </header>
+          <p class="d-sum">AI engineer with over a decade embedded inside enterprise engineering organisations — 17 of them, AECOM to Amazon — the first nine on the automation side, building tooling in automation software such as Dynamo and Grasshopper to cut delivery time, and since late 2024 building production software on their data, under their constraints. I think in systems: every tool I ship is designed as a whole — inputs and data formats, the engine, automated verification, release and distribution, and the operating rules the AI agent works under — so it keeps working after I leave. My speciality is making messy enterprise data computable: inconsistent CAD, IFC and LandXML from dozens of contractors, reconciled and mapped onto canonical, queryable models, with first outputs live in front of the people who act on them — often the same day. Current proof: a 44-tool, 40,000-line Revit automation suite shipped solo through Claude Code (220+ versioned releases) on a live hyperscale data centre programme; CAD data-extraction pipelines deployed inside Amazon; and BasilicaLabs.AI — an independent studio delivering client platforms end to end. Python-first, agents as daily leverage, automated verification, tight release cycles and git-based continuous delivery.</p>
+          <section class="d-sec">
+            <h4 class="d-h2">Work experience</h4>
+            <ol class="tl">
+              <li class="tl-item">
+                <div class="tl-head"><b>AI Engineer</b> <span class="tl-kind">· Contract</span></div>
+                <div class="tl-org">Glent Group</div>
+                <div class="tl-meta"><span>London</span><span>03/2026 – Present</span></div>
+                <div class="tl-body">
+                  <p>Built and shipped pyMEP (open-sourced at github.com/OttomanLabsAI/pyMEP), a production pyRevit extension automating civil and MEP infrastructure modelling — drainage networks, conduits, fencing, chambers, topography and annotation — for a multi-office engineering team on a live hyperscale data centre programme: 44 ribbon commands across 14 panels, ~40,000 lines of code, Revit 2022–2026, distributed to engineers in other cities through an in-app self-updater; 285 commits and 220+ tagged releases in 4.5 months, every push to main auto-tagged as a release.</p>
+                  <p>Sole designer, developer and release manager, embedded with the engineers who use it — the de facto forward-deployed engineer. I designed the delivery loop itself as one system: requirements arrived from working engineers as screenshots, IFC / LandXML files and one-line messages; Claude Code implemented them under a repo-level agent contract (CLAUDE.md plus reusable release and identity skills) so it behaved consistently across sessions; automated tests, CI tagging and the self-updater carried each change to site, most the same day; I supplied domain intent, field artefacts and acceptance judgement, triaged what the agent got wrong through diagnostics I had it build, and decided the trade-offs.</p>
+                  <p>Engineered the domain logic underneath: a Civil 3D → Revit pipeline that parses LandXML networks into auto-placed pipes and manholes, with survey-grid rotation measured empirically by probe point rather than trusted from the API; terrain-draped fencing with a spacing solver that never exceeds the design spacing, clears foundation clashes and auto-numbers marks from network topology (cycle detection / longest path); floor draping with a barycentric fallback when Revit’s ray-caster returns nothing; union-find detection of parallel pipe, conduit and duct banks for one-click annotation; and pipes → conduits conversion that extends conduit size standards programmatically.</p>
+                  <p>Architected it so the entire codebase could be developed and verified without Revit on the development machine: a pure-core / Revit-shell split with 431 automated tests run under CPython 3 against code that executes in IronPython 2.7, Revit-bound modules tested by AST-extracting functions into fakes, version shims absorbing API drift across Revit 2022–2026, runtime self-calibration where API semantics differ between builds, and guards for IronPython traps such as float(None) raising a CLR SystemError.</p>
+                  <p>Engineered the system around the tool, not just the commands: release-per-push with CI tagging and a version-carrying UI, atomic self-update with rollback, proxy-resilient release resolution (GitHub API with git smart-HTTP and codeload fallbacks), and stage-logged runs with first-error capture that turn “it does nothing” reports into one-round fixes.</p>
+                  <p>Also developing DataCentreForge (dcforge.basilicalabs.ai — early-stage, in active development) — a browser-based 2D CAD tool for data centre external containment: manhole chambers and the MV / LV / ELV / fibre / telecoms conduit routes between them. Specified and QA’d every feature against real detailing standards across 16 product versions and 14 verified releases: a constraint-based router (permitted fitting angles, minimum straights, an honest “no route” rather than unbuildable geometry), cost-scored optimisation over ~30k candidates so routes detail like a human, clearance / clash rules, ductbanks with shared centrelines and per-run Z-levels, to-scale cross-sections — ~2,000 lines of dependency-free geometry, Playwright regression suites, and a per-version audit trail of prompt, AI response and model kept in the repo.</p>
+                </div>
+              </li>
+              <li class="tl-item">
+                <div class="tl-head"><b>AI Engineer</b> <span class="tl-kind">· Independent studio — personal projects &amp; client commissions</span></div>
+                <div class="tl-org">BasilicaLabs.AI</div>
+                <div class="tl-sub">Operated alongside principal engagements · basilicalabs.ai · visualneuroscience.ai</div>
+                <div class="tl-meta"><span>London</span><span>06/2026 – Present</span></div>
+                <div class="tl-body">
+                  <p>Design, build and operate production software end to end — product, code, infrastructure and content — across basilicalabs.ai (computational design for BIM and construction), visualneuroscience.ai (neuroanatomy) and commissioned client work; sole builder and operator, with Claude Code as the implementation engine under my specification, review and release control — one repeatable pipeline every time: discuss the geometry with the engineer, specify in plain English, working dashboard in hours, iterate with the user, export, generate the Revit add-in, hand over.</p>
+                  <p><b>BasilicaLabs.AI</b> — 15 production pages, ~25,000 lines of framework-free HTML / JS / CSS (no build step) with bespoke geometry and 2D-canvas engines on nine pages, all built through Claude Code: parametric building dashboards for The Gherkin (spline profile → stacked levels → generated diagrid, plates and connections, with Revit-style schedules), Dymak HQ (parametric circular roof) and TopoForge (draw, build and sculpt a TIN terrain); a Computational AI Playground of 14 input-widget types; and pyBuffet, Buffett-style analysis over live SEC EDGAR XBRL data. Runs on Cloudflare Workers with Firebase Auth / Firestore cloud saves.</p>
+                  <p>Closed the browser-to-BIM loop: a purpose-built shared export module (no third-party libraries) emits OBJ+MTL, USD and DXF (TopoForge adds CSV point clouds and LandXML 1.2 TIN surfaces for Civil 3D → Revit), and two pyRevit extensions I built — pyGherkin and pyDymak — rebuild the dashboard geometry as native Revit elements with stable tracking IDs so changes round-trip in place: one ID-tracked model from concept to as-built (RIBA 2–6), collapsing a ~4-week manual modelling cycle for The Gherkin to a 3–4 hour build and ~10-minute design iterations.</p>
+                  <p><b>VisualNeuroscience.AI</b> — an interactive neuroanatomy platform rendering real MRI atlases in WebGL2 (NiiVue), shipped from one no-build codebase to web, PWA, iOS / iPadOS, Mac, Android and Apple Vision Pro over 20+ releases, and live on the Apple App Store (apps.apple.com/gb/app/visualneuroscience/id6805618686): a Region Atlas (MNI152 + AAL-116 in four synchronised viewports), Brodmann Areas (41 areas searchable by function, a 3D border graph measured voxel-by-voxel, the classic cartoon reconstructed pixel-exactly), HCP1065 tractography (~1M streamlines), a six-state Network Atlas, a cited digital textbook with a live Hodgkin–Huxley integration, and a visionOS spatial console.</p>
+                  <p>Under the hood: cross-provider auth (Firebase; Google and Apple sign-in bridged from native sheets; LinkedIn via a Cloudflare Worker minting RS256 custom tokens with WebCrypto; account linking and in-app deletion to App Store 5.1.1(v)); an offline-first PWA with zero third-party requests and a documented privacy / store-compliance package; Python / numpy image pipelines with dependency-free PNG / NIfTI codecs (deterministic Catmull-Rom upscaling chosen over model-based upscaling to avoid hallucinated digits on an anatomical figure); every release verified by headless Playwright before push.</p>
+                  <p><b>Jaded Rose AI customer service</b> — a GCP-native, multi-channel support platform for a UK occasionwear Shopify store, built in ~3 weeks (github.com/Jaded-Rose) and designed as a whole system rather than a chatbot: customers message over Telegram, WhatsApp, Gmail or an embeddable web widget; a GPT-4o supervisor classifies intent across eight categories behind a 0.7 confidence gate, routes to specialist FAQ, order, returns and product agents and hands off to a human — transcript to the support inbox — whenever confidence is low or an agent fails. Grounded RAG over Pinecone (answer only from retrieved context, otherwise offer handoff) fed by an idempotent, versioned knowledge-base pipeline built from the store’s real policies; Shopify Admin API order lookups with automatic carrier detection (Royal Mail, DHL, Evri, DPD); Redis conversation memory; HMAC-verified webhooks; FastAPI, SQLAlchemy 2.0 / Cloud SQL and a Pub/Sub task queue designed to grow to four agents — ~4.8k lines of Python, 34 pytest tests, Dockerised and documented for Cloud Run.</p>
+                  <p><b>Client commissions</b> delivered end to end — brief in plain English, working link the same day, iterate in hours, then code, hosting and accounts handed over: Glent Group (AI infrastructure and technology build), MB Design Solutions (engineering reports via an agentic-AI pipeline), Tia Tandy Rugby (athlete site) and Jaded Rose (custom Shopify theme, plus the customer-service platform above). Systematised the service as four composable Claude Code Skills: a prospect’s URL becomes a verified three-tab pitch demo — faithful capture of their current site, a new build in the house style, and the offer — shipped as a one-repo-per-client Cloudflare deploy through hard verification gates (layout sweeps, asset-leak checks, screenshot QA), cutting client cost from agency thousands to hundreds of pounds, delivered in days; the method is written up as a 17-step prompt-by-prompt tutorial and the AI Strategy for Construction paper appended to this CV.</p>
+                </div>
+              </li>
+              <li class="tl-item">
+                <div class="tl-head"><b>AI Engineer</b> <span class="tl-kind">· Contract</span></div>
+                <div class="tl-org">Amazon</div>
+                <div class="tl-meta"><span>London</span><span>10/2025 – 03/2026</span></div>
+                <div class="tl-body">
+                  <p>Transformed unstructured 2D CAD drawings into structured data for Amazon's global warehouse database using Claude Code — drawings no two contractors produced alike, their conventions reconciled and mapped onto one canonical, queryable schema.</p>
+                  <p>Developed automated 3D modeling tools for site logistics planning, enabling automatic generation of staging lanes, vehicle circulation, and yard infrastructure from site parameters, replacing manual drafting.</p>
+                  <p>Designed the agentic development workflow end to end — behavior defined against real-world, imperfect drawing data, automated validation catching the errors manual checks missed — rather than a series of one-off prompts.</p>
+                </div>
+              </li>
+              <li class="tl-item">
+                <div class="tl-head"><b>BIM Manager</b> <span class="tl-kind">· Contract</span></div>
+                <div class="tl-org">EGIS Group</div>
+                <div class="tl-meta"><span>London</span><span>12/2024 – 10/2025</span></div>
+                <div class="tl-body">
+                  <p>Led BIM standards and delivery across a multi-project portfolio while building the team's automation layer in Python, Grasshopper and Dynamo — the point where personal time-saving scripts became shared, reusable software.</p>
+                  <p>Automated optimised warehouse design in Grasshopper and Dynamo — generative layouts driven directly from project parameters instead of manual drafting.</p>
+                  <p>Built Python pipelines that placed and sized columns and beams straight from engineers' raw Excel files, extended and aligned structural elements to topography, and generated hundreds of named, numbered sheets in seconds.</p>
+                  <p>Prototyped the first AI agents for the Revit API — 3D modelling and spatial analysis of CAD (.dwg) files from plain-text prompts — the work that led directly into the Amazon and Glent AI engineering roles.</p>
+                  <p>Owned BEPs and ISO 19650 information management, ran cross-discipline coordination and clash resolution across the portfolio.</p>
+                </div>
+              </li>
+              <li class="tl-item">
+                <div class="tl-head"><b>Computational Designer — 3D Modelling &amp; Automation</b> <span class="tl-kind">· Permanent, then Contract</span></div>
+                <div class="tl-org">Richmond &amp; Wandsworth Councils · Green Structural Engineering · Robert Wynter &amp; Partners · AECOM · Arcadis · BG&amp;E · Robert Bird Group · 3DReid · GHD · Buro Happold · Eckersley O'Callaghan · ES Global · Whitfield Consulting · Pell Frischmann</div>
+                <div class="tl-meta"><span>London &amp; Surrey</span><span>06/2015 – 12/2024</span></div>
+                <div class="tl-body">
+                  <p>Nine years of production 3D modelling across structures, MEP and architecture — buildings, rail and water infrastructure — in Revit, MicroStation/AECOsim, Civil 3D and AutoCAD; progressed from early structural CAD and mechanical engineering contracts (2015) through BIM Technician (AECOM, 2016; Arcadis, 2018) and Senior BIM Technician (2019 onward) to BIM Manager (Whitfield Consulting, 2024).</p>
+                  <p>Modelled and coordinated structural packages to LOD 350, built federated multi-discipline models, ran clash detection in Navisworks, and produced construction drawings, schedules and specifications directly from the models (Buro Happold, Eckersley O'Callaghan, GHD, Robert Bird Group, Pell Frischmann, 2019–2024).</p>
+                  <p>Before moving into software, built tooling to cut delivery time — Dynamo and Grasshopper automation and, later, custom pyRevit scripts — adopted by entire teams: placing thousands of MEP elements — lights, manholes, pipes, concrete encasements for cable-duct runs — directly from clients' DWG data, populating tens of thousands of COBie parameters, and one-click pipe-slope annotation.</p>
+                  <p>As BIM Manager, established BEPs and ISO 19650-aligned standards, set up CDE workflows, mentored junior staff and championed automation adoption (Whitfield Consulting, 2024).</p>
+                </div>
+              </li>
+            </ol>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Education</h4>
+            <ol class="tl">
+              <li class="tl-item">
+                <div class="tl-head"><b>PGCert — Applied Neuroscience</b></div>
+                <div class="tl-org">King's College London</div>
+                <div class="tl-meta"><span>London</span><span>2021 – 2023</span></div>
+                <div class="tl-body">
+                  <p>Neural mechanisms and cognitive processes, applied as working domain knowledge at visualneuroscience.ai — an interactive brain-mapping platform I built and operate (MRI region atlas, tractography, receptor-density explorer).</p>
+                </div>
+              </li>
+              <li class="tl-item">
+                <div class="tl-head"><b>BEng — Civil Engineering</b></div>
+                <div class="tl-org">University of Birmingham</div>
+                <div class="tl-meta"><span>Birmingham</span><span>2010 – 2014</span></div>
+                <div class="tl-body">
+                  <p>Core civil engineering principles and practices; group projects in structural analysis and design; dissertation on sustainable urban infrastructure development.</p>
+                </div>
+              </li>
+            </ol>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Software skills</h4>
+            <div class="d-skills">
+              <div>
+                <h6 class="d-sk">AI engineering &amp; development</h6>
+                <table class="d-sktbl">
+                  <tr><th scope="row">Claude Code</th><td>Expert</td><td>1 yr</td></tr>
+                  <tr><th scope="row">Python</th><td>Expert</td><td>6 yrs</td></tr>
+                  <tr><th scope="row">MCP Server</th><td>Expert</td><td>1 yr</td></tr>
+                  <tr><th scope="row">GitHub</th><td>Advanced</td><td>4 yrs</td></tr>
+                  <tr><th scope="row">Linux OS – Debian</th><td>Advanced</td><td>5 yrs</td></tr>
+                  <tr><th scope="row">n8n AI Automation</th><td>Advanced</td><td>2 yrs</td></tr>
+                  <tr><th scope="row">JavaScript</th><td>Advanced</td><td>1 yr</td></tr>
+                </table>
+              </div>
+              <div>
+                <h6 class="d-sk">3D BIM &amp; computational design</h6>
+                <table class="d-sktbl">
+                  <tr><th scope="row">Revit</th><td>Expert</td><td>11 yrs</td></tr>
+                  <tr><th scope="row">AutoCAD</th><td>Expert</td><td>11 yrs</td></tr>
+                  <tr><th scope="row">Civil 3D</th><td>Expert</td><td>10 yrs</td></tr>
+                  <tr><th scope="row">OpenBuildings</th><td>Expert</td><td>5 yrs</td></tr>
+                  <tr><th scope="row">pyRevit</th><td>Expert</td><td>5 yrs</td></tr>
+                  <tr><th scope="row">Grasshopper</th><td>Expert</td><td>4 yrs</td></tr>
+                  <tr><th scope="row">Dynamo</th><td>Expert</td><td>4 yrs</td></tr>
+                </table>
+              </div>
+              <div>
+                <h6 class="d-sk">Web platform</h6>
+                <table class="d-sktbl">
+                  <tr><th scope="row">Cloudflare Workers</th><td>Advanced</td><td>1 yr</td></tr>
+                  <tr><th scope="row">Firebase (Auth + Firestore)</th><td>Advanced</td><td>1 yr</td></tr>
+                  <tr><th scope="row">FastAPI / PostgreSQL</th><td>Advanced</td><td>1 yr</td></tr>
+                  <tr><th scope="row">three.js / WebGL</th><td>Advanced</td><td>1 yr</td></tr>
+                </table>
+              </div>
+              <div>
+                <h6 class="d-sk">Graphic design</h6>
+                <table class="d-sktbl">
+                  <tr><th scope="row">Adobe Illustrator</th><td>Expert</td><td>4 yrs</td></tr>
+                  <tr><th scope="row">Adobe Photoshop</th><td>Advanced</td><td>4 yrs</td></tr>
+                  <tr><th scope="row">Adobe InDesign</th><td>Advanced</td><td>2 yrs</td></tr>
+                </table>
+              </div>
+            </div>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Domain &amp; methods</h4>
+            <h6 class="d-sk">BIM &amp; construction</h6>
+            <ul class="d-chips">
+              <li>BIM Coordination</li>
+              <li>BIM Execution Plans</li>
+              <li>BS EN ISO 19650</li>
+              <li>UK BIM Standards</li>
+              <li>Clash Detection</li>
+              <li>Model Federation</li>
+              <li>CDE Workflows</li>
+              <li>Data &amp; Information Management</li>
+              <li>COBie</li>
+              <li>Parametric Revit Families</li>
+              <li>Civil 3D → Revit Pipelines</li>
+              <li>AI Agents for Revit API</li>
+              <li>AI Agents for Spatial Analysis</li>
+            </ul>
+            <h6 class="d-sk">Software &amp; AI engineering</h6>
+            <ul class="d-chips">
+              <li>Client-Embedded Delivery</li>
+              <li>Agentic Development (Claude Code)</li>
+              <li>Agent Instructions &amp; Skills</li>
+              <li>Multi-Agent Orchestration</li>
+              <li>Schema Discovery &amp; Canonical Mapping</li>
+              <li>RAG &amp; Vector Search</li>
+              <li>Intent Classification</li>
+              <li>Human-in-the-Loop Escalation</li>
+              <li>LLM Evaluation &amp; QA</li>
+              <li>AI Provenance &amp; Auditability</li>
+              <li>Computational Geometry</li>
+              <li>REST &amp; Webhook Integration</li>
+              <li>Test Automation (pytest, Playwright)</li>
+              <li>CI/CD &amp; Release Engineering</li>
+              <li>Cloudflare Workers &amp; GCP</li>
+            </ul>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">AI strategy for construction</h4>
+            <p class="d-lead">Parametric design without Grasshopper or Dynamo — briefed in plain English, built with <b>Claude Code</b> in hours, and carried through <b>detailed design and beyond</b>. Live at <b><a href="index.html">basilicalabs.ai</a></b>.</p>
+            <div class="d-loop"><span>minutes per change</span></div>
+            <ol class="d-steps">
+              <li><span class="d-n">1</span><b>Scope</b><i>pick the win, agree the inputs</i></li>
+              <li><span class="d-n">2</span><b>Brief</b><i>plain-English spec, no code written</i></li>
+              <li><span class="d-n">3</span><b>Build</b><i>Claude Code builds the studio</i></li>
+              <li><span class="d-n">4</span><b>Iterate</b><i>change requests in conversation</i></li>
+              <li><span class="d-n">5</span><b>Export</b><i>CSV / JSON / OBJ, schema stable</i></li>
+              <li class="on"><span class="d-n">6</span><b>Place &amp; track</b><i>pyRevit places, IDs persist</i></li>
+            </ol>
+            <h5 class="d-h3"><span>The Gherkin studio</span><span class="d-note">a browser-based parametric studio, built in hours</span></h5>
+            <div class="d-split d-wide">
+              <div>
+                <div class="d-figs">
+                  <figure class="d-fig" style="--ar:1.681"><a href="gherkin-studio.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/studio.jpg" alt="The Gherkin studio — the model in the middle, every parameter around it" width="1400" height="833" loading="lazy"></a></figure>
+                </div>
+              </div>
+              <div>
+                <div class="d-notes" style="--cols:1">
+                  <div class="d-nb">
+                    <p><b><span class="acc">Hours,</span> not weeks</b></p>
+                    <p>Brief to working parametric studio in a working session — geometry, controls and live 3D view.</p>
+                  </div>
+                  <div class="d-nb">
+                    <p><b><span class="acc">£0</span> licence cost</b></p>
+                    <p>Runs in the browser. No Grasshopper or Dynamo seat, no plugin install, nothing to license.</p>
+                  </div>
+                  <div class="d-nb">
+                    <p><b>Anyone can <span class="acc">drive it</span></b></p>
+                    <p>Sliders and presets, not scripts — engineers and architects iterate without a specialist.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <ul class="d-chips d-up d-stat">
+              <li>Height <b>180 m</b></li>
+              <li><b>24</b> levels</li>
+              <li><b>1,540</b> members</li>
+              <li><b>528</b> connections</li>
+              <li><b>43</b> plates</li>
+            </ul>
+            <h5 class="d-h3"><span>Model hand-off</span><span class="d-note">one click, Revit-native</span></h5>
+            <div class="d-split d-flowside">
+              <div>
+                <div class="d-figs" style="--rowh:380px">
+                  <figure class="d-fig" style="--ar:0.383"><a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/exoskeleton.jpg" alt="Exoskeleton" width="306" height="798" loading="lazy"></a></figure>
+                  <figure class="d-fig" style="--ar:0.398"><a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/plates.jpg" alt="Floor plates, core and light-well wedges" width="318" height="798" loading="lazy"></a></figure>
+                  <figure class="d-fig" style="--ar:0.387"><a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/nodes.jpg" alt="Connection nodes and ring beams" width="309" height="798" loading="lazy"></a></figure>
+                </div>
+              </div>
+              <div>
+                <div class="d-flow v"><span class="d-step">Dashboard</span><span class="d-arrow"><em>csv + json</em></span><span class="d-step">pyRevit</span><span class="d-arrow"><em>place + track</em></span><span class="d-step on">Revit</span></div>
+              </div>
+            </div>
+            <p class="d-cap">Deterministic exports — Revit-ready CSVs with stable tracking IDs, plus OBJ / USD / DXF. The three views above were generated from that same export.</p>
+            <h5 class="d-h3"><span>vs Grasshopper &amp; Dynamo</span><span class="d-note">where the time and money go</span></h5>
+            <div class="d-tblwrap">
+              <table class="d-cmp">
+                <thead>
+                  <tr><td></td><th scope="col" class="acc">Claude Code studio</th><th scope="col">Grasshopper</th><th scope="col">Dynamo</th></tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Build time</th><td class="acc">Hours, in plain English</td><td>Days–weeks of canvas work</td><td>Days–weeks of canvas work</td></tr>
+                  <tr><th scope="row">Training</th><td class="acc">None — sliders &amp; chat</td><td>Specialist skill</td><td>Specialist skill</td></tr>
+                  <tr><th scope="row">Licences</th><td class="acc">£0 — runs in browser</td><td>Rhino seat per user</td><td>Revit seat per user</td></tr>
+                  <tr><th scope="row">Users</th><td class="acc">Anyone on the team</td><td>Script author</td><td>Script author</td></tr>
+                  <tr><th scope="row">Output</th><td class="acc">Tracked IDs, re-import diffs</td><td>Geometry, rebuilt each time</td><td>Geometry, rebuilt each time</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="d-close"><b>The point isn't the tower — it's that <span class="acc">any parametric problem</span> can get a purpose-built tool in <span class="acc">hours</span>, owned by the team that uses it.</b></p>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Concept to as-built</h4>
+            <p class="d-lead">In use on <b>live projects</b> at concept design today — and because every stage reads and writes the <b>same IDs and schema</b>, the workflow extends through <b>detailed design and beyond</b>.</p>
+            <ol class="d-steps">
+              <li class="on"><span class="d-n">1</span><em class="d-riba">RIBA 2</em><b>Concept design</b><i>options explored live, in the meeting</i></li>
+              <li><span class="d-n">2</span><em class="d-riba">RIBA 3</em><b>Spatial coordination</b><i>one click into Revit via pyRevit</i></li>
+              <li><span class="d-n">3</span><em class="d-riba">RIBA 4</em><b>Technical design</b><i>detail extends the same CSV schema</i></li>
+              <li><span class="d-n">4</span><em class="d-riba">RIBA 4–5</em><b>Fabrication</b><i>solid OBJ / USD, CAD-true DXF</i></li>
+              <li><span class="d-n">5</span><em class="d-riba">RIBA 5</em><b>Construction</b><i>re-import diffs against the same IDs</i></li>
+              <li><span class="d-n">6</span><em class="d-riba">RIBA 6</em><b>As-built</b><i>site deltas reconciled to handover</i></li>
+            </ol>
+            <div class="d-status" role="img" aria-label="Stage status: concept design proven on live projects; spatial coordination and technical design have the mechanism working today; fabrication and construction are a straight extension; as-built is the next step"><span class="s-p"></span><span class="s-m"></span><span class="s-m"></span><span class="s-x"></span><span class="s-x"></span><span class="s-n"></span></div>
+            <ul class="d-legend">
+              <li><i class="s-p"></i>Proven — on live projects</li>
+              <li><i class="s-m"></i>Mechanism working today</li>
+              <li><i class="s-x"></i>Straight extension</li>
+              <li><i class="s-n"></i>Next step</li>
+            </ul>
+            <p class="d-cap">the strength today is concept design — every mechanism the later stages need is already running underneath it</p>
+            <h5 class="d-h3"><span>One model, one set of IDs</span><span class="d-note">every stage adds data to the same spine</span></h5>
+            <div class="d-spine" role="img" aria-label="One model, one set of IDs: from the browser to handover, every stage adds data to the same spine — settings JSON, pyRevit placement, Revit-ready CSVs, re-import diff, OBJ / USD / DXF and the handover record"><i class="sp-line"></i><b class="sp-a">Browser</b><span class="sp-t1">Settings JSON</span><span class="sp-b1">pyRevit placement</span><span class="sp-t2">Revit-ready CSVs</span><span class="sp-b2">Re-import diff</span><span class="sp-t3">OBJ / USD / DXF</span><span class="sp-b3">Handover record</span><b class="sp-z">Handover</b></div>
+            <p class="d-cap">stable tracking IDs, end to end — the concept model is already the delivery model</p>
+            <h5 class="d-h3"><span>Proven today — concept design, on live projects</span></h5>
+            <div class="d-notes" style="--cols:1">
+              <div class="d-nb">
+                <p><b>Not a demo — this workflow runs on <span class="acc">live projects</span> today.</b></p>
+                <p>Project setup is already faster because of it: geometry briefed and iterated in the meeting, placed into Revit the same day, with every element carrying a stable ID from its first appearance. Nothing shown here is speculative — the later stages reuse mechanisms that are already in production.</p>
+              </div>
+            </div>
+            <h5 class="d-h3"><span>Why it extends</span><span class="d-note">the route forward is engineering, not research</span></h5>
+            <div class="d-notes" style="--cols:2">
+              <div class="d-nb">
+                <p><b><span class="acc">Revit-native</span> placement</b></p>
+                <p>pyRevit consumes the CSVs directly — no translation layer, no re-modelling, native families.</p>
+              </div>
+              <div class="d-nb">
+                <p><b><span class="acc">Schema,</span> not rebuild</b></p>
+                <p>Detail design extends columns on the same rows; downstream tools keep reading without rework.</p>
+              </div>
+              <div class="d-nb">
+                <p><b><span class="acc">Change control</span> built in</b></p>
+                <p>Re-import diffs against the same IDs: what moved, what's new, what's gone — reviewable per element.</p>
+              </div>
+              <div class="d-nb">
+                <p><b><span class="acc">ISO 19650-shaped</span> record</b></p>
+                <p>Versioned settings + exports form a natural audit trail from first option to handover deliverable.</p>
+              </div>
+            </div>
+            <p class="d-close"><b>Days → <span class="acc">Hours</span> to a working studio · Days → <span class="acc">Minutes</span> per design change · <span class="acc">£0</span> licence cost · <span class="acc">1 click</span> to Revit</b></p>
+            <p class="d-cap">the workflow is already live where it matters most — everything after concept is the same mechanism, pointed further down the programme</p>
+          </section>
+        </article>
+      </div>
+      <div class="iv-panel" role="tabpanel" id="iv-tpb-pf" aria-labelledby="iv-tpb-pf-tab" hidden>
+        <article class="doc" aria-label="Portfolio: Fadil Karim">
+          <header class="d-head">
+            <div>
+              <h3 class="d-name">FADIL KARIM</h3>
+              <p class="d-role">Portfolio — Design Systems Analyst, Specialist Modelling Group</p>
+            </div>
+            <ul class="d-contacts">
+              <li><a href="mailto:fadilkarim@live.co.uk">fadilkarim@live.co.uk</a></li>
+              <li><a href="/">basilicalabs.ai</a></li>
+              <li><a href="https://github.com/OttomanLabsAI" target="_blank" rel="noopener">github.com/OttomanLabsAI</a></li>
+              <li><a href="https://uk.linkedin.com/in/fadil-karim" target="_blank" rel="noopener">uk.linkedin.com/in/fadil-karim</a></li>
+            </ul>
+          </header>
+          <section class="d-sec">
+            <h4 class="d-h2">Selected work</h4>
+            <p class="d-lead">I build the <b>control systems that drive geometry</b> — a profile curve, a routing rule, a site boundary — and carry them through <b>Revit, drawings and site</b>, so the teams who use them can run them without me. Thirteen years across architecture, structures, civil and MEP, from AECOM, Arcadis, Buro Happold and GHD to Amazon and a hyperscale data-centre programme. Everything here is live at <b><a href="index.html">basilicalabs.ai</a></b>, built with Claude Code as the implementation engine under my specification and review.</p>
+            <h5 class="d-h3"><span>The Gherkin — a parametric study of 30 St Mary Axe</span><span class="d-note">one profile curve drives the whole tower</span></h5>
+            <div class="d-figs">
+              <figure class="d-fig" style="--ar:1.681">
+                <a href="gherkin-studio.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/studio.jpg" alt="The studio — the model in the middle, every parameter around it. Members, nodes and plates regenerate as the profile, levels and diagrid change." width="1400" height="833" loading="lazy"></a>
+                <figcaption>The studio — the model in the middle, every parameter around it. Members, nodes and plates regenerate as the profile, levels and diagrid change.</figcaption>
+              </figure>
+            </div>
+            <ol class="d-steps">
+              <li><span class="d-n">1</span><b>Profile</b><i>clamped B-spline, drawn in elevation</i></li>
+              <li><span class="d-n">2</span><b>Levels</b><i>sliced at level height, with top and bottom offsets</i></li>
+              <li><span class="d-n">3</span><b>Rings</b><i>22 nodes per level, radius read off the profile</i></li>
+              <li><span class="d-n">4</span><b>Diagrid</b><i>braces cross to the next ring; ring beams close each one</i></li>
+              <li><span class="d-n">5</span><b>Plates</b><i>floors inside the shell, with a core and twisting wedges</i></li>
+              <li class="on"><span class="d-n">6</span><b>Hand-off</b><i>stable IDs to Revit; OBJ, USD and DXF out</i></li>
+            </ol>
+            <div class="d-figs mwrap">
+              <figure class="d-fig" style="--mf:0.5023;--mg:0.5023;--ar:1.000">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/profile.jpg" alt="Profile — drag the spline&#x27;s control points" width="336" height="336" loading="lazy"></a>
+                <figcaption>Profile — drag the spline's control points</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:0.4977;--mg:0.4977;--ar:0.991">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/polar.jpg" alt="Polar — nodes around each ring" width="333" height="336" loading="lazy"></a>
+                <figcaption>Polar — nodes around each ring</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:0.7086;--mg:0.7086;--ar:0.992">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/plan.jpg" alt="Plan — framing, top-down" width="372" height="375" loading="lazy"></a>
+                <figcaption>Plan — framing, top-down</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:0.2914;--mg:0.2914;--ar:0.408">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/elevation.jpg" alt="Elevation — framing, side-on" width="153" height="375" loading="lazy"></a>
+                <figcaption>Elevation — framing, side-on</figcaption>
+              </figure>
+            </div>
+            <ul class="d-chips d-up">
+              <li>Height 180 m</li>
+              <li>24 levels</li>
+              <li>22 nodes per ring</li>
+              <li>1,540 members</li>
+              <li>528 nodes</li>
+              <li>24 plates</li>
+            </ul>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">The Gherkin — from model to Revit and sheets</h4>
+            <p class="d-lead">The same model writes everything downstream: <b>Revit-ready data with stable IDs</b>, schedules and A4 sheets, and OBJ / USD / DXF for everyone else. <b>pyGherkin</b>, a pyRevit add-in, rebuilds it as native Revit elements — levels, floor slabs, diagrid framing, connection nodes — and updates them in place when the design changes.</p>
+            <div class="d-figs mwrap" style="--rowh:400px">
+              <figure class="d-fig" style="--mf:0.3279;--mg:0.6558;--ar:0.383">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/exoskeleton.jpg" alt="Exoskeleton" width="306" height="798" loading="lazy"></a>
+                <figcaption>Exoskeleton</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:0.3408;--mg:0.6815;--ar:0.398">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/plates.jpg" alt="Floor plates, core and light-well wedges" width="318" height="798" loading="lazy"></a>
+                <figcaption>Floor plates, core and light-well wedges</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:0.3313;--mg:0.6627;--ar:0.387">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/nodes.jpg" alt="Connection nodes and ring beams" width="309" height="798" loading="lazy"></a>
+                <figcaption>Connection nodes and ring beams</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:1.0000;--mg:0.0000;--ar:0.706">
+                <a href="gherkin.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/sheet.jpg" alt="A4 sheet drawn from the same model" width="519" height="735" loading="lazy"></a>
+                <figcaption>A4 sheet drawn from the same model</figcaption>
+              </figure>
+            </div>
+            <div class="d-flow"><span class="d-step">Studio</span><span class="d-arrow"></span><span class="d-step">CSV + JSON, stable IDs</span><span class="d-arrow"></span><span class="d-step">pyGherkin places and tracks</span><span class="d-arrow"></span><span class="d-step on">Revit</span></div>
+            <p><b>Weeks to hours.</b> A modelling cycle of about four weeks became a 3–4 hour build, and a design change now reaches the Revit model in about ten minutes. Re-running against a changed export updates elements by their IDs instead of duplicating them.</p>
+            <ul class="d-chips d-up">
+              <li>Stable IDs</li>
+              <li>Re-import updates in place</li>
+              <li>Schedules and A4 sheets</li>
+              <li>OBJ / USD / DXF</li>
+            </ul>
+            <div class="d-notes" style="--cols:2">
+              <div class="d-nb">
+                <p><b>Not Gherkin-specific.</b> The generator drives any revolved profile with a diagrid; 30 St Mary Axe is one preset of it.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Grasshopper first.</b> First authored in Grasshopper for Revit, then rebuilt as a browser studio so anyone on a team can drive it with sliders and presets.</p>
+              </div>
+            </div>
+            <h5 class="d-h3"><span>Dymak HQ, Odense — a second study</span><span class="d-note">spiralling roof, central court, column and beam frame</span></h5>
+            <div class="d-figs mwrap">
+              <figure class="d-fig" style="--mf:1.0000;--mg:0.0000;--ar:1.000">
+                <a href="dymak.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/dymak-plan.jpg" alt="Plan — roof, court and column rings" width="513" height="513" loading="lazy"></a>
+                <figcaption>Plan — roof, court and column rings</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:1.0000;--mg:0.0000;--ar:1.789">
+                <a href="dymak.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/dymak-3d.jpg" alt="The frame in 3D" width="918" height="513" loading="lazy"></a>
+                <figcaption>The frame in 3D</figcaption>
+              </figure>
+            </div>
+            <div class="d-notes" style="--cols:2">
+              <div class="d-nb">
+                <p><b>A handful of inputs drive the frame</b> — roof radius, the court's size and its offset from the centre, columns per ring and secondary beams.</p>
+              </div>
+              <div class="d-nb">
+                <p>One JSON carries the model and its column and beam data to the <b>pyDymak</b> add-in; OBJ, USD and DXF write the frame as a 3D model in metres, Z-up. The build is written up as a <b><a href="dymak-tutorial.html">prompt-by-prompt tutorial</a></b>.</p>
+              </div>
+            </div>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Site and infrastructure geometry</h4>
+            <p class="d-lead">The same approach on the ground: terrain that goes straight into <b>Civil 3D and Revit</b>, and conduit routing that only ever draws <b>buildable geometry</b>.</p>
+            <h5 class="d-h3"><span>TopoForge — terrain from a site boundary</span><span class="d-note">spline extents, TIN, sculpt, export</span></h5>
+            <div class="d-figs">
+              <figure class="d-fig" style="--ar:1.149">
+                <a href="topoforge.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/topo-sculpt.jpg" alt="3D sculpt — pull, push, smooth and flatten with a brush" width="765" height="666" loading="lazy"></a>
+                <figcaption>3D sculpt — pull, push, smooth and flatten with a brush</figcaption>
+              </figure>
+              <figure class="d-fig" style="--ar:1.170">
+                <a href="topoforge.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/topo-wire.jpg" alt="Live wireframe, contoured at 0.5 m" width="765" height="654" loading="lazy"></a>
+                <figcaption>Live wireframe, contoured at 0.5 m</figcaption>
+              </figure>
+            </div>
+            <p>Draw the site boundary as a closed B-spline and TopoForge triangulates a TIN inside it, lets you sculpt it and contours it live. It exports the exact triangulation as a <b>LandXML 1.2 TIN</b> for Civil 3D, a 3DFACE DXF, CSV point clouds, OBJ and USD — and <b>pyTopography</b> brings it into Revit as a Toposolid.</p>
+            <ul class="d-chips d-up">
+              <li>LandXML 1.2 TIN</li>
+              <li>DXF 3DFACE</li>
+              <li>CSV / OBJ / USD</li>
+              <li>Revit Toposolid</li>
+            </ul>
+            <h5 class="d-h3"><span>DataCentreForge — conduit routing between chambers</span><a class="d-note" href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener">dcforge.basilicalabs.ai</a></h5>
+            <div class="d-figs mwrap">
+              <figure class="d-fig" style="--mf:1.0000;--mg:0.0000;--ar:2.580">
+                <a href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/dcf-plan.jpg" alt="Plan — runs routed face to face, around an obstacle" width="921" height="357" loading="lazy"></a>
+                <figcaption>Plan — runs routed face to face, around an obstacle</figcaption>
+              </figure>
+              <figure class="d-fig" style="--mf:1.0000;--mg:0.0000;--ar:1.569">
+                <a href="https://dcforge.basilicalabs.ai/" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/dcf-3d.jpg" alt="3D — chambers, obstacle and conduit runs" width="612" height="390" loading="lazy"></a>
+                <figcaption>3D — chambers, obstacle and conduit runs</figcaption>
+              </figure>
+            </div>
+            <div class="d-notes" style="--cols:2">
+              <div class="d-nb">
+                <p><b>Standard fittings first.</b> Runs bend only through the permitted fittings, with minimum straights between them. Where chambers sit at an angle no standard set can make, the run gets one custom bend sized to what is left — a chamber turned 32.9° gets a single 32.9° fitting.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Banks keep their order.</b> Runs sharing a chamber face hold their order and pitch on one grid; each bank's array is set on a picture of its section — 3 over 2, or 8, 8 and 8 — and drawn at true scale in elevation and 3D.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Obstacles in three dimensions.</b> Every obstacle has a top and a bottom; runs pass over, under or around it with clearance, and encased banks keep their neighbours clear of the encasement.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Live models in, IDs kept.</b> Reads Revit exports and IFC 2x3 — one site model brought in 105 manholes and 87 conduit banks — keyed on Revit element IDs, so a later export refreshes the drawing in place.</p>
+              </div>
+            </div>
+          </section>
+          <section class="d-sec">
+            <h4 class="d-h2">Tools in daily use</h4>
+            <p class="d-lead">A tool only counts if people keep using it. <b>pyMEP</b> has been in daily use on a live hyperscale data-centre programme since March 2026, <b>VisualNeuroscience.AI</b> is live on the App Store, and the methods behind all of it are published as tutorials and a hands-on playground.</p>
+            <h5 class="d-h3"><span>pyMEP — Revit automation for civil and MEP</span><a class="d-note" href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener">github.com/OttomanLabsAI/pyMEP</a></h5>
+            <div class="d-figs">
+              <figure class="d-fig" style="--ar:5.283">
+                <a href="https://github.com/OttomanLabsAI/pyMEP" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/pymep-ribbon.jpg" alt="The pyMEP ribbon, 14 panels: Setup, Civil 3D conversion, Modelling, Networks, Fencing, Topography, Chambers, Parameters, Annotate, Data transfer, Pipe networks, Electrical, Manhole plan, COBie" width="1400" height="265" loading="lazy"></a>
+                <figcaption>The pyMEP ribbon — 14 panels, from Civil 3D conversion and fencing to chambers, annotation and COBie.</figcaption>
+              </figure>
+            </div>
+            <div class="d-notes" style="--cols:2">
+              <div class="d-nb">
+                <p><b>Embedded with the engineers who use it.</b> 44 commands for Revit 2022–2026 covering drainage, conduits, fencing, chambers, topography and annotation, used across several offices and updated from a button on the ribbon.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Civil 3D to Revit in minutes.</b> Reads the LandXML, reconciles survey-grid and Revit coordinates — a site datum counted twice, a rotation the API reported wrongly and measured with a probe point instead — then places every pipe and manhole as native elements, where the team used to trace hundreds by hand.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Fencing and terrain.</b> Fence runs drape to the topography, with panel spacing solved along each run and marks numbered automatically; floors and structures align to the Toposolid.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Chambers to sheets.</b> Chamber plans, sections and sheet sets generated from the model; parallel pipes, conduits and ducts annotated as banks in one click; COBie populated and checked.</p>
+              </div>
+              <div class="d-nb">
+                <p><b>Built to be trusted.</b> 431 automated tests run without Revit on the machine, and every push to main is a tagged release that reaches the team through the self-updater.</p>
+              </div>
+            </div>
+            <ul class="d-chips d-up">
+              <li>44 commands</li>
+              <li>14 panels</li>
+              <li>Revit 2022–2026</li>
+              <li>431 tests</li>
+              <li>Self-updating</li>
+            </ul>
+            <h5 class="d-h3"><span>VisualNeuroscience.AI — visualisation at scale</span><a class="d-note" href="https://visualneuroscience.ai/" target="_blank" rel="noopener">visualneuroscience.ai</a></h5>
+            <div class="d-split">
+              <div>
+                <div class="d-figs">
+                  <figure class="d-fig" style="--ar:1.335">
+                    <a href="https://visualneuroscience.ai/" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/vns-tracts.jpg" alt="Tractography — HCP1065 population average, direction-coloured streamlines" width="717" height="537" loading="lazy"></a>
+                    <figcaption>Tractography — HCP1065 population average, direction-coloured streamlines</figcaption>
+                  </figure>
+                </div>
+              </div>
+              <div>
+                <div class="d-notes" style="--cols:1">
+                  <div class="d-nb">
+                    <p><b>Real MRI data in WebGL2.</b> A region atlas in four synchronised planar and 3D viewports, ~1M-streamline tractography and a voxel-measured 3D border graph, rendered in the browser with NiiVue.</p>
+                  </div>
+                  <div class="d-nb">
+                    <p><b>One codebase, six platforms.</b> Web, offline PWA, iOS / iPadOS, Mac, Android and Apple Vision Pro, shipped over 20+ releases and live on the Apple App Store since September 2026, with every release checked in headless Playwright before it ships.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h5 class="d-h3"><span>Teaching the method</span><span class="d-note">tutorials, a playground and a course site</span></h5>
+            <div class="d-split">
+              <div>
+                <div class="d-figs">
+                  <figure class="d-fig" style="--ar:1.594">
+                    <a href="playground.html" target="_blank" rel="noopener"><img src="assets/interviews/portfolio/playground.jpg" alt="The Computational AI Playground at basilicalabs.ai" width="636" height="399" loading="lazy"></a>
+                    <figcaption>The Computational AI Playground at basilicalabs.ai</figcaption>
+                  </figure>
+                </div>
+              </div>
+              <div>
+                <div class="d-notes" style="--cols:1">
+                  <div class="d-nb">
+                    <p><b>A playground, not a manual.</b> 2D line types, 3D solids built from profiles and paths, graphs and input widgets — every box can be taken away as a working HTML file, or as a prompt your own AI can rebuild it from.</p>
+                  </div>
+                  <div class="d-nb">
+                    <p><b>Every build is reproducible.</b> Builds are written up as prompt-by-prompt tutorials; <b><a href="https://pocketuniversity.ai/" target="_blank" rel="noopener">pocketuniversity.ai</a></b> teaches applied AI; <b><a href="https://www.youtube.com/@OttomanLabsAI" target="_blank" rel="noopener">@OttomanLabsAI</a></b> on YouTube covers Revit, Grasshopper and AI.</p>
+                  </div>
+                  <div class="d-nb">
+                    <p><b>How it is built.</b> Claude Code implements under my specification and review, and every DataCentreForge release commits the prompt that produced it, the reply that shipped it and the model that wrote it.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </article>
+      </div>
     </div>
   </div>
 
