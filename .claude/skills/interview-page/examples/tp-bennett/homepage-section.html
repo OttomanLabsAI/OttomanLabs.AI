@@ -1,0 +1,21 @@
+<!-- Homepage (index.html): the Interviews section, last thing inside <main>, after Clients. -->
+<!-- CSS, appended to index.html's own <style> block: -->
+<style>
+  /* ── interviews: a logo box that opens the page ── */
+  .a-iv{ min-height:190px; justify-content:center; }
+  .iv-mark{ display:block; width:82%; height:auto; }
+  [data-theme="dark"] .iv-mark{ filter:invert(1); }
+</style>
+
+<!-- Markup: -->
+  <!-- ════════ INTERVIEWS ════════ -->
+  <h2 class="section-head">Interviews</h2>
+  <div class="rail-wrap">
+    <button class="rarrow prev" aria-label="Scroll left">&#8249;</button>
+    <div class="rail">
+    <a class="box a-iv" href="interviews.html" aria-label="TP Bennett interview">
+      <img class="iv-mark" src="assets/interviews/tp-bennett.png" alt="TP Bennett" width="1200" height="133">
+    </a>
+    </div>
+    <button class="rarrow next" aria-label="Scroll right">&#8250;</button>
+  </div>
